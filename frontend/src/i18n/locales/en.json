@@ -1,0 +1,140 @@
+{
+  "common": {
+    "appTitle": "Word Chain",
+    "yourName": "Your name",
+    "close": "close",
+    "pts": "pts"
+  },
+  "home": {
+    "languageLabel": "Language",
+    "daily": {
+      "heading": "Daily challenge",
+      "hint": "One chain a day, the same for everyone. No time limit per turn.",
+      "countdown": "Next challenge in {value}",
+      "submit": "Play today's challenge"
+    },
+    "createRoom": {
+      "heading": "Create room",
+      "hint": "You'll be able to adjust the turn time, vote time, and maximum number of turns once inside the room.",
+      "submit": "Create room"
+    },
+    "joinRoom": {
+      "heading": "Join room",
+      "codeLabel": "Room code",
+      "submit": "Join"
+    }
+  },
+  "room": {
+    "pageTitle": "Room",
+    "title": "Room {code}",
+    "backToHome": "Back to home",
+    "connecting": "Connecting...",
+    "joinPrompt": {
+      "heading": "Join room {code}",
+      "submit": "Join"
+    },
+    "players": {
+      "heading": "Players",
+      "capacity": "{count}/{max} players",
+      "host": "(host)",
+      "disconnected": "(disconnected)"
+    },
+    "lobby": {
+      "shareCodeLabel": "Share this code with the rest of the players:",
+      "rulesHeading": "Game rules",
+      "wordTimeLabel": "Seconds per turn",
+      "voteTimeLabel": "Seconds to vote for the infiltrator",
+      "languageLabel": "Room language",
+      "infiltratorCountLabel": "Number of impostors",
+      "infiltratorCountHint": "Max {max} with the current players (a third of the total). 0 means a cooperative game with no impostor.",
+      "phaseCountLabel": "Number of phases",
+      "phaseCountHint": "Every phase is computed when the game starts. Once a phase is completed, the next one starts from the target word it just reached.",
+      "wordTimeReadonly": "Seconds per turn: {value}",
+      "voteTimeReadonly": "Seconds to vote: {value}",
+      "languageReadonly": "Language: {value}",
+      "infiltratorCountReadonly": "Impostors: {value}",
+      "phaseCountReadonly": "Phases: {value}",
+      "startButton": "Start game",
+      "waitingForHost": "Waiting for the host to start the game..."
+    },
+    "chain": {
+      "infiltratorCountLabel": "Number of infiltrators:",
+      "phaseProgress": "Phase {current} of {total}",
+      "phaseLabel": "Phase {number}:",
+      "startWordLabel": "Starting word:",
+      "yourTargetLabel": "Your target word:",
+      "timedOut": "ran out of time, turn skipped",
+      "relatedPercent": "({value}% related)",
+      "targetReached": "(target reached!)",
+      "noAttempts": "No word has been played yet.",
+      "turnOfLabel": "Turn:",
+      "secondsRemaining": "({value}s)",
+      "noTimeLimit": "No time limit — take your time.",
+      "relateHint": "Relate the word {word} to reach {target}.",
+      "inputPlaceholder": "Type a related word...",
+      "submit": "Submit"
+    },
+    "voting": {
+      "prompt": "Who do you think is the infiltrator? You can change your vote while this phase lasts.",
+      "suspects": "Suspected by: {names}"
+    },
+    "reveal": {
+      "infiltratorWordGuessed": "Someone said the infiltrator's secret word! The whole group loses.",
+      "infiltratorsWereLabel": "The infiltrator was: | The infiltrators were:",
+      "secretTarget": "(secret target: {word})",
+      "mostVotedLabel": "Most voted:",
+      "noSingleMostVoted": "There wasn't a single most-voted player (tie).",
+      "crewWon": "The crew got it right!",
+      "infiltratorEscaped": "The infiltrator got away.",
+      "votingResultsHeading": "Voting results",
+      "nobodyVoted": "Nobody voted.",
+      "cooperativeSuccess": "You completed the chain together!",
+      "wordChainHeading": "Full word chain",
+      "averageAccuracy": "Average accuracy: {value}%",
+      "wordsForPhase": "Phase {phase}: {count} words",
+      "playAgain": "Play again",
+      "waitingPlayAgain": "Waiting for the host to decide whether to play again..."
+    },
+    "closed": {
+      "heading": "The host left the room",
+      "text": "The game has ended. Returning to home...",
+      "backNow": "Back to home now"
+    }
+  },
+  "debug": {
+    "back": "Back to home",
+    "wordRelation": {
+      "heading": "Word relation (debug)",
+      "wordALabel": "Word A",
+      "wordBLabel": "Word B",
+      "languageLabel": "Language",
+      "submit": "Calculate relation",
+      "justificationLabel": "Justification"
+    }
+  },
+  "errors": {
+    "GENERIC": "Something went wrong. Please try again.",
+    "VALIDATION_ERROR": "The data you entered isn't valid.",
+    "NOT_HOST": "Only the host can do this.",
+    "DUPLICATE_PLAYER_NAME": "That name is already taken in this room.",
+    "ROOM_NOT_FOUND": "No room was found with that code.",
+    "ROOM_NOT_JOINABLE": "This room is no longer accepting new players.",
+    "INVALID_PLAYER_NAME": "Invalid player name.",
+    "PLAYER_NOT_FOUND": "Player not found.",
+    "NOT_ENOUGH_PLAYERS": "At least {minimumPlayers} players are needed to start.",
+    "ROOM_NOT_IN_PROGRESS": "The game is not in progress.",
+    "WRONG_PHASE": "This action isn't available in the current phase.",
+    "SELF_VOTE_NOT_ALLOWED": "You can't vote for yourself.",
+    "ROOM_NOT_FINISHED": "The game hasn't finished yet.",
+    "ROOM_NOT_IN_LOBBY": "The room is no longer in the lobby.",
+    "NOT_YOUR_TURN": "It's not your turn.",
+    "ROUND_NOT_STARTED": "No round has started yet.",
+    "UNAUTHENTICATED_SESSION": "Your session isn't valid. Rejoin the room.",
+    "ROOM_FULL": "This room already has the maximum of 10 players.",
+    "INVALID_INFILTRATOR_COUNT": "You can't have {requested} impostors with this many players (max {maxAllowed})."
+  },
+  "languages": {
+    "ENGLISH": "English",
+    "SPANISH": "Spanish"
+  }
+}

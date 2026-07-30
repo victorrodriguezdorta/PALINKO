@@ -1,21 +1,34 @@
 import { Client, type IMessage } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
-import type { RoomIdentity, RoomSnapshot } from '@/types/game'
+import type { ApiError, GameLanguage, RoomIdentity, RoomSnapshot, TypingBroadcast } from '@/types/game'
 
 type SnapshotHandler = (snapshot: RoomSnapshot) => void
-type ErrorHandler = (message: string) => void
+type ErrorHandler = (error: ApiError) => void
+type TypingHandler = (typing: TypingBroadcast) => void
+
+const TYPING_THROTTLE_MS = 150
 
 /**
  * Thin wrapper around @stomp/stompjs + sockjs-client matching the protocol
  * the backend expects: identity travels once as CONNECT headers (not
- * repeated per message), the room's full snapshot is pushed to
- * /topic/rooms/{code} on every change, and per-player domain errors (e.g.
- * voting for your own answer) arrive only on /user/queue/errors.
+ * repeated per message); each player's own personalized snapshot (their
+ * target word can secretly differ from everyone else's) is pushed to their
+ * private /user/queue/room-updates on every change; the ephemeral live-typing
+ * preview is a separate shared /topic/rooms/{code}/typing with no secret
+ * data; and per-player domain errors (e.g. voting for yourself) arrive only
+ * on /user/queue/errors.
  */
 export class GameSocket {
   private client: Client | null = null
+  private lastTypingSentAt = 0
+  private pendingTypingTimeout: ReturnType<typeof setTimeout> | null = null
 
-  connect(identity: RoomIdentity, onSnapshot: SnapshotHandler, onError: ErrorHandler): void {
+  connect(
+    identity: RoomIdentity,
+    onSnapshot: SnapshotHandler,
+    onError: ErrorHandler,
+    onTyping: TypingHandler,
+  ): void {
     this.disconnect()
 
     const client = new Client({
@@ -30,17 +43,19 @@ export class GameSocket {
     })
 
     client.onConnect = () => {
-      client.subscribe(`/topic/rooms/${identity.roomCode}`, (message: IMessage) => {
+      client.subscribe('/user/queue/room-updates', (message: IMessage) => {
         onSnapshot(JSON.parse(message.body) as RoomSnapshot)
       })
       client.subscribe('/user/queue/errors', (message: IMessage) => {
-        const body = JSON.parse(message.body) as { message: string }
-        onError(body.message)
+        onError(JSON.parse(message.body) as ApiError)
+      })
+      client.subscribe(`/topic/rooms/${identity.roomCode}/typing`, (message: IMessage) => {
+        onTyping(JSON.parse(message.body) as TypingBroadcast)
       })
     }
 
     client.onStompError = (frame) => {
-      onError(frame.body || frame.headers['message'] || 'Error de conexión con la sala')
+      onError({ code: 'GENERIC', message: frame.body || frame.headers['message'] || 'STOMP connection error', args: {} })
     }
 
     this.client = client
@@ -48,6 +63,10 @@ export class GameSocket {
   }
 
   disconnect(): void {
+    if (this.pendingTypingTimeout) {
+      clearTimeout(this.pendingTypingTimeout)
+      this.pendingTypingTimeout = null
+    }
     this.client?.deactivate()
     this.client = null
   }
@@ -56,20 +75,12 @@ export class GameSocket {
     this.publish(`/app/rooms/${roomCode}/start`, {})
   }
 
-  submitAnswer(roomCode: string, answerText: string): void {
-    this.publish(`/app/rooms/${roomCode}/answer`, { answerText })
+  submitWord(roomCode: string, wordText: string): void {
+    this.publish(`/app/rooms/${roomCode}/word`, { wordText })
   }
 
-  cancelAnswer(roomCode: string): void {
-    this.publish(`/app/rooms/${roomCode}/cancel-answer`, {})
-  }
-
-  submitVote(roomCode: string, votedAnswerId: string): void {
-    this.publish(`/app/rooms/${roomCode}/vote`, { votedAnswerId })
-  }
-
-  nextRound(roomCode: string): void {
-    this.publish(`/app/rooms/${roomCode}/next-round`, {})
+  submitVote(roomCode: string, suspectPlayerId: string): void {
+    this.publish(`/app/rooms/${roomCode}/vote`, { suspectPlayerId })
   }
 
   playAgain(roomCode: string): void {
@@ -78,15 +89,44 @@ export class GameSocket {
 
   updateSettings(
     roomCode: string,
-    totalRounds: number,
-    answerTimeSeconds: number,
+    wordTimeSeconds: number,
     voteTimeSeconds: number,
+    language: GameLanguage,
+    infiltratorCount: number,
+    phaseCount: number,
   ): void {
     this.publish(`/app/rooms/${roomCode}/update-settings`, {
-      totalRounds,
-      answerTimeSeconds,
+      wordTimeSeconds,
       voteTimeSeconds,
+      language,
+      infiltratorCount,
+      phaseCount,
     })
+  }
+
+  /**
+   * Throttled so every keystroke doesn't open a network round-trip: sends
+   * immediately if enough time has passed since the last send, otherwise
+   * schedules a single trailing send (replacing any already pending) with
+   * whatever text is current once the throttle window elapses.
+   */
+  sendTyping(roomCode: string, text: string): void {
+    const now = Date.now()
+    if (this.pendingTypingTimeout) {
+      clearTimeout(this.pendingTypingTimeout)
+      this.pendingTypingTimeout = null
+    }
+    const elapsed = now - this.lastTypingSentAt
+    if (elapsed >= TYPING_THROTTLE_MS) {
+      this.lastTypingSentAt = now
+      this.publish(`/app/rooms/${roomCode}/typing`, { text })
+    } else {
+      this.pendingTypingTimeout = setTimeout(() => {
+        this.lastTypingSentAt = Date.now()
+        this.pendingTypingTimeout = null
+        this.publish(`/app/rooms/${roomCode}/typing`, { text })
+      }, TYPING_THROTTLE_MS - elapsed)
+    }
   }
 
   private publish(destination: string, body: unknown): void {

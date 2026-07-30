@@ -1,4 +1,4 @@
 package com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.stomp.dto;
 
-public record SubmitVoteMessage(String votedAnswerId) {
+public record SubmitVoteMessage(String suspectPlayerId) {
 }

@@ -1,8 +1,7 @@
 package com.kawser.cleanspringbootproject.game.domain.model;
 
 public enum RoundPhase {
-    SHOWING_QUESTION,
-    ANSWERING,
+    WORD_CHAIN,
     VOTING,
     REVEAL
 }

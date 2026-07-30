@@ -1,11 +1,11 @@
 package com.kawser.cleanspringbootproject.game.infrastructure.config;
 
-import com.kawser.cleanspringbootproject.game.application.port.out.AiAnswerGenerator;
+import com.kawser.cleanspringbootproject.game.application.port.out.ChainWordBank;
 import com.kawser.cleanspringbootproject.game.application.port.out.PhaseScheduler;
-import com.kawser.cleanspringbootproject.game.application.port.out.QuestionBank;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomCodeGenerator;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomNotifier;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomRepository;
+import com.kawser.cleanspringbootproject.game.application.port.out.WordRelationChecker;
 import com.kawser.cleanspringbootproject.game.application.service.GameApplicationService;
 import com.kawser.cleanspringbootproject.game.domain.service.DefaultScoringPolicy;
 import com.kawser.cleanspringbootproject.game.domain.service.ScoringPolicy;
@@ -30,13 +30,13 @@ public class GameApplicationConfig {
     public GameApplicationService gameApplicationService(
             RoomRepository roomRepository,
             RoomNotifier roomNotifier,
-            AiAnswerGenerator aiAnswerGenerator,
-            QuestionBank questionBank,
+            WordRelationChecker wordRelationChecker,
+            ChainWordBank chainWordBank,
             RoomCodeGenerator roomCodeGenerator,
             PhaseScheduler phaseScheduler,
             ScoringPolicy scoringPolicy) {
         return new GameApplicationService(
-                roomRepository, roomNotifier, aiAnswerGenerator, questionBank,
+                roomRepository, roomNotifier, wordRelationChecker, chainWordBank,
                 roomCodeGenerator, phaseScheduler, scoringPolicy);
     }
 }

@@ -1,13 +1,17 @@
 package com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.rest.dto;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import com.kawser.cleanspringbootproject.game.domain.model.GameLanguage;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
+/**
+ * Room rules (turn/vote timers, max turns) are intentionally not settable
+ * here — they can only be changed by the host from inside the LOBBY (see
+ * UpdateRoomSettingsUseCase), so a room is always created with
+ * RoomSettings.defaults(language) and the create step only has to expose
+ * the host's own chosen language.
+ */
 public record CreateRoomRequest(
         @NotBlank(message = "hostName cannot be blank") String hostName,
-        @Min(value = 1, message = "totalRounds must be at least 1")
-        @Max(value = 50, message = "totalRounds must be at most 50") int totalRounds,
-        @Min(value = 5, message = "answerTimeSeconds must be at least 5") int answerTimeSeconds,
-        @Min(value = 5, message = "voteTimeSeconds must be at least 5") int voteTimeSeconds) {
+        @NotNull(message = "language is required") GameLanguage language) {
 }

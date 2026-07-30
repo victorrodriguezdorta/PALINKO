@@ -1,16 +1,17 @@
 package com.kawser.cleanspringbootproject.game.domain.model;
 
 /**
- * A single player's guess at which Answer.id belongs to the AI.
+ * A single player's accusation of which player they believe is the
+ * infiltrator.
  */
-public record Vote(String voterPlayerId, String answerId) {
+public record Vote(String voterPlayerId, String suspectPlayerId) {
 
     public Vote {
         if (voterPlayerId == null || voterPlayerId.isBlank()) {
             throw new IllegalArgumentException("voterPlayerId must not be blank");
         }
-        if (answerId == null || answerId.isBlank()) {
-            throw new IllegalArgumentException("answerId must not be blank");
+        if (suspectPlayerId == null || suspectPlayerId.isBlank()) {
+            throw new IllegalArgumentException("suspectPlayerId must not be blank");
         }
     }
 }

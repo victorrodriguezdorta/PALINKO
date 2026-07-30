@@ -1,0 +1,140 @@
+{
+  "common": {
+    "appTitle": "Cadena de palabras",
+    "yourName": "Tu nombre",
+    "close": "cerrar",
+    "pts": "pts"
+  },
+  "home": {
+    "languageLabel": "Idioma",
+    "daily": {
+      "heading": "Reto diario",
+      "hint": "Una cadena al día, igual para todos. Sin límite de tiempo por turno.",
+      "countdown": "Próximo reto en {value}",
+      "submit": "Jugar el reto de hoy"
+    },
+    "createRoom": {
+      "heading": "Crear sala",
+      "hint": "Podrás ajustar el tiempo por turno, el tiempo de votación y el número máximo de turnos una vez dentro de la sala.",
+      "submit": "Crear sala"
+    },
+    "joinRoom": {
+      "heading": "Unirse a sala",
+      "codeLabel": "Código de sala",
+      "submit": "Unirse"
+    }
+  },
+  "room": {
+    "pageTitle": "Sala",
+    "title": "Sala {code}",
+    "backToHome": "Volver al inicio",
+    "connecting": "Conectando...",
+    "joinPrompt": {
+      "heading": "Unirte a la sala {code}",
+      "submit": "Entrar"
+    },
+    "players": {
+      "heading": "Jugadores",
+      "capacity": "{count}/{max} jugadores",
+      "host": "(host)",
+      "disconnected": "(desconectado)"
+    },
+    "lobby": {
+      "shareCodeLabel": "Comparte este código con el resto de jugadores:",
+      "rulesHeading": "Reglas de la partida",
+      "wordTimeLabel": "Segundos por turno",
+      "voteTimeLabel": "Segundos para votar al infiltrado",
+      "languageLabel": "Idioma de la sala",
+      "infiltratorCountLabel": "Número de impostores",
+      "infiltratorCountHint": "Máximo {max} con los jugadores actuales (un tercio del total). 0 significa partida cooperativa, sin impostor.",
+      "phaseCountLabel": "Número de fases",
+      "phaseCountHint": "Todas las fases se calculan al empezar la partida. Al completar una fase, la siguiente empieza con la palabra objetivo que se acaba de alcanzar.",
+      "wordTimeReadonly": "Segundos por turno: {value}",
+      "voteTimeReadonly": "Segundos para votar: {value}",
+      "languageReadonly": "Idioma: {value}",
+      "infiltratorCountReadonly": "Impostores: {value}",
+      "phaseCountReadonly": "Fases: {value}",
+      "startButton": "Iniciar partida",
+      "waitingForHost": "Esperando a que el host inicie la partida..."
+    },
+    "chain": {
+      "infiltratorCountLabel": "Número de infiltrados:",
+      "phaseProgress": "Fase {current} de {total}",
+      "phaseLabel": "Fase {number}:",
+      "startWordLabel": "Palabra de inicio:",
+      "yourTargetLabel": "Tu palabra meta:",
+      "timedOut": "se le acabó el tiempo, turno saltado",
+      "relatedPercent": "({value}% relación)",
+      "targetReached": "(¡meta alcanzada!)",
+      "noAttempts": "Todavía no se ha jugado ninguna palabra.",
+      "turnOfLabel": "Turno de",
+      "secondsRemaining": "({value}s)",
+      "noTimeLimit": "Sin límite de tiempo — tómate el tiempo que necesites.",
+      "relateHint": "Relaciona la palabra {word} para llegar a {target}.",
+      "inputPlaceholder": "Escribe una palabra relacionada...",
+      "submit": "Enviar"
+    },
+    "voting": {
+      "prompt": "¿Quién crees que es el infiltrado? Puedes cambiar tu voto mientras dure esta fase.",
+      "suspects": "Sospechan: {names}"
+    },
+    "reveal": {
+      "infiltratorWordGuessed": "¡Alguien dijo la palabra secreta del infiltrado! Todo el grupo pierde.",
+      "infiltratorsWereLabel": "El infiltrado era: | Los infiltrados eran:",
+      "secretTarget": "(meta secreta: {word})",
+      "mostVotedLabel": "Más votado:",
+      "noSingleMostVoted": "No hubo un único jugador más votado (empate).",
+      "crewWon": "¡El grupo acertó!",
+      "infiltratorEscaped": "El infiltrado escapó.",
+      "votingResultsHeading": "Resultado de la votación",
+      "nobodyVoted": "Nadie votó.",
+      "cooperativeSuccess": "¡Completasteis la cadena en equipo!",
+      "wordChainHeading": "Cadena de palabras completa",
+      "averageAccuracy": "Precisión media: {value}%",
+      "wordsForPhase": "Fase {phase}: {count} palabras",
+      "playAgain": "Jugar de nuevo",
+      "waitingPlayAgain": "Esperando a que el host decida si jugar de nuevo..."
+    },
+    "closed": {
+      "heading": "El host abandonó la sala",
+      "text": "La partida ha terminado. Volviendo al inicio...",
+      "backNow": "Volver al inicio ahora"
+    }
+  },
+  "debug": {
+    "back": "Volver al inicio",
+    "wordRelation": {
+      "heading": "Relación de palabras (debug)",
+      "wordALabel": "Palabra A",
+      "wordBLabel": "Palabra B",
+      "languageLabel": "Idioma",
+      "submit": "Calcular relación",
+      "justificationLabel": "Justificación"
+    }
+  },
+  "errors": {
+    "GENERIC": "Ha ocurrido un error. Inténtalo de nuevo.",
+    "VALIDATION_ERROR": "Los datos introducidos no son válidos.",
+    "NOT_HOST": "Solo el host puede hacer esto.",
+    "DUPLICATE_PLAYER_NAME": "Ese nombre ya está en uso en esta sala.",
+    "ROOM_NOT_FOUND": "No se encontró ninguna sala con ese código.",
+    "ROOM_NOT_JOINABLE": "Esta sala ya no acepta nuevos jugadores.",
+    "INVALID_PLAYER_NAME": "Nombre de jugador no válido.",
+    "PLAYER_NOT_FOUND": "No se encontró al jugador.",
+    "NOT_ENOUGH_PLAYERS": "Se necesitan al menos {minimumPlayers} jugadores para empezar.",
+    "ROOM_NOT_IN_PROGRESS": "La partida no está en curso.",
+    "WRONG_PHASE": "Esta acción no está disponible en la fase actual.",
+    "SELF_VOTE_NOT_ALLOWED": "No puedes votarte a ti mismo.",
+    "ROOM_NOT_FINISHED": "La partida todavía no ha terminado.",
+    "ROOM_NOT_IN_LOBBY": "La sala ya no está en la sala de espera.",
+    "NOT_YOUR_TURN": "No es tu turno.",
+    "ROUND_NOT_STARTED": "Todavía no ha empezado ninguna ronda.",
+    "UNAUTHENTICATED_SESSION": "Tu sesión no es válida. Vuelve a entrar en la sala.",
+    "ROOM_FULL": "Esta sala ya tiene el máximo de 10 jugadores.",
+    "INVALID_INFILTRATOR_COUNT": "No puedes tener {requested} impostores con estos jugadores (máximo {maxAllowed})."
+  },
+  "languages": {
+    "ENGLISH": "Inglés",
+    "SPANISH": "Español"
+  }
+}

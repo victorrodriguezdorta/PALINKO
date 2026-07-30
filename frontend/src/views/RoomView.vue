@@ -1,20 +1,39 @@
 <template>
   <div class="mx-auto max-w-2xl p-6">
     <header class="mb-4 flex items-center justify-between">
-      <h1 class="text-xl font-bold">Sala {{ roomCode }}</h1>
-      <button class="text-sm text-blue-600 underline" @click="onLeave">Volver al inicio</button>
+      <h1 class="text-xl font-bold">{{ t('room.title', { code: roomCode }) }}</h1>
+      <button class="text-sm text-blue-600 underline" @click="onLeave">{{ t('room.backToHome') }}</button>
     </header>
 
     <p v-if="gameStore.errorMessage" class="mb-4 rounded bg-red-100 p-2 text-sm text-red-700">
-      {{ gameStore.errorMessage }}
-      <button class="ml-2 underline" @click="gameStore.dismissError">cerrar</button>
+      {{ translateError(gameStore.errorMessage) }}
+      <button class="ml-2 underline" @click="gameStore.dismissError">{{ t('common.close') }}</button>
     </p>
 
-    <div v-if="!snapshot" class="text-gray-500">Conectando...</div>
+    <section v-if="needsNameToJoin" class="rounded-lg border border-gray-300 p-4">
+      <h2 class="mb-3 font-semibold">{{ t('room.joinPrompt.heading', { code: roomCode }) }}</h2>
+      <form class="flex flex-col gap-2" @submit.prevent="onJoinByLink">
+        <label class="text-sm">
+          {{ t('common.yourName') }}
+          <input v-model="joinByLinkName" class="w-full rounded border border-gray-300 p-2" required maxlength="24" autofocus />
+        </label>
+        <button type="submit" class="mt-2 rounded bg-green-600 p-2 font-semibold text-white" :disabled="joinByLinkLoading">
+          {{ t('room.joinPrompt.submit') }}
+        </button>
+      </form>
+      <p v-if="joinByLinkError" class="mt-3 rounded bg-red-100 p-2 text-sm text-red-700">{{ joinByLinkError }}</p>
+    </section>
+
+    <div v-else-if="!snapshot" class="text-gray-500">{{ t('room.connecting') }}</div>
 
     <template v-else>
-      <section class="mb-6">
-        <h2 class="mb-2 font-semibold">Jugadores</h2>
+      <section v-if="!isDaily" class="mb-6">
+        <h2 class="mb-2 font-semibold">
+          {{ t('room.players.heading') }}
+          <span class="text-sm font-normal text-gray-500">
+            ({{ t('room.players.capacity', { count: snapshot.players.length, max: MAX_ROOM_PLAYERS }) }})
+          </span>
+        </h2>
         <ul class="flex flex-col gap-1">
           <li
             v-for="player in snapshot.players"
@@ -23,187 +42,281 @@
           >
             <span>
               {{ player.name }}
-              <span v-if="player.host" class="text-xs text-blue-600">(host)</span>
-              <span v-if="!player.connected" class="text-xs text-gray-400">(desconectado)</span>
+              <span v-if="player.host" class="text-xs text-blue-600">{{ t('room.players.host') }}</span>
+              <span v-if="!player.connected" class="text-xs text-gray-400">{{ t('room.players.disconnected') }}</span>
             </span>
-            <span class="font-mono">{{ player.score }} pts</span>
+            <span class="font-mono">{{ player.score }} {{ t('common.pts') }}</span>
           </li>
         </ul>
       </section>
 
       <section v-if="snapshot.status === 'LOBBY'">
-        <p class="mb-4">Comparte el código <strong>{{ roomCode }}</strong> con el resto de jugadores.</p>
+        <p class="mb-4">{{ t('room.lobby.shareCodeLabel') }} <strong>{{ roomCode }}</strong></p>
 
         <div class="mb-4 rounded border border-gray-300 p-3">
-          <h3 class="mb-2 font-semibold">Reglas de la partida</h3>
+          <h3 class="mb-2 font-semibold">{{ t('room.lobby.rulesHeading') }}</h3>
           <template v-if="gameStore.isHost">
             <label class="mb-2 block text-sm">
-              Número de rondas
+              {{ t('room.lobby.wordTimeLabel') }}
               <input
-                v-model.number="editTotalRounds"
-                type="number"
-                min="1"
-                max="50"
-                class="w-full rounded border border-gray-300 p-2"
-              />
-            </label>
-            <label class="mb-2 block text-sm">
-              Segundos para responder
-              <input
-                v-model.number="editAnswerTimeSeconds"
+                v-model.number="editWordTimeSeconds"
                 type="number"
                 min="5"
                 class="w-full rounded border border-gray-300 p-2"
+                @change="onUpdateSettings"
               />
             </label>
             <label class="mb-2 block text-sm">
-              Segundos para votar
+              {{ t('room.lobby.voteTimeLabel') }}
               <input
                 v-model.number="editVoteTimeSeconds"
                 type="number"
                 min="5"
                 class="w-full rounded border border-gray-300 p-2"
+                @change="onUpdateSettings"
               />
             </label>
-            <button
-              class="rounded bg-gray-700 px-3 py-1.5 text-sm font-semibold text-white"
-              @click="onUpdateSettings"
-            >
-              Guardar reglas
-            </button>
+            <label class="mb-2 block text-sm">
+              {{ t('room.lobby.languageLabel') }}
+              <select v-model="editLanguage" class="w-full rounded border border-gray-300 p-2" @change="onUpdateSettings">
+                <option v-for="option in SUPPORTED_LANGUAGES" :key="option.locale" :value="option.gameLanguage">
+                  {{ option.label }}
+                </option>
+              </select>
+            </label>
+            <label class="mb-1 block text-sm">
+              {{ t('room.lobby.infiltratorCountLabel') }}
+              <input
+                v-model.number="editInfiltratorCount"
+                type="number"
+                min="0"
+                :max="maxInfiltratorCount"
+                class="w-full rounded border border-gray-300 p-2"
+                @change="onUpdateSettings"
+              />
+            </label>
+            <p class="mb-2 text-xs text-gray-500">
+              {{ t('room.lobby.infiltratorCountHint', { max: maxInfiltratorCount }) }}
+            </p>
+            <label class="mb-2 block text-sm">
+              {{ t('room.lobby.phaseCountLabel') }}
+              <input
+                v-model.number="editPhaseCount"
+                type="number"
+                min="1"
+                :max="MAX_PHASE_COUNT"
+                class="w-full rounded border border-gray-300 p-2"
+                @change="onUpdateSettings"
+              />
+            </label>
+            <p class="mb-2 text-xs text-gray-500">{{ t('room.lobby.phaseCountHint') }}</p>
           </template>
           <ul v-else class="text-sm text-gray-600">
-            <li>Rondas: {{ snapshot.settings.totalRounds }}</li>
-            <li>Tiempo para responder: {{ snapshot.settings.answerTimeSeconds }}s</li>
-            <li>Tiempo para votar: {{ snapshot.settings.voteTimeSeconds }}s</li>
+            <li>{{ t('room.lobby.wordTimeReadonly', { value: snapshot.settings.wordTimeSeconds }) }}</li>
+            <li>{{ t('room.lobby.voteTimeReadonly', { value: snapshot.settings.voteTimeSeconds }) }}</li>
+            <li>{{ t('room.lobby.languageReadonly', { value: t(`languages.${snapshot.settings.language}`) }) }}</li>
+            <li>{{ t('room.lobby.infiltratorCountReadonly', { value: snapshot.settings.infiltratorCount }) }}</li>
+            <li>{{ t('room.lobby.phaseCountReadonly', { value: snapshot.settings.phaseCount }) }}</li>
           </ul>
         </div>
 
         <button v-if="gameStore.isHost" class="rounded bg-blue-600 px-4 py-2 font-semibold text-white" @click="gameStore.start">
-          Iniciar partida
+          {{ t('room.lobby.startButton') }}
         </button>
-        <p v-else class="text-gray-500">Esperando a que el host inicie la partida...</p>
+        <p v-else class="text-gray-500">{{ t('room.lobby.waitingForHost') }}</p>
       </section>
 
-      <section v-else-if="snapshot.status === 'IN_PROGRESS' && round">
-        <p class="mb-2 text-sm text-gray-500">
-          Ronda {{ round.roundNumber }} / {{ snapshot.settings.totalRounds }} — fase: {{ round.phase }}
+      <section v-else-if="(snapshot.status === 'IN_PROGRESS' || snapshot.status === 'FINISHED') && chain">
+        <p v-if="chain.totalPhases > 1" class="mb-1 text-sm font-semibold text-gray-600">
+          {{ t('room.chain.phaseProgress', { current: chain.currentPhaseNumber, total: chain.totalPhases }) }}
         </p>
-        <h2 class="mb-4 text-lg font-semibold">{{ round.questionText }}</h2>
+        <p v-if="!isDaily" class="mb-1 text-sm text-gray-500">
+          {{ t('room.chain.infiltratorCountLabel') }} <strong>{{ chain.infiltratorCount }}</strong>
+        </p>
 
-        <div v-if="round.phase === 'ANSWERING'">
-          <textarea
-            v-model="answerText"
-            class="mb-2 w-full rounded border border-gray-300 p-2"
-            rows="3"
-            :disabled="hasAnswered"
-            placeholder="Escribe tu respuesta..."
-          ></textarea>
-          <button
-            v-if="!hasAnswered"
-            class="rounded bg-blue-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
-            :disabled="!answerText.trim()"
-            @click="onSubmitAnswer"
-          >
-            Listo
-          </button>
-          <template v-else>
-            <p class="mb-2 text-sm text-gray-500">
-              Respuesta enviada. Puedes cancelarla para editarla mientras siga esta fase.
-            </p>
-            <button
-              class="rounded bg-gray-600 px-4 py-2 font-semibold text-white"
-              @click="onCancelAnswer"
-            >
-              Cancelar y editar
-            </button>
-          </template>
-        </div>
-
-        <div v-else-if="round.phase === 'VOTING'">
-          <p class="mb-2 text-sm text-gray-500">¿Cuál crees que es la respuesta de la IA?</p>
-          <ul class="mb-3 flex flex-col gap-2">
-            <li v-for="answer in round.answers" :key="answer.id">
-              <button
-                class="w-full rounded border p-2 text-left disabled:cursor-not-allowed disabled:opacity-50"
-                :class="selectedAnswerId === answer.id ? 'border-blue-600 bg-blue-50' : 'border-gray-300'"
-                :disabled="hasVoted || isMyAnswer(answer)"
-                @click="selectedAnswerId = answer.id"
-              >
-                {{ answer.text }}
-                <span v-if="isMyAnswer(answer)" class="text-xs text-gray-400">(tu respuesta)</span>
-              </button>
-              <p v-if="answer.voterPlayerIds.length > 0" class="mt-1 pl-2 text-xs text-gray-500">
-                Han votado: {{ voterNames(answer) }}
-              </p>
-            </li>
-          </ul>
-          <button
-            class="rounded bg-green-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
-            :disabled="hasVoted || !selectedAnswerId"
-            @click="onSubmitVote"
-          >
-            {{ hasVoted ? 'Voto enviado' : 'Votar' }}
-          </button>
-        </div>
-
-        <div v-else-if="round.phase === 'REVEAL'">
-          <ul class="mb-4 flex flex-col gap-2">
-            <li v-for="answer in round.answers" :key="answer.id" class="rounded border border-gray-300 p-2">
-              <span class="font-semibold">{{ answer.isAi ? 'IA' : authorName(answer.authorPlayerId) }}:</span>
-              {{ answer.text }}
-            </li>
-          </ul>
-          <ul v-if="round.result" class="mb-4 text-sm text-gray-600">
-            <li v-for="(delta, pId) in round.result.scoreDeltaByPlayerId" :key="pId">
-              {{ authorName(String(pId)) }}: +{{ delta }} pts esta ronda
-            </li>
-          </ul>
-          <button
-            v-if="gameStore.isHost"
-            class="rounded bg-blue-600 px-4 py-2 font-semibold text-white"
-            @click="gameStore.nextRound"
-          >
-            Siguiente ronda
-          </button>
-          <p v-else class="text-gray-500">Esperando a que el host continúe...</p>
-        </div>
-      </section>
-
-      <section v-else-if="snapshot.status === 'FINISHED'">
-        <h2 class="mb-3 text-lg font-semibold">Partida terminada</h2>
-        <ol class="mb-4 flex flex-col gap-1">
+        <ol v-if="chain.totalPhases > 1" class="mb-3 flex flex-col gap-1 text-sm">
           <li
-            v-for="player in sortedByScore"
-            :key="player.id"
-            class="flex justify-between rounded border border-gray-300 p-2"
+            v-for="phaseWord in phaseChainWords"
+            :key="phaseWord.phaseNumber"
+            class="rounded border px-3 py-1"
+            :class="phaseWord.phaseNumber === chain.currentPhaseNumber ? 'border-blue-400 bg-blue-50' : 'border-gray-200 text-gray-500'"
           >
-            <span>{{ player.name }}</span>
-            <span class="font-mono">{{ player.score }} pts</span>
+            {{ t('room.chain.phaseLabel', { number: phaseWord.phaseNumber }) }}
+            <strong>{{ phaseWord.startWord }}</strong> → <strong>{{ phaseWord.targetWord }}</strong>
           </li>
         </ol>
-        <div class="flex items-center gap-3">
-          <button
-            v-if="gameStore.isHost"
-            class="rounded bg-green-600 px-4 py-2 font-semibold text-white"
-            @click="gameStore.playAgain"
+
+        <p class="mb-1 text-sm text-gray-500">{{ t('room.chain.startWordLabel') }} <strong>{{ chain.startWord }}</strong></p>
+        <p class="mb-4 text-sm text-gray-500">{{ t('room.chain.yourTargetLabel') }} <strong>{{ chain.yourTargetWord }}</strong></p>
+
+        <ol class="mb-4 flex flex-col gap-1">
+          <li
+            v-for="attempt in currentPhaseAttempts"
+            :key="attempt.id"
+            class="rounded border px-3 py-1 text-sm"
+            :class="attemptClass(attempt)"
           >
-            Jugar de nuevo
-          </button>
-          <button class="rounded bg-blue-600 px-4 py-2 font-semibold text-white" @click="onLeave">
-            Volver al inicio
-          </button>
-        </div>
-        <p v-if="!gameStore.isHost" class="mt-2 text-sm text-gray-500">
-          Esperando a que el host decida si jugar de nuevo...
-        </p>
+            <span v-if="!isDaily" class="font-semibold">{{ nameFor(attempt.authorPlayerId) }}:</span>
+            <template v-if="attempt.outcome === 'SKIPPED'">
+              <span class="italic text-gray-500">{{ t('room.chain.timedOut') }}</span>
+            </template>
+            <template v-else>
+              {{ attempt.text }}
+              <span class="text-xs text-gray-500">
+                {{ t('room.chain.relatedPercent', { value: attempt.relatednessToPrevious }) }}
+                <template v-if="attempt.justification"> — {{ attempt.justification }}</template>
+              </span>
+              <span v-if="attempt.reachedTarget" class="text-xs text-green-700">{{ t('room.chain.targetReached') }}</span>
+            </template>
+          </li>
+          <li v-if="currentPhaseAttempts.length === 0" class="text-sm text-gray-400">{{ t('room.chain.noAttempts') }}</li>
+        </ol>
+
+        <template v-if="snapshot.status === 'IN_PROGRESS'">
+          <div v-if="chain.phase === 'WORD_CHAIN'">
+            <p v-if="isDaily" class="mb-2 text-sm text-gray-500">{{ t('room.chain.noTimeLimit') }}</p>
+            <p v-else class="mb-2 text-sm text-gray-500">
+              {{ t('room.chain.turnOfLabel') }} <strong>{{ nameFor(chain.currentTurnPlayerId) }}</strong>
+              <span v-if="remainingSeconds !== null"> {{ t('room.chain.secondsRemaining', { value: remainingSeconds }) }}</span>
+            </p>
+
+            <div v-if="isMyTurn">
+              <p class="mb-1 text-sm text-gray-600">
+                {{ t('room.chain.relateHint', { word: chain.currentWord, target: chain.yourTargetWord }) }}
+              </p>
+              <input
+                v-model="wordDraft"
+                class="mb-2 w-full rounded border border-gray-300 p-2"
+                :placeholder="t('room.chain.inputPlaceholder')"
+                @input="onTypingInput"
+                @keyup.enter="onSubmitWord"
+              />
+              <button
+                class="rounded bg-blue-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
+                :disabled="!wordDraft.trim()"
+                @click="onSubmitWord"
+              >
+                {{ t('room.chain.submit') }}
+              </button>
+            </div>
+            <p v-else class="rounded border border-dashed border-gray-300 p-2 text-gray-600">
+              {{ otherTypingPreview || '…' }}
+            </p>
+          </div>
+
+          <div v-else-if="chain.phase === 'VOTING'">
+            <p class="mb-2 text-sm text-gray-500">
+              {{ t('room.voting.prompt') }}
+              <span v-if="remainingSeconds !== null"> {{ t('room.chain.secondsRemaining', { value: remainingSeconds }) }}</span>
+            </p>
+            <ul class="mb-3 flex flex-col gap-2">
+              <li v-for="player in votablePlayers" :key="player.id">
+                <button
+                  class="w-full rounded border p-2 text-left"
+                  :class="myVoteSuspectId === player.id ? 'border-blue-600 bg-blue-50' : 'border-gray-300'"
+                  @click="onSelectVote(player.id)"
+                >
+                  {{ player.name }}
+                </button>
+                <p v-if="votersFor(player.id).length > 0" class="mt-1 pl-2 text-xs text-gray-500">
+                  {{ t('room.voting.suspects', { names: votersFor(player.id).join(', ') }) }}
+                </p>
+              </li>
+            </ul>
+          </div>
+        </template>
+
+        <template v-else-if="snapshot.status === 'FINISHED' && chain.reveal">
+          <div v-if="chain.reveal.infiltratorPlayerIds.length === 0" class="mb-4 rounded border border-gray-300 p-3">
+            <p class="font-semibold text-green-700">{{ t('room.reveal.cooperativeSuccess') }}</p>
+          </div>
+          <div v-else-if="chain.reveal.endedByInfiltratorWord" class="mb-4 rounded border border-red-300 bg-red-50 p-3">
+            <p class="mb-1 font-semibold text-red-700">{{ t('room.reveal.infiltratorWordGuessed') }}</p>
+            <p class="mb-1">
+              {{ t('room.reveal.infiltratorsWereLabel', chain.reveal.infiltratorPlayerIds.length) }}
+              <strong>{{ infiltratorNames }}</strong>
+              {{ t('room.reveal.secretTarget', { word: chain.reveal.infiltratorTargetWord }) }}
+            </p>
+          </div>
+          <template v-else>
+            <div class="mb-4 rounded border border-gray-300 p-3">
+              <p class="mb-1">
+                {{ t('room.reveal.infiltratorsWereLabel', chain.reveal.infiltratorPlayerIds.length) }}
+                <strong>{{ infiltratorNames }}</strong>
+                {{ t('room.reveal.secretTarget', { word: chain.reveal.infiltratorTargetWord }) }}
+              </p>
+              <p v-if="chain.reveal.accusedPlayerId" class="mb-1">
+                {{ t('room.reveal.mostVotedLabel') }} <strong>{{ nameFor(chain.reveal.accusedPlayerId) }}</strong>
+              </p>
+              <p v-else class="mb-1">{{ t('room.reveal.noSingleMostVoted') }}</p>
+              <p class="font-semibold" :class="chain.reveal.crewWon ? 'text-green-700' : 'text-red-700'">
+                {{ chain.reveal.crewWon ? t('room.reveal.crewWon') : t('room.reveal.infiltratorEscaped') }}
+              </p>
+            </div>
+
+            <div class="mb-4 rounded border border-gray-300 p-3">
+              <h3 class="mb-2 font-semibold">{{ t('room.reveal.votingResultsHeading') }}</h3>
+              <!-- Infiltrators' own accusations never counted toward the
+                   result, so they're left out here too, even though they
+                   were visible live while voting was open. -->
+              <ul v-if="votingResults.length > 0" class="flex flex-col gap-1 text-sm text-gray-600">
+                <li v-for="entry in votingResults" :key="entry.suspectPlayerId">
+                  <strong>{{ entry.suspectName }}</strong>: {{ entry.voterNames.join(', ') }}
+                </li>
+              </ul>
+              <p v-else class="text-sm text-gray-400">{{ t('room.reveal.nobodyVoted') }}</p>
+            </div>
+          </template>
+
+          <div v-if="chain.reveal.acceptedWordChain.length > 0" class="mb-4 rounded border border-gray-300 p-3">
+            <h3 class="mb-2 font-semibold">{{ t('room.reveal.wordChainHeading') }}</h3>
+            <p class="mb-2 text-sm text-gray-600">{{ chain.startWord }} → {{ chain.reveal.acceptedWordChain.join(' → ') }}</p>
+            <p v-if="averageAccuracyPercent !== null" class="mb-2 text-sm text-gray-600">
+              {{ t('room.reveal.averageAccuracy', { value: averageAccuracyPercent }) }}
+            </p>
+            <ul class="flex flex-col gap-1 text-xs text-gray-500">
+              <li v-for="(count, index) in chain.reveal.acceptedWordCountByPhase" :key="index">
+                {{ t('room.reveal.wordsForPhase', { phase: index + 1, count }) }}
+              </li>
+            </ul>
+          </div>
+
+          <ol class="mb-4 flex flex-col gap-1">
+            <li
+              v-for="player in sortedByScore"
+              :key="player.id"
+              class="flex justify-between rounded border border-gray-300 p-2"
+            >
+              <span>{{ player.name }}</span>
+              <span class="font-mono">{{ player.score }} {{ t('common.pts') }}</span>
+            </li>
+          </ol>
+          <div class="flex items-center gap-3">
+            <button
+              v-if="gameStore.isHost && !isDaily"
+              class="rounded bg-green-600 px-4 py-2 font-semibold text-white"
+              @click="gameStore.playAgain"
+            >
+              {{ t('room.reveal.playAgain') }}
+            </button>
+            <button class="rounded bg-blue-600 px-4 py-2 font-semibold text-white" @click="onLeave">
+              {{ t('room.backToHome') }}
+            </button>
+          </div>
+          <p v-if="!gameStore.isHost" class="mt-2 text-sm text-gray-500">
+            {{ t('room.reveal.waitingPlayAgain') }}
+          </p>
+          <div v-if="isDaily" class="mt-3">
+            <DailyCountdown />
+          </div>
+        </template>
       </section>
 
       <section v-else-if="snapshot.status === 'CLOSED'">
-        <h2 class="mb-3 text-lg font-semibold">El host abandonó la sala</h2>
-        <p class="mb-4 text-gray-500">La partida ha terminado. Volviendo al inicio...</p>
+        <h2 class="mb-3 text-lg font-semibold">{{ t('room.closed.heading') }}</h2>
+        <p class="mb-4 text-gray-500">{{ t('room.closed.text') }}</p>
         <button class="rounded bg-blue-600 px-4 py-2 font-semibold text-white" @click="onLeave">
-          Volver al inicio ahora
+          {{ t('room.closed.backNow') }}
         </button>
       </section>
     </template>
@@ -211,61 +324,183 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useGameStore } from '@/stores/game'
-import type { AnswerView } from '@/types/game'
+import { SUPPORTED_LANGUAGES } from '@/i18n/languages'
+import { translateError } from '@/i18n'
+import DailyCountdown from '@/components/DailyCountdown.vue'
+import type { ApiError, AttemptView, GameLanguage } from '@/types/game'
 
+// Mirrors the backend's own Room.MAXIMUM_PLAYERS — manual mirror, same
+// convention already used for the GameLanguage enum.
+const MAX_ROOM_PLAYERS = 10
+// Mirrors the backend's own RoomSettings.MAX_PHASE_COUNT.
+const MAX_PHASE_COUNT = 10
+
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const gameStore = useGameStore()
 
-const roomCode = route.params.code as string
+const roomCode = (route.params.code as string).trim().toUpperCase()
 
-const answerText = ref('')
-const selectedAnswerId = ref<string | null>(null)
-const hasAnswered = ref(false)
-const hasVoted = ref(false)
+const joinByLinkName = ref('')
+const joinByLinkLoading = ref(false)
+const joinByLinkError = ref<string | null>(null)
+// True until this browser tab either already holds an identity for this
+// room code (rejoining/reconnecting) or successfully joins via the prompt
+// below — covers the "someone opened a shared room link cold" case, which
+// previously just bounced back to Home instead of letting them in.
+const needsNameToJoin = ref(!gameStore.hasIdentityFor(roomCode))
 
-const editTotalRounds = ref(5)
-const editAnswerTimeSeconds = ref(45)
+async function onJoinByLink() {
+  joinByLinkLoading.value = true
+  joinByLinkError.value = null
+  try {
+    await gameStore.joinRoom(roomCode, joinByLinkName.value)
+    needsNameToJoin.value = false
+    gameStore.connectSocket()
+    tickInterval = setInterval(() => {
+      now.value = Date.now()
+    }, 1000)
+  } catch (err) {
+    joinByLinkError.value = translateError(err as ApiError)
+  } finally {
+    joinByLinkLoading.value = false
+  }
+}
+
+const wordDraft = ref('')
+
+const editWordTimeSeconds = ref(45)
 const editVoteTimeSeconds = ref(30)
+const editLanguage = ref<GameLanguage>('SPANISH')
+const editInfiltratorCount = ref(1)
+const editPhaseCount = ref(1)
 
 const snapshot = computed(() => gameStore.snapshot)
-const round = computed(() => snapshot.value?.currentRound ?? null)
+const chain = computed(() => snapshot.value?.chain ?? null)
+const isDaily = computed(() => snapshot.value?.settings.daily ?? false)
+
+// Mirrors the backend's own Room.maxInfiltratorCount (floor(playerCount/3)),
+// so the host sees the real current cap live as players join/leave.
+const maxInfiltratorCount = computed(() => Math.floor((snapshot.value?.players.length ?? 0) / 3))
+
+const infiltratorNames = computed(() =>
+  (chain.value?.reveal?.infiltratorPlayerIds ?? []).map(nameFor).join(', '),
+)
+
+// The whole chain is dealt up front by the backend, so every phase's
+// start/target word pair is already known and can be shown before it's
+// actually reached — phaseStartWords[i] always pairs with
+// yourPhaseTargetWords[i] for the same phase.
+const phaseChainWords = computed(() => {
+  const c = chain.value
+  if (!c) return []
+  return c.phaseStartWords.map((startWord, index) => ({
+    phaseNumber: index + 1,
+    startWord,
+    targetWord: c.yourPhaseTargetWords[index] ?? '',
+  }))
+})
+
+// Only the current phase's own attempts count toward that phase — an
+// attempt logged under an earlier phase must not be shown as if it were
+// still in play now.
+const currentPhaseAttempts = computed(() => {
+  const c = chain.value
+  if (!c) return []
+  return c.attempts.filter((attempt) => attempt.phaseIndex === c.currentPhaseNumber - 1)
+})
 
 const sortedByScore = computed(() => [...(snapshot.value?.players ?? [])].sort((a, b) => b.score - a.score))
 
-function authorName(playerId: string | null): string {
-  if (!playerId) return 'IA'
+// Mean relatedness-to-previous across every ACCEPTED word of the whole
+// game (every phase, not just the current one) — the single number shown
+// on the reveal screen for "how accurate were the words that made it into
+// the chain". null when nothing was ever accepted, so the reveal screen
+// can hide the line entirely rather than show a meaningless 0%.
+const averageAccuracyPercent = computed(() => {
+  const accepted = (chain.value?.attempts ?? []).filter((attempt) => attempt.outcome === 'ACCEPTED')
+  if (accepted.length === 0) return null
+  const total = accepted.reduce((sum, attempt) => sum + attempt.relatednessToPrevious, 0)
+  return Math.round(total / accepted.length)
+})
+
+function nameFor(playerId: string | null): string {
+  if (!playerId) return '?'
   return snapshot.value?.players.find((p) => p.id === playerId)?.name ?? playerId
 }
 
-// Who voted for what is visible live during VOTING — this only exposes
-// vote choices, never who WROTE an answer (authorPlayerId stays hidden
-// until REVEAL), so the "guess the AI" mechanic is unaffected.
-function voterNames(answer: AnswerView): string {
-  return answer.voterPlayerIds
-    .map((id) => snapshot.value?.players.find((p) => p.id === id)?.name ?? id)
-    .join(', ')
+function attemptClass(attempt: AttemptView): string {
+  if (attempt.outcome === 'REJECTED') return 'border-red-300 bg-red-50'
+  if (attempt.outcome === 'SKIPPED') return 'border-gray-200 bg-gray-50'
+  return 'border-gray-300'
 }
 
-// Answers are anonymized (authorPlayerId is null) until REVEAL, so the only
-// way to know which one is mine during VOTING is to compare against the
-// text I myself submitted this round — the backend never tells even me
-// which id is mine ahead of time.
-function isMyAnswer(answer: AnswerView): boolean {
-  const myText = answerText.value.trim()
-  return myText.length > 0 && answer.text === myText
+const isMyTurn = computed(() => !!chain.value && chain.value.currentTurnPlayerId === gameStore.playerId)
+
+const otherTypingPreview = computed(() => {
+  const turnPlayerId = chain.value?.currentTurnPlayerId
+  if (!turnPlayerId) return ''
+  return gameStore.typingPreview[turnPlayerId] ?? ''
+})
+
+const votablePlayers = computed(() =>
+  (snapshot.value?.players ?? []).filter((player) => player.id !== gameStore.playerId),
+)
+
+const myVoteSuspectId = computed(() => {
+  const myId = gameStore.playerId
+  if (!myId) return null
+  return chain.value?.votes.find((vote) => vote.voterPlayerId === myId)?.suspectPlayerId ?? null
+})
+
+function votersFor(suspectPlayerId: string): string[] {
+  return (chain.value?.votes ?? [])
+    .filter((vote) => vote.suspectPlayerId === suspectPlayerId)
+    .map((vote) => nameFor(vote.voterPlayerId))
 }
+
+// Same live votes shown during VOTING, but recapped for the FINISHED
+// screen with the infiltrator's own accusation dropped — it never counted
+// toward the result, so showing it in the final recap would just be
+// confusing.
+const votingResults = computed(() => {
+  const reveal = chain.value?.reveal
+  if (!reveal) return []
+  const voterNamesBySuspectId = new Map<string, string[]>()
+  for (const vote of chain.value?.votes ?? []) {
+    if (reveal.infiltratorPlayerIds.includes(vote.voterPlayerId)) continue
+    const voterNames = voterNamesBySuspectId.get(vote.suspectPlayerId) ?? []
+    voterNames.push(nameFor(vote.voterPlayerId))
+    voterNamesBySuspectId.set(vote.suspectPlayerId, voterNames)
+  }
+  return Array.from(voterNamesBySuspectId.entries()).map(([suspectPlayerId, voterNames]) => ({
+    suspectPlayerId,
+    suspectName: nameFor(suspectPlayerId),
+    voterNames,
+  }))
+})
+
+// A one-second ticker driving the turn/vote countdown shown to players —
+// purely presentational, the server's own PhaseScheduler is what actually
+// enforces the deadline.
+const now = ref(Date.now())
+let tickInterval: ReturnType<typeof setInterval> | undefined
+const remainingSeconds = computed(() => {
+  const deadline = chain.value?.phaseDeadline
+  if (!deadline) return null
+  return Math.max(0, Math.floor((new Date(deadline).getTime() - now.value) / 1000))
+})
 
 watch(
-  () => round.value?.roundNumber,
-  () => {
-    answerText.value = ''
-    selectedAnswerId.value = null
-    hasAnswered.value = false
-    hasVoted.value = false
+  () => chain.value?.currentTurnPlayerId,
+  (newTurnPlayerId) => {
+    wordDraft.value = ''
+    if (newTurnPlayerId) gameStore.clearTypingPreview(newTurnPlayerId)
   },
 )
 
@@ -276,36 +511,40 @@ watch(
       setTimeout(onLeave, 3000)
     }
     // Re-sync the editable fields whenever the room (re-)enters LOBBY —
-    // covers the initial lobby and a "jugar de nuevo" reset alike, so the
+    // covers the initial lobby and a "play again" reset alike, so the
     // host always sees the rules that are actually in effect rather than
     // stale values from a previous visit.
     if (status === 'LOBBY' && snapshot.value?.settings) {
-      editTotalRounds.value = snapshot.value.settings.totalRounds
-      editAnswerTimeSeconds.value = snapshot.value.settings.answerTimeSeconds
+      editWordTimeSeconds.value = snapshot.value.settings.wordTimeSeconds
       editVoteTimeSeconds.value = snapshot.value.settings.voteTimeSeconds
+      editLanguage.value = snapshot.value.settings.language
+      editInfiltratorCount.value = snapshot.value.settings.infiltratorCount
+      editPhaseCount.value = snapshot.value.settings.phaseCount
     }
   },
   { immediate: true },
 )
 
 function onUpdateSettings() {
-  gameStore.updateSettings(editTotalRounds.value, editAnswerTimeSeconds.value, editVoteTimeSeconds.value)
+  gameStore.updateSettings(
+    editWordTimeSeconds.value, editVoteTimeSeconds.value, editLanguage.value,
+    editInfiltratorCount.value, editPhaseCount.value)
 }
 
-function onSubmitAnswer() {
-  gameStore.submitAnswer(answerText.value.trim())
-  hasAnswered.value = true
+function onTypingInput() {
+  if (isMyTurn.value) gameStore.sendTyping(wordDraft.value)
 }
 
-function onCancelAnswer() {
-  gameStore.cancelAnswer()
-  hasAnswered.value = false
+function onSubmitWord() {
+  const text = wordDraft.value.trim()
+  if (!text) return
+  gameStore.submitWord(text)
+  wordDraft.value = ''
 }
 
-function onSubmitVote() {
-  if (!selectedAnswerId.value) return
-  gameStore.submitVote(selectedAnswerId.value)
-  hasVoted.value = true
+function onSelectVote(suspectPlayerId: string) {
+  if (myVoteSuspectId.value === suspectPlayerId) return
+  gameStore.submitVote(suspectPlayerId)
 }
 
 function onLeave() {
@@ -314,10 +553,18 @@ function onLeave() {
 }
 
 onMounted(() => {
-  if (!gameStore.hasIdentityFor(roomCode)) {
-    router.push('/')
-    return
-  }
+  // Arriving with no identity for this room (e.g. a shared room link
+  // opened cold) shows the join-by-name prompt above instead of bouncing
+  // back to Home — onJoinByLink connects the socket itself once that
+  // succeeds, so there's nothing to do here yet.
+  if (needsNameToJoin.value) return
   gameStore.connectSocket()
+  tickInterval = setInterval(() => {
+    now.value = Date.now()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (tickInterval) clearInterval(tickInterval)
 })
 </script>

@@ -13,12 +13,13 @@ import java.time.Instant;
 public interface PhaseScheduler {
 
     /**
-     * Schedules a callback for {@code fireAt}. roundNumber/expectedPhase are
-     * captured by the caller so that, once the timer fires, the use case can
-     * detect a phase that has already moved on (by other means) and treat
-     * the callback as a no-op instead of needing explicit cancellation.
+     * Schedules a callback for {@code fireAt}. expectedPhaseIndex/
+     * expectedTurnsPlayed/expectedPhase are captured by the caller so that,
+     * once the timer fires, the use case can detect a round that has
+     * already moved on (by other means) and treat the callback as a no-op
+     * instead of needing explicit cancellation.
      */
-    void scheduleAdvance(String roomCode, int roundNumber, RoundPhase expectedPhase, Instant fireAt);
+    void scheduleAdvance(String roomCode, int expectedPhaseIndex, int expectedTurnsPlayed, RoundPhase expectedPhase, Instant fireAt);
 
     void cancel(String roomCode);
 }

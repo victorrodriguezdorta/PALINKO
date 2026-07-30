@@ -19,6 +19,7 @@
     "pinia": "^4.0.2",
     "sockjs-client": "^1.6.1",
     "vue": "^3.5.13",
+    "vue-i18n": "^11.4.8",
     "vue-router": "^4.5.0"
   },
   "devDependencies": {

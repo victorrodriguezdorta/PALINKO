@@ -1,11 +1,14 @@
 package com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.rest;
 
+import com.kawser.cleanspringbootproject.game.application.dto.CreateDailyRoomCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.CreateRoomCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.CreateRoomResult;
 import com.kawser.cleanspringbootproject.game.application.dto.JoinRoomCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.JoinRoomResult;
+import com.kawser.cleanspringbootproject.game.application.port.in.CreateDailyRoomUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.CreateRoomUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.JoinRoomUseCase;
+import com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.rest.dto.CreateDailyRoomRequest;
 import com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.rest.dto.CreateRoomRequest;
 import com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.rest.dto.JoinRoomRequest;
 import com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.rest.dto.RoomJoinedResponse;
@@ -30,10 +33,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class RoomController {
 
     private final CreateRoomUseCase createRoomUseCase;
+    private final CreateDailyRoomUseCase createDailyRoomUseCase;
     private final JoinRoomUseCase joinRoomUseCase;
 
-    public RoomController(CreateRoomUseCase createRoomUseCase, JoinRoomUseCase joinRoomUseCase) {
+    public RoomController(
+            CreateRoomUseCase createRoomUseCase,
+            CreateDailyRoomUseCase createDailyRoomUseCase,
+            JoinRoomUseCase joinRoomUseCase) {
         this.createRoomUseCase = createRoomUseCase;
+        this.createDailyRoomUseCase = createDailyRoomUseCase;
         this.joinRoomUseCase = joinRoomUseCase;
     }
 
@@ -41,8 +49,21 @@ public class RoomController {
     @ApiResponse(responseCode = "200", description = "Room created")
     @PostMapping
     public ResponseEntity<RoomJoinedResponse> create(@RequestBody @Valid CreateRoomRequest request) {
-        CreateRoomResult result = createRoomUseCase.createRoom(new CreateRoomCommand(
-                request.hostName(), request.totalRounds(), request.answerTimeSeconds(), request.voteTimeSeconds()));
+        CreateRoomResult result =
+                createRoomUseCase.createRoom(new CreateRoomCommand(request.hostName(), request.language()));
+
+        return ResponseEntity.ok(new RoomJoinedResponse(
+                result.roomCode(), result.playerId(), result.reconnectToken(), result.snapshot()));
+    }
+
+    @Operation(
+            summary = "Start today's daily challenge",
+            description = "Creates a solo room already in progress, dealt deterministically from today's UTC date "
+                    + "so every player gets the same phases")
+    @ApiResponse(responseCode = "200", description = "Daily challenge room created")
+    @PostMapping("/daily")
+    public ResponseEntity<RoomJoinedResponse> createDaily(@RequestBody @Valid CreateDailyRoomRequest request) {
+        CreateRoomResult result = createDailyRoomUseCase.createDailyRoom(new CreateDailyRoomCommand(request.language()));
 
         return ResponseEntity.ok(new RoomJoinedResponse(
                 result.roomCode(), result.playerId(), result.reconnectToken(), result.snapshot()));

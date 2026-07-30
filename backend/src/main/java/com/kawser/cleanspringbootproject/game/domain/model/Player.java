@@ -2,6 +2,9 @@ package com.kawser.cleanspringbootproject.game.domain.model;
 
 import com.kawser.cleanspringbootproject.game.domain.exception.InvalidPlayerNameException;
 
+import java.time.Duration;
+import java.time.Instant;
+
 /**
  * A participant in a Room. id is the public identifier shown to every
  * viewer in the room snapshot; reconnectToken is a separate secret handed
@@ -19,6 +22,7 @@ public class Player {
     private final boolean host;
     private int score;
     private boolean connected;
+    private Instant disconnectedAt;
 
     private Player(String id, String reconnectToken, String name, boolean host) {
         this.id = id;
@@ -27,6 +31,7 @@ public class Player {
         this.host = host;
         this.score = 0;
         this.connected = true;
+        this.disconnectedAt = null;
     }
 
     public static Player host(String id, String reconnectToken, String name) {
@@ -62,10 +67,23 @@ public class Player {
 
     public void markConnected() {
         this.connected = true;
+        this.disconnectedAt = null;
     }
 
-    public void markDisconnected() {
+    public void markDisconnected(Instant now) {
         this.connected = false;
+        this.disconnectedAt = now;
+    }
+
+    /**
+     * Whether this player has been disconnected for longer than the given
+     * reconnect grace window — used to purge stale players so a slot (and
+     * their name) frees up rather than being held forever by someone who
+     * never comes back, while anyone reconnecting inside the window keeps
+     * their score and place in the game.
+     */
+    public boolean isReconnectWindowExpired(Instant now, Duration reconnectWindow) {
+        return disconnectedAt != null && Duration.between(disconnectedAt, now).compareTo(reconnectWindow) > 0;
     }
 
     public String id() {

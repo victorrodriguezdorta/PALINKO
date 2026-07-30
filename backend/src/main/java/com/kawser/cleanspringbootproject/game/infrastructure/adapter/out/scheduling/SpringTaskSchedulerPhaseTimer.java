@@ -17,10 +17,10 @@ import java.util.concurrent.ScheduledFuture;
  * Bridges the application-level PhaseScheduler port to Spring's
  * TaskScheduler. Keeps at most one pending future per room: scheduling a
  * new advance for a room implicitly cancels whatever was previously
- * pending for it, since AdvancePhaseCommand's roundNumber/expectedPhase
- * check in GameApplicationService already treats a stale fire as a no-op,
- * this cancellation is a courtesy to avoid piling up dead futures, not a
- * correctness requirement.
+ * pending for it, since AdvancePhaseCommand's expectedTurnsPlayed/
+ * expectedPhase check in GameApplicationService already treats a stale
+ * fire as a no-op, this cancellation is a courtesy to avoid piling up dead
+ * futures, not a correctness requirement.
  *
  * AdvancePhaseUseCase is looked up lazily through an ObjectProvider rather
  * than injected directly in the constructor: GameApplicationService (the
@@ -44,11 +44,13 @@ public class SpringTaskSchedulerPhaseTimer implements PhaseScheduler {
     }
 
     @Override
-    public void scheduleAdvance(String roomCode, int roundNumber, RoundPhase expectedPhase, Instant fireAt) {
+    public void scheduleAdvance(
+            String roomCode, int expectedPhaseIndex, int expectedTurnsPlayed, RoundPhase expectedPhase,
+            Instant fireAt) {
         cancel(roomCode);
         ScheduledFuture<?> future = taskScheduler.schedule(
-                () -> advancePhaseUseCaseProvider.getObject()
-                        .forceAdvance(new AdvancePhaseCommand(roomCode, roundNumber, expectedPhase)),
+                () -> advancePhaseUseCaseProvider.getObject().forceAdvance(
+                        new AdvancePhaseCommand(roomCode, expectedPhaseIndex, expectedTurnsPlayed, expectedPhase)),
                 fireAt);
         pendingByRoom.put(roomCode, future);
     }

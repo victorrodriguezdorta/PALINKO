@@ -1,4 +1,6 @@
 package com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.stomp.dto;
 
-public record StompErrorMessage(String message) {
+import java.util.Map;
+
+public record StompErrorMessage(String code, String message, Map<String, String> args) {
 }

@@ -1,8 +1,15 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { createRoom as createRoomRequest, joinRoom as joinRoomRequest } from '@/services/roomService'
+import { ref, computed, watch } from 'vue'
+import {
+  createRoom as createRoomRequest,
+  createDailyRoom as createDailyRoomRequest,
+  joinRoom as joinRoomRequest,
+} from '@/services/roomService'
 import { gameSocket } from '@/services/gameSocket'
-import type { RoomIdentity, RoomSnapshot } from '@/types/game'
+import { i18n } from '@/i18n'
+import { localeForGameLanguage } from '@/i18n/languages'
+import { useLocaleStore } from '@/stores/locale'
+import type { ApiError, GameLanguage, RoomIdentity, RoomSnapshot } from '@/types/game'
 
 const STORAGE_KEY = 'human-or-ai:identity'
 
@@ -30,9 +37,25 @@ export const useGameStore = defineStore('game', () => {
   const playerId = ref<string | null>(stored?.playerId ?? null)
   const reconnectToken = ref<string | null>(stored?.reconnectToken ?? null)
   const snapshot = ref<RoomSnapshot | null>(null)
-  const errorMessage = ref<string | null>(null)
+  const errorMessage = ref<ApiError | null>(null)
+  const localeStore = useLocaleStore()
+  // Live preview of whatever the current turn player is typing, keyed by
+  // playerId — purely ephemeral UI state, never persisted or reconciled
+  // against the snapshot.
+  const typingPreview = ref<Record<string, string>>({})
 
   const isHost = computed(() => !!snapshot.value && playerId.value === snapshot.value.hostPlayerId)
+
+  // Keeps the active UI locale in lockstep with the room's own language
+  // (fixed by whichever language the host chose) — covers create, join,
+  // reconnect, and the host changing it from the lobby settings panel
+  // alike, since all of them just arrive as a new snapshot.
+  watch(
+    () => snapshot.value?.settings.language,
+    (language) => {
+      if (language) i18n.global.locale.value = localeForGameLanguage(language)
+    },
+  )
 
   function persistIdentity() {
     if (roomCode.value && playerId.value && reconnectToken.value) {
@@ -53,6 +76,7 @@ export const useGameStore = defineStore('game', () => {
     playerId.value = null
     reconnectToken.value = null
     snapshot.value = null
+    typingPreview.value = {}
   }
 
   function hasIdentityFor(code: string): boolean {
@@ -67,19 +91,35 @@ export const useGameStore = defineStore('game', () => {
       (newSnapshot) => {
         snapshot.value = newSnapshot
       },
-      (message) => {
-        errorMessage.value = message
+      (error) => {
+        errorMessage.value = error
+      },
+      (typing) => {
+        typingPreview.value = { ...typingPreview.value, [typing.playerId]: typing.text }
       },
     )
   }
 
-  async function createRoom(
-    hostName: string,
-    totalRounds: number,
-    answerTimeSeconds: number,
-    voteTimeSeconds: number,
-  ) {
-    const result = await createRoomRequest({ hostName, totalRounds, answerTimeSeconds, voteTimeSeconds })
+  // Room rules (turn/vote timers, max turns) are only ever editable from
+  // inside the LOBBY (see updateSettings below) — creating a room never
+  // takes them, so the server always starts a fresh room with its own
+  // fixed defaults. Language is the one exception: it's the host's own
+  // chosen language, so it has to be supplied here.
+  async function createRoom(hostName: string, language: GameLanguage) {
+    const result = await createRoomRequest({ hostName, language })
+    roomCode.value = result.roomCode
+    playerId.value = result.playerId
+    reconnectToken.value = result.reconnectToken
+    snapshot.value = result.snapshot
+    persistIdentity()
+  }
+
+  // Today's daily challenge: a solo, anonymous room that's already
+  // IN_PROGRESS and fixed for everyone (see backend RoomSettings.daily) —
+  // there is no rules form and no name to type, the backend always names
+  // the sole player "#".
+  async function createDailyRoom(language: GameLanguage) {
+    const result = await createDailyRoomRequest({ language })
     roomCode.value = result.roomCode
     playerId.value = result.playerId
     reconnectToken.value = result.reconnectToken
@@ -100,33 +140,51 @@ export const useGameStore = defineStore('game', () => {
     if (roomCode.value) gameSocket.start(roomCode.value)
   }
 
-  function submitAnswer(text: string) {
-    if (roomCode.value) gameSocket.submitAnswer(roomCode.value, text)
+  function submitWord(text: string) {
+    if (roomCode.value) gameSocket.submitWord(roomCode.value, text)
   }
 
-  function cancelAnswer() {
-    if (roomCode.value) gameSocket.cancelAnswer(roomCode.value)
+  function sendTyping(text: string) {
+    if (roomCode.value) gameSocket.sendTyping(roomCode.value, text)
   }
 
-  function submitVote(answerId: string) {
-    if (roomCode.value) gameSocket.submitVote(roomCode.value, answerId)
+  // Drops a stale preview once its author's turn has ended (or a new one
+  // begins), so a player's leftover text from a previous turn never
+  // flashes back up before they've typed anything new this time.
+  function clearTypingPreview(forPlayerId: string) {
+    if (!(forPlayerId in typingPreview.value)) return
+    const next = { ...typingPreview.value }
+    delete next[forPlayerId]
+    typingPreview.value = next
   }
 
-  function nextRound() {
-    if (roomCode.value) gameSocket.nextRound(roomCode.value)
+  function submitVote(suspectPlayerId: string) {
+    if (roomCode.value) gameSocket.submitVote(roomCode.value, suspectPlayerId)
   }
 
   function playAgain() {
     if (roomCode.value) gameSocket.playAgain(roomCode.value)
   }
 
-  function updateSettings(totalRounds: number, answerTimeSeconds: number, voteTimeSeconds: number) {
-    if (roomCode.value) gameSocket.updateSettings(roomCode.value, totalRounds, answerTimeSeconds, voteTimeSeconds)
+  function updateSettings(
+    wordTimeSeconds: number,
+    voteTimeSeconds: number,
+    language: GameLanguage,
+    infiltratorCount: number,
+    phaseCount: number,
+  ) {
+    if (roomCode.value)
+      gameSocket.updateSettings(
+        roomCode.value, wordTimeSeconds, voteTimeSeconds, language, infiltratorCount, phaseCount)
   }
 
   function leaveRoom() {
     gameSocket.disconnect()
     clearIdentity()
+    // The room's language (if any) no longer applies once we're back on
+    // the Home screen — restore whatever the visitor had picked for
+    // themselves before they created/joined this room.
+    localeStore.applyPreferred()
   }
 
   function dismissError() {
@@ -138,16 +196,18 @@ export const useGameStore = defineStore('game', () => {
     playerId,
     snapshot,
     errorMessage,
+    typingPreview,
     isHost,
     hasIdentityFor,
     connectSocket,
     createRoom,
+    createDailyRoom,
     joinRoom,
     start,
-    submitAnswer,
-    cancelAnswer,
+    submitWord,
+    sendTyping,
+    clearTypingPreview,
     submitVote,
-    nextRound,
     playAgain,
     updateSettings,
     leaveRoom,

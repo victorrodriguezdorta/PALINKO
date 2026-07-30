@@ -2,6 +2,7 @@ package com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.stomp;
 
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +28,20 @@ public class StompSessionRegistry {
 
     public Optional<SessionIdentity> find(String sessionId) {
         return Optional.ofNullable(identitiesBySessionId.get(sessionId));
+    }
+
+    /**
+     * Every live session belonging to a given player in a given room —
+     * usually one, but a player can briefly hold more than one (e.g. a
+     * reloaded tab whose old session hasn't disconnected yet), and
+     * RoomNotifier needs to reach all of them so nobody misses an update.
+     */
+    public List<String> sessionIdsFor(String roomCode, String playerId) {
+        return identitiesBySessionId.entrySet().stream()
+                .filter(entry -> entry.getValue().roomCode().equals(roomCode)
+                        && entry.getValue().playerId().equals(playerId))
+                .map(Map.Entry::getKey)
+                .toList();
     }
 
     public void remove(String sessionId) {
