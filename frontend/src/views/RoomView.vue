@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto max-w-2xl p-6">
     <header class="mb-4 flex items-center justify-between">
-      <h1 class="text-xl font-bold">{{ t('room.title', { code: roomCode }) }}</h1>
+      <h1 class="text-xl font-bold">{{ isDaily ? t('room.titleDaily') : t('room.title', { code: roomCode }) }}</h1>
       <button class="text-sm text-blue-600 underline" @click="onLeave">{{ t('room.backToHome') }}</button>
     </header>
 
@@ -270,7 +270,7 @@
 
           <div v-if="chain.reveal.acceptedWordChain.length > 0" class="mb-4 rounded border border-gray-300 p-3">
             <h3 class="mb-2 font-semibold">{{ t('room.reveal.wordChainHeading') }}</h3>
-            <p class="mb-2 text-sm text-gray-600">{{ chain.startWord }} → {{ chain.reveal.acceptedWordChain.join(' → ') }}</p>
+            <p class="mb-2 text-sm text-gray-600">{{ chain.reveal.gameStartWord }} → {{ chain.reveal.acceptedWordChain.join(' → ') }}</p>
             <p v-if="averageAccuracyPercent !== null" class="mb-2 text-sm text-gray-600">
               {{ t('room.reveal.averageAccuracy', { value: averageAccuracyPercent }) }}
             </p>

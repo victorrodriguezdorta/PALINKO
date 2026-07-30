@@ -36,6 +36,7 @@ export interface RevealView {
   crewWon: boolean
   scoreDeltaByPlayerId: Record<string, number>
   endedByInfiltratorWord: boolean
+  gameStartWord: string
   acceptedWordChain: string[]
   acceptedWordCountByPhase: number[]
 }

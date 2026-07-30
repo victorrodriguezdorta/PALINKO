@@ -27,6 +27,7 @@
   "room": {
     "pageTitle": "Sala",
     "title": "Sala {code}",
+    "titleDaily": "Reto diario",
     "backToHome": "Volver al inicio",
     "connecting": "Conectando...",
     "joinPrompt": {

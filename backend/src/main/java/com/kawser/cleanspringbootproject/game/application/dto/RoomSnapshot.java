@@ -92,8 +92,10 @@ public record RoomSnapshot(
                     .map(attempt -> AttemptView.from(attempt, viewerPlayerId, revealed))
                     .toList();
             List<VoteView> voteViews = round.votes().stream().map(VoteView::from).toList();
-            RevealView revealView = revealed ? RevealView.from(round.result(), round.attempts()) : null;
             List<WordSet> phaseWordSets = round.phaseWordSets();
+            RevealView revealView = revealed
+                    ? RevealView.from(round.result(), round.attempts(), phaseWordSets.get(0).startWord())
+                    : null;
             // The whole chain is dealt up front (see ChainWordBank.fullChain),
             // so every phase's start word — and this viewer's own target for
             // every phase — is already known and safe to show from the very
@@ -164,10 +166,11 @@ public record RoomSnapshot(
             boolean crewWon,
             Map<String, Integer> scoreDeltaByPlayerId,
             boolean endedByInfiltratorWord,
+            String gameStartWord,
             List<String> acceptedWordChain,
             List<Integer> acceptedWordCountByPhase) {
 
-        static RevealView from(ChainResult result, List<ChainAttempt> attempts) {
+        static RevealView from(ChainResult result, List<ChainAttempt> attempts, String gameStartWord) {
             // The full path actually walked, kept for the whole game rather
             // than reset per phase (see Round's attempts log) — only
             // ACCEPTED words ever moved the chain forward, so only those are
@@ -192,6 +195,7 @@ public record RoomSnapshot(
                     result.crewWon(),
                     result.scoreDeltaByPlayerId(),
                     result.endedByInfiltratorWord(),
+                    gameStartWord,
                     acceptedWordChain,
                     acceptedWordCountByPhase);
         }

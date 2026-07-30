@@ -27,6 +27,7 @@
   "room": {
     "pageTitle": "Room",
     "title": "Room {code}",
+    "titleDaily": "Daily challenge",
     "backToHome": "Back to home",
     "connecting": "Connecting...",
     "joinPrompt": {

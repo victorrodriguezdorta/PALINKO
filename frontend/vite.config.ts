@@ -22,4 +22,7 @@ export default defineConfig({
     // browser's globalThis so it doesn't throw at module load time.
     global: 'globalThis',
   },
+  server: {
+    allowedHosts: ['.trycloudflare.com'],
+  },
 })

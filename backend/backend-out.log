@@ -1,0 +1,192 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------< com.kawser:clean-spring-boot-project >----------------
+[INFO] Building clean-spring-boot-project 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.5:run (default-cli) > test-compile @ clean-spring-boot-project >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ clean-spring-boot-project ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 8 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ clean-spring-boot-project ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ clean-spring-boot-project ---
+[INFO] Copying 1 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ clean-spring-boot-project ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.2.5:run (default-cli) < test-compile @ clean-spring-boot-project <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.5:run (default-cli) @ clean-spring-boot-project ---
+[INFO] Attaching agents: []
+SLF4J(W): No SLF4J providers were found.
+SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+SLF4J(W): Class path contains SLF4J bindings targeting slf4j-api versions 1.7.x or earlier.
+SLF4J(W): Ignoring binding found at [jar:file:/C:/Users/vdort/.m2/repository/org/apache/logging/log4j/log4j-slf4j-impl/2.23.1/log4j-slf4j-impl-2.23.1.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J(W): See https://www.slf4j.org/codes.html#ignoredBindings for an explanation.
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-07-30T14:30:25.633+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] c.k.c.CleanSpringBootProjectApplication  : Starting CleanSpringBootProjectApplication using Java 21.0.10 with PID 29996 (C:\Users\vdort\Desktop\proyecto\guessTheAI\backend\target\classes started by vdort in C:\Users\vdort\Desktop\proyecto\guessTheAI\backend)
+2026-07-30T14:30:25.635+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] c.k.c.CleanSpringBootProjectApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-07-30T14:30:25.681+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-07-30T14:30:25.682+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-07-30T14:30:26.947+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.w.e.t.TomcatWebServer              : Tomcat initialized with port 8080 (http)
+jul 30, 2026 2:30:26 P. M. org.apache.coyote.AbstractProtocol init
+INFO: Initializing ProtocolHandler ["http-nio-8080"]
+jul 30, 2026 2:30:26 P. M. org.apache.catalina.core.StandardService startInternal
+INFO: Starting service [Tomcat]
+jul 30, 2026 2:30:26 P. M. org.apache.catalina.core.StandardEngine startInternal
+INFO: Starting Servlet engine: [Apache Tomcat/10.1.20]
+jul 30, 2026 2:30:27 P. M. org.apache.catalina.core.ApplicationContext log
+INFO: Initializing Spring embedded WebApplicationContext
+2026-07-30T14:30:27.004+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1321 ms
+2026-07-30T14:30:27.984+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-07-30T14:30:27.993+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.a.e.w.EndpointLinksResolver        : Exposing 1 endpoint(s) beneath base path '/actuator'
+jul 30, 2026 2:30:28 P. M. org.apache.coyote.AbstractProtocol start
+INFO: Starting ProtocolHandler ["http-nio-8080"]
+2026-07-30T14:30:28.043+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.w.e.t.TomcatWebServer              : Tomcat started on port 8080 (http) with context path ''
+2026-07-30T14:30:28.060+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-07-30T14:30:28.061+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@46719830]]
+2026-07-30T14:30:28.062+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-07-30T14:30:28.075+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] c.k.c.CleanSpringBootProjectApplication  : Started CleanSpringBootProjectApplication in 2.812 seconds (process running for 3.487)
+jul 30, 2026 2:31:02 P. M. org.apache.catalina.core.ApplicationContext log
+INFO: Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-07-30T14:31:02.610+01:00  INFO 29996 --- [human-or-ai] [nio-8080-exec-1] o.s.w.s.DispatcherServlet                : Initializing Servlet 'dispatcherServlet'
+2026-07-30T14:31:02.611+01:00  INFO 29996 --- [human-or-ai] [nio-8080-exec-1] o.s.w.s.DispatcherServlet                : Completed initialization in 1 ms
+2026-07-30T14:57:15.510+01:00  INFO 29996 --- [human-or-ai] [MessageBroker-1] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 1, active threads = 1, queued tasks = 0, completed tasks = 0]
+2026-07-30T15:27:15.526+01:00  INFO 29996 --- [human-or-ai] [MessageBroker-4] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 25 total, 0 closed abnormally (0 connect failure, 0 send limit, 3 transport error)], stompSubProtocol[processed CONNECT(25)-CONNECTED(6)-DISCONNECT(2)], stompBrokerRelay[null], inboundChannel[pool size = 32, active threads = 0, queued tasks = 0, completed tasks = 2361], outboundChannel[pool size = 27, active threads = 0, queued tasks = 0, completed tasks = 1050], sockJsScheduler[pool size = 16, active threads = 1, queued tasks = 2, completed tasks = 323]
+2026-07-30T16:59:55.369+01:00  INFO 29996 --- [human-or-ai] [essageBroker-14] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[1 current WS(1)-HttpStream(0)-HttpPoll(0), 26 total, 0 closed abnormally (0 connect failure, 0 send limit, 4 transport error)], stompSubProtocol[processed CONNECT(26)-CONNECTED(7)-DISCONNECT(2)], stompBrokerRelay[null], inboundChannel[pool size = 3, active threads = 0, queued tasks = 0, completed tasks = 2667], outboundChannel[pool size = 2, active threads = 0, queued tasks = 0, completed tasks = 1151], sockJsScheduler[pool size = 16, active threads = 3, queued tasks = 0, completed tasks = 452]
+2026-07-30T17:03:27.682+01:00  WARN 29996 --- [human-or-ai] [nio-8080-exec-9] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [com.kawser.cleanspringbootproject.game.domain.exception.RoomNotJoinableException: Room P2X4QG is not accepting new players]
+2026-07-30T17:10:06.380+01:00  INFO 29996 --- [human-or-ai] [   File Watcher] rtingClassPathChangeChangedEventListener : Restarting due to 14 class path changes (0 additions, 0 deletions, 14 modifications)
+2026-07-30T17:10:06.380+01:00  INFO 29996 --- [human-or-ai] [       Thread-5] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-07-30T17:10:06.395+01:00  INFO 29996 --- [human-or-ai] [       Thread-5] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@46719830]]
+2026-07-30T17:10:06.395+01:00  INFO 29996 --- [human-or-ai] [       Thread-5] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+jul 30, 2026 5:10:06 P. M. org.apache.coyote.AbstractProtocol stop
+INFO: Stopping ProtocolHandler ["http-nio-8080"]
+jul 30, 2026 5:10:06 P. M. org.apache.catalina.core.StandardService stopInternal
+INFO: Stopping service [Tomcat]
+jul 30, 2026 5:10:06 P. M. org.apache.catalina.core.ApplicationContext log
+INFO: Destroying Spring FrameworkServlet 'dispatcherServlet'
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-07-30T17:10:06.701+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] c.k.c.CleanSpringBootProjectApplication  : Starting CleanSpringBootProjectApplication using Java 21.0.10 with PID 29996 (C:\Users\vdort\Desktop\proyecto\guessTheAI\backend\target\classes started by vdort in C:\Users\vdort\Desktop\proyecto\guessTheAI\backend)
+2026-07-30T17:10:06.703+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] c.k.c.CleanSpringBootProjectApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-07-30T17:10:07.742+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.w.e.t.TomcatWebServer              : Tomcat initialized with port 8080 (http)
+jul 30, 2026 5:10:07 P. M. org.apache.coyote.AbstractProtocol init
+INFO: Initializing ProtocolHandler ["http-nio-8080"]
+jul 30, 2026 5:10:07 P. M. org.apache.catalina.core.StandardService startInternal
+INFO: Starting service [Tomcat]
+jul 30, 2026 5:10:07 P. M. org.apache.catalina.core.StandardEngine startInternal
+INFO: Starting Servlet engine: [Apache Tomcat/10.1.20]
+jul 30, 2026 5:10:07 P. M. org.apache.catalina.core.ApplicationContext log
+INFO: Initializing Spring embedded WebApplicationContext
+2026-07-30T17:10:07.789+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1082 ms
+2026-07-30T17:10:08.405+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-07-30T17:10:08.417+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.a.e.w.EndpointLinksResolver        : Exposing 1 endpoint(s) beneath base path '/actuator'
+jul 30, 2026 5:10:08 P. M. org.apache.coyote.AbstractProtocol start
+INFO: Starting ProtocolHandler ["http-nio-8080"]
+2026-07-30T17:10:08.445+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.w.e.t.TomcatWebServer              : Tomcat started on port 8080 (http) with context path ''
+2026-07-30T17:10:08.446+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-07-30T17:10:08.447+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@78b497e]]
+2026-07-30T17:10:08.448+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-07-30T17:10:08.454+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] c.k.c.CleanSpringBootProjectApplication  : Started CleanSpringBootProjectApplication in 1.88 seconds (process running for 9583.867)
+2026-07-30T17:10:08.457+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
+2026-07-30T17:10:11.040+01:00  INFO 29996 --- [human-or-ai] [   File Watcher] rtingClassPathChangeChangedEventListener : Restarting due to 7 class path changes (0 additions, 0 deletions, 7 modifications)
+2026-07-30T17:10:11.057+01:00  INFO 29996 --- [human-or-ai] [      Thread-38] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-07-30T17:10:11.057+01:00  INFO 29996 --- [human-or-ai] [      Thread-38] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@78b497e]]
+2026-07-30T17:10:11.071+01:00  INFO 29996 --- [human-or-ai] [      Thread-38] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+jul 30, 2026 5:10:11 P. M. org.apache.coyote.AbstractProtocol stop
+INFO: Stopping ProtocolHandler ["http-nio-8080"]
+jul 30, 2026 5:10:11 P. M. org.apache.catalina.core.StandardService stopInternal
+INFO: Stopping service [Tomcat]
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-07-30T17:10:11.523+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] c.k.c.CleanSpringBootProjectApplication  : Starting CleanSpringBootProjectApplication using Java 21.0.10 with PID 29996 (C:\Users\vdort\Desktop\proyecto\guessTheAI\backend\target\classes started by vdort in C:\Users\vdort\Desktop\proyecto\guessTheAI\backend)
+2026-07-30T17:10:11.523+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] c.k.c.CleanSpringBootProjectApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-07-30T17:10:12.292+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.w.e.t.TomcatWebServer              : Tomcat initialized with port 8080 (http)
+jul 30, 2026 5:10:12 P. M. org.apache.coyote.AbstractProtocol init
+INFO: Initializing ProtocolHandler ["http-nio-8080"]
+jul 30, 2026 5:10:12 P. M. org.apache.catalina.core.StandardService startInternal
+INFO: Starting service [Tomcat]
+jul 30, 2026 5:10:12 P. M. org.apache.catalina.core.StandardEngine startInternal
+INFO: Starting Servlet engine: [Apache Tomcat/10.1.20]
+jul 30, 2026 5:10:12 P. M. org.apache.catalina.core.ApplicationContext log
+INFO: Initializing Spring embedded WebApplicationContext
+2026-07-30T17:10:12.470+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 942 ms
+2026-07-30T17:10:13.132+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-07-30T17:10:13.165+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.a.e.w.EndpointLinksResolver        : Exposing 1 endpoint(s) beneath base path '/actuator'
+jul 30, 2026 5:10:13 P. M. org.apache.coyote.AbstractProtocol start
+INFO: Starting ProtocolHandler ["http-nio-8080"]
+2026-07-30T17:10:13.306+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.w.e.t.TomcatWebServer              : Tomcat started on port 8080 (http) with context path ''
+2026-07-30T17:10:13.309+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-07-30T17:10:13.309+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@2bcf63c4]]
+2026-07-30T17:10:13.309+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-07-30T17:10:13.330+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] c.k.c.CleanSpringBootProjectApplication  : Started CleanSpringBootProjectApplication in 2.077 seconds (process running for 9588.744)
+2026-07-30T17:10:13.355+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
+2026-07-30T17:10:16.872+01:00  INFO 29996 --- [human-or-ai] [   File Watcher] rtingClassPathChangeChangedEventListener : Restarting due to 7 class path changes (0 additions, 0 deletions, 7 modifications)
+2026-07-30T17:10:16.912+01:00  INFO 29996 --- [human-or-ai] [      Thread-42] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-07-30T17:10:16.964+01:00  INFO 29996 --- [human-or-ai] [      Thread-42] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@2bcf63c4]]
+2026-07-30T17:10:17.080+01:00  INFO 29996 --- [human-or-ai] [      Thread-42] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.
+jul 30, 2026 5:10:17 P. M. org.apache.coyote.AbstractProtocol stop
+INFO: Stopping ProtocolHandler ["http-nio-8080"]
+jul 30, 2026 5:10:17 P. M. org.apache.catalina.core.StandardService stopInternal
+INFO: Stopping service [Tomcat]
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-07-30T17:10:17.591+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] c.k.c.CleanSpringBootProjectApplication  : Starting CleanSpringBootProjectApplication using Java 21.0.10 with PID 29996 (C:\Users\vdort\Desktop\proyecto\guessTheAI\backend\target\classes started by vdort in C:\Users\vdort\Desktop\proyecto\guessTheAI\backend)
+2026-07-30T17:10:17.596+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] c.k.c.CleanSpringBootProjectApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-07-30T17:10:18.365+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.w.e.t.TomcatWebServer              : Tomcat initialized with port 8080 (http)
+jul 30, 2026 5:10:18 P. M. org.apache.coyote.AbstractProtocol init
+INFO: Initializing ProtocolHandler ["http-nio-8080"]
+jul 30, 2026 5:10:18 P. M. org.apache.catalina.core.StandardService startInternal
+INFO: Starting service [Tomcat]
+jul 30, 2026 5:10:18 P. M. org.apache.catalina.core.StandardEngine startInternal
+INFO: Starting Servlet engine: [Apache Tomcat/10.1.20]
+jul 30, 2026 5:10:18 P. M. org.apache.catalina.core.ApplicationContext log
+INFO: Initializing Spring embedded WebApplicationContext
+2026-07-30T17:10:18.414+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 813 ms
+2026-07-30T17:10:19.000+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-07-30T17:10:19.012+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.a.e.w.EndpointLinksResolver        : Exposing 1 endpoint(s) beneath base path '/actuator'
+jul 30, 2026 5:10:19 P. M. org.apache.coyote.AbstractProtocol start
+INFO: Starting ProtocolHandler ["http-nio-8080"]
+2026-07-30T17:10:19.050+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.b.w.e.t.TomcatWebServer              : Tomcat started on port 8080 (http) with context path ''
+2026-07-30T17:10:19.050+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-07-30T17:10:19.050+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@5e0b3502]]
+2026-07-30T17:10:19.050+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-07-30T17:10:19.065+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] c.k.c.CleanSpringBootProjectApplication  : Started CleanSpringBootProjectApplication in 1.631 seconds (process running for 9594.478)
+2026-07-30T17:10:19.067+01:00  INFO 29996 --- [human-or-ai] [  restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
