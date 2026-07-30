@@ -32,6 +32,7 @@ import com.kawser.cleanspringbootproject.game.application.port.out.RoomNotifier;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomRepository;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelation;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelationChecker;
+import com.kawser.cleanspringbootproject.game.application.port.out.WordSpellingCorrector;
 import com.kawser.cleanspringbootproject.game.domain.exception.PlayerNotFoundException;
 import com.kawser.cleanspringbootproject.game.domain.model.GameLanguage;
 import com.kawser.cleanspringbootproject.game.domain.model.Player;
@@ -75,6 +76,7 @@ public class GameApplicationService implements
     private final RoomRepository roomRepository;
     private final RoomNotifier roomNotifier;
     private final WordRelationChecker wordRelationChecker;
+    private final WordSpellingCorrector wordSpellingCorrector;
     private final ChainWordBank chainWordBank;
     private final RoomCodeGenerator roomCodeGenerator;
     private final PhaseScheduler phaseScheduler;
@@ -84,6 +86,7 @@ public class GameApplicationService implements
             RoomRepository roomRepository,
             RoomNotifier roomNotifier,
             WordRelationChecker wordRelationChecker,
+            WordSpellingCorrector wordSpellingCorrector,
             ChainWordBank chainWordBank,
             RoomCodeGenerator roomCodeGenerator,
             PhaseScheduler phaseScheduler,
@@ -91,6 +94,7 @@ public class GameApplicationService implements
         this.roomRepository = roomRepository;
         this.roomNotifier = roomNotifier;
         this.wordRelationChecker = wordRelationChecker;
+        this.wordSpellingCorrector = wordSpellingCorrector;
         this.chainWordBank = chainWordBank;
         this.roomCodeGenerator = roomCodeGenerator;
         this.phaseScheduler = phaseScheduler;
@@ -233,9 +237,14 @@ public class GameApplicationService implements
             round.requireCurrentTurn(command.playerId());
 
             GameLanguage language = r.settings().language();
+            // Correct spelling first so a typo like "porfesor" is judged
+            // (and stored in the chain) as "profesor" — otherwise the
+            // relatedness judge would be comparing a misspelling that
+            // means nothing to it against a real word.
+            String wordText = wordSpellingCorrector.correct(command.wordText(), language);
             String previousWord = round.latestChainWord();
             String targetWord = round.targetWordFor(command.playerId());
-            WordRelation relationToPrevious = wordRelationChecker.relatedness(command.wordText(), previousWord, language);
+            WordRelation relationToPrevious = wordRelationChecker.relatedness(wordText, previousWord, language);
             int relatednessToPrevious = relationToPrevious.percentage();
             boolean accepted = relatednessToPrevious >= scoringPolicy.relatednessThreshold();
 
@@ -245,10 +254,10 @@ public class GameApplicationService implements
             boolean reachedGroupTarget = false;
             boolean reachedInfiltratorTarget = false;
             if (accepted) {
-                boolean matchesOwnTarget = command.wordText().trim().equalsIgnoreCase(targetWord.trim());
+                boolean matchesOwnTarget = wordText.trim().equalsIgnoreCase(targetWord.trim());
                 relatednessToTarget = matchesOwnTarget
                         ? 100
-                        : wordRelationChecker.relatedness(command.wordText(), targetWord, language).percentage();
+                        : wordRelationChecker.relatedness(wordText, targetWord, language).percentage();
                 metTargetBonus = relatednessToTarget >= scoringPolicy.relatednessThreshold();
                 // Whether this word actually completes a mission is a
                 // separate question from "does it match your own target":
@@ -259,14 +268,14 @@ public class GameApplicationService implements
                 // one advances the phase, the other ends the whole game as a
                 // loss — so they're kept as separate booleans rather than
                 // folded into one "reachedTarget" flag.
-                reachedGroupTarget = round.reachesGroupTarget(command.wordText());
-                reachedInfiltratorTarget = round.reachesInfiltratorTarget(command.playerId(), command.wordText());
+                reachedGroupTarget = round.reachesGroupTarget(wordText);
+                reachedInfiltratorTarget = round.reachesInfiltratorTarget(command.playerId(), wordText);
                 reachedTarget = reachedGroupTarget || reachedInfiltratorTarget;
             }
 
             int scoreDelta = scoringPolicy.scoreWordAttempt(accepted, relatednessToPrevious, metTargetBonus);
             round.submitWord(
-                    command.playerId(), command.wordText(),
+                    command.playerId(), wordText,
                     new WordJudgement(
                             accepted, relatednessToPrevious, relationToPrevious.justification(),
                             relatednessToTarget, reachedTarget));

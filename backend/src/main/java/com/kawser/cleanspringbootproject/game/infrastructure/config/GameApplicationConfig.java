@@ -6,6 +6,7 @@ import com.kawser.cleanspringbootproject.game.application.port.out.RoomCodeGener
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomNotifier;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomRepository;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelationChecker;
+import com.kawser.cleanspringbootproject.game.application.port.out.WordSpellingCorrector;
 import com.kawser.cleanspringbootproject.game.application.service.GameApplicationService;
 import com.kawser.cleanspringbootproject.game.domain.service.DefaultScoringPolicy;
 import com.kawser.cleanspringbootproject.game.domain.service.ScoringPolicy;
@@ -31,12 +32,13 @@ public class GameApplicationConfig {
             RoomRepository roomRepository,
             RoomNotifier roomNotifier,
             WordRelationChecker wordRelationChecker,
+            WordSpellingCorrector wordSpellingCorrector,
             ChainWordBank chainWordBank,
             RoomCodeGenerator roomCodeGenerator,
             PhaseScheduler phaseScheduler,
             ScoringPolicy scoringPolicy) {
         return new GameApplicationService(
-                roomRepository, roomNotifier, wordRelationChecker, chainWordBank,
+                roomRepository, roomNotifier, wordRelationChecker, wordSpellingCorrector, chainWordBank,
                 roomCodeGenerator, phaseScheduler, scoringPolicy);
     }
 }

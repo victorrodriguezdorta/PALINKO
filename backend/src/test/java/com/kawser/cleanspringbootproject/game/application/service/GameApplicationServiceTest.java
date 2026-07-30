@@ -18,6 +18,7 @@ import com.kawser.cleanspringbootproject.game.application.port.out.RoomNotifier;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomRepository;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelation;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelationChecker;
+import com.kawser.cleanspringbootproject.game.application.port.out.WordSpellingCorrector;
 import com.kawser.cleanspringbootproject.game.domain.exception.RoomNotJoinableException;
 import com.kawser.cleanspringbootproject.game.domain.model.GameLanguage;
 import com.kawser.cleanspringbootproject.game.domain.model.Room;
@@ -72,11 +73,12 @@ class GameApplicationServiceTest {
         phaseScheduler = new FakePhaseScheduler();
         wordRelationChecker = mock(WordRelationChecker.class);
         RoomNotifier roomNotifier = mock(RoomNotifier.class);
+        WordSpellingCorrector wordSpellingCorrector = (word, language) -> word;
         chainWordBank = new FakeChainWordBank();
         RoomCodeGenerator roomCodeGenerator = () -> "ABC123";
 
         service = new GameApplicationService(
-                roomRepository, roomNotifier, wordRelationChecker, chainWordBank,
+                roomRepository, roomNotifier, wordRelationChecker, wordSpellingCorrector, chainWordBank,
                 roomCodeGenerator, phaseScheduler, new DefaultScoringPolicy());
 
         CreateRoomResult created = service.createRoom(new CreateRoomCommand("Host", GameLanguage.SPANISH));

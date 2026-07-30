@@ -91,6 +91,18 @@
 			<version>0.36.0</version>
 		</dependency>
 
+		<!-- Hunspell bindings (JNA over the native libhunspell used by
+		     LibreOffice/Firefox) for lightweight per-language spell
+		     correction before word-relatedness scoring - see
+		     HunspellWordSpellingCorrector. Ships native libs for
+		     Windows/macOS/Linux inside the jar; dictionaries are bundled
+		     under src/main/resources/dictionaries. -->
+		<dependency>
+			<groupId>com.gitlab.dumonts</groupId>
+			<artifactId>hunspell</artifactId>
+			<version>2.1.2</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
