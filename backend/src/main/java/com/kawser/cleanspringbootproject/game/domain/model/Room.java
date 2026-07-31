@@ -10,6 +10,7 @@ import com.kawser.cleanspringbootproject.game.domain.exception.RoomFullException
 import com.kawser.cleanspringbootproject.game.domain.exception.RoomNotFinishedException;
 import com.kawser.cleanspringbootproject.game.domain.exception.RoomNotInLobbyException;
 import com.kawser.cleanspringbootproject.game.domain.exception.RoomNotInProgressException;
+import com.kawser.cleanspringbootproject.game.domain.exception.RoomNotKickableException;
 import com.kawser.cleanspringbootproject.game.domain.exception.RoomNotJoinableException;
 import com.kawser.cleanspringbootproject.game.domain.exception.RoundNotStartedException;
 import com.kawser.cleanspringbootproject.game.domain.service.ScoringPolicy;
@@ -255,22 +256,40 @@ public class Room {
     }
 
     /**
-     * Host-only removal of another player while still in the lobby — unlike
+     * Host-only removal of another player — unlike
      * removeExpiredDisconnectedPlayers (a background sweep triggered by
      * inactivity), this is an explicit host action, so it validates the
-     * host's own invariants (host itself can never be kicked; only allowed
-     * pre-start, same as updateSettings) rather than silently no-op'ing.
+     * host's own invariant (host itself can never be kicked) rather than
+     * silently no-op'ing.
+     *
+     * <p>In the LOBBY the target is dropped outright, exactly like before:
+     * there is no round yet, so nothing else references their id. Once
+     * IN_PROGRESS, Round.turnOrder was already dealt at start and keeps
+     * referencing every original player id regardless of what happens to
+     * them afterward (see the class Javadoc on
+     * removeExpiredDisconnectedPlayers) — so removing the entry outright
+     * would make findPlayer stop finding them, which
+     * GameApplicationService.isCurrentTurnDisconnected relies on to detect
+     * and auto-skip an absent current-turn player. Instead they are kept
+     * in the roster but marked kicked: permanently disconnected (so their
+     * turn is auto-skipped exactly like any other disconnected player) and
+     * barred from ever reconnecting (see requireValidToken's caller,
+     * GameApplicationService.requireValidToken, and Player.isKicked).
      */
-    public void kickPlayer(String targetPlayerId) {
-        if (status != RoomStatus.LOBBY) {
-            throw new RoomNotInLobbyException(code);
+    public void kickPlayer(String targetPlayerId, Instant now) {
+        if (status != RoomStatus.LOBBY && status != RoomStatus.IN_PROGRESS) {
+            throw new RoomNotKickableException(code);
         }
         if (isHost(targetPlayerId)) {
             throw new CannotKickHostException(targetPlayerId);
         }
         requirePlayer(targetPlayerId);
-        players.remove(targetPlayerId);
-        reapplyAutomaticInfiltratorCount();
+        if (status == RoomStatus.LOBBY) {
+            players.remove(targetPlayerId);
+            reapplyAutomaticInfiltratorCount();
+        } else {
+            players.get(targetPlayerId).markKicked(now);
+        }
     }
 
     public void markDisconnected(String playerId, Instant now) {
@@ -285,10 +304,18 @@ public class Room {
      * references player ids from the turn order it captured at start, and
      * an expired/removed player's turn simply keeps timing out and being
      * skipped like any other unresponsive player until the chain ends.
+     *
+     * <p>A kicked player is excluded here even though markKicked also sets
+     * disconnectedAt: unlike an ordinary dropped connection, they must stay
+     * in the roster for good (see kickPlayer's javadoc) so
+     * GameApplicationService.isCurrentTurnDisconnected keeps finding —
+     * and therefore keeps auto-skipping — them by id for the rest of the
+     * game, instead of this sweep eventually erasing that id out from
+     * under Round's already-dealt turnOrder.
      */
     public boolean removeExpiredDisconnectedPlayers(Instant now, Duration reconnectWindow) {
-        boolean removedAny =
-                players.values().removeIf(player -> !player.isHost() && player.isReconnectWindowExpired(now, reconnectWindow));
+        boolean removedAny = players.values().removeIf(
+                player -> !player.isHost() && !player.isKicked() && player.isReconnectWindowExpired(now, reconnectWindow));
         if (removedAny) {
             reapplyAutomaticInfiltratorCount();
         }

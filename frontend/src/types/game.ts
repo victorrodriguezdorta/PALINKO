@@ -10,6 +10,7 @@ export interface PlayerView {
   score: number
   connected: boolean
   host: boolean
+  kicked: boolean
 }
 
 export interface AttemptView {

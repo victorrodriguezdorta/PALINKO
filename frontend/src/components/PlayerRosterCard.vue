@@ -13,7 +13,7 @@
         :key="player.id"
         :player="player"
         :is-self="player.id === viewerPlayerId"
-        :can-kick="isHost && player.id !== viewerPlayerId && player.id !== hostPlayerId"
+        :can-kick="isHost && !player.kicked && player.id !== viewerPlayerId && player.id !== hostPlayerId"
         @kick="$emit('kick', player.id)"
       />
     </div>

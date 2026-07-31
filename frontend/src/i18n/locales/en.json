@@ -53,6 +53,7 @@
       "capacity": "{count}/{max} players",
       "host": "(host)",
       "disconnected": "(disconnected)",
+      "kicked": "(removed)",
       "you": "(you)",
       "kick": "Remove",
       "kickAriaLabel": "Remove {name} from the room",
@@ -157,6 +158,7 @@
     "ROOM_FULL": "This room already has the maximum of 10 players.",
     "INVALID_INFILTRATOR_COUNT": "You can't have {requested} impostors with this many players (max {maxAllowed}).",
     "CANNOT_KICK_HOST": "The host can't be removed from the room.",
+    "ROOM_NOT_KICKABLE": "Players can no longer be removed from this game.",
     "KICKED": "You were removed from the room by the host."
   },
   "languages": {

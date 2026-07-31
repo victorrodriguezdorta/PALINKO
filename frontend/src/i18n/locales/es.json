@@ -53,6 +53,7 @@
       "capacity": "{count}/{max} jugadores",
       "host": "(host)",
       "disconnected": "(desconectado)",
+      "kicked": "(expulsado)",
       "you": "(tú)",
       "kick": "Expulsar",
       "kickAriaLabel": "Expulsar a {name} de la sala",
@@ -157,6 +158,7 @@
     "ROOM_FULL": "Esta sala ya tiene el máximo de 10 jugadores.",
     "INVALID_INFILTRATOR_COUNT": "No puedes tener {requested} impostores con estos jugadores (máximo {maxAllowed}).",
     "CANNOT_KICK_HOST": "No se puede expulsar al host de la sala.",
+    "ROOM_NOT_KICKABLE": "Ya no se puede expulsar a jugadores en esta partida.",
     "KICKED": "El host te ha expulsado de la sala."
   },
   "languages": {

@@ -2,7 +2,7 @@ package com.kawser.cleanspringbootproject.game.domain.model;
 
 import com.kawser.cleanspringbootproject.game.domain.exception.CannotKickHostException;
 import com.kawser.cleanspringbootproject.game.domain.exception.PlayerNotFoundException;
-import com.kawser.cleanspringbootproject.game.domain.exception.RoomNotInLobbyException;
+import com.kawser.cleanspringbootproject.game.domain.exception.RoomNotKickableException;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -43,6 +43,25 @@ class RoomTest {
         assertThat(room.findPlayer("guestA")).isEmpty();
         assertThat(room.findPlayer("guestB")).isPresent();
         assertThat(room.findPlayer("host")).isPresent();
+    }
+
+    @Test
+    void aKickedPlayerIsNeverPurgedByTheReconnectWindowSweepEvenAfterItExpires() {
+        Room room = newRoomWithHostAndTwoGuests();
+        room.start(DEFAULT_PHASE_WORD_SETS, Instant.now());
+        Instant kickedAt = Instant.now();
+        room.kickPlayer("guestA", kickedAt);
+
+        // Long after any ordinary reconnect window would have expired: a
+        // kicked player must stay in the roster forever (see
+        // removeExpiredDisconnectedPlayers's javadoc), unlike a plain
+        // dropped connection, since Round's already-dealt turnOrder keeps
+        // referencing their id for the rest of the game.
+        boolean removedAny = room.removeExpiredDisconnectedPlayers(
+                kickedAt.plusSeconds(999_999), Duration.ofSeconds(300));
+
+        assertThat(removedAny).isFalse();
+        assertThat(room.findPlayer("guestA")).isPresent();
     }
 
     @Test
@@ -131,7 +150,7 @@ class RoomTest {
     void hostCanKickAGuestWhileStillInTheLobby() {
         Room room = newRoomWithHostAndTwoGuests();
 
-        room.kickPlayer("guestA");
+        room.kickPlayer("guestA", Instant.now());
 
         assertThat(room.findPlayer("guestA")).isEmpty();
         assertThat(room.findPlayer("guestB")).isPresent();
@@ -144,7 +163,7 @@ class RoomTest {
         // 3 players auto-defaulted to floor(3/3) = 1.
         assertThat(room.settings().infiltratorCount()).isEqualTo(1);
 
-        room.kickPlayer("guestA");
+        room.kickPlayer("guestA", Instant.now());
 
         // 2 players left: floor(2/3) = 0.
         assertThat(room.settings().infiltratorCount()).isZero();
@@ -154,7 +173,7 @@ class RoomTest {
     void kickingTheHostIsRejected() {
         Room room = newRoomWithHostAndTwoGuests();
 
-        assertThatThrownBy(() -> room.kickPlayer("host"))
+        assertThatThrownBy(() -> room.kickPlayer("host", Instant.now()))
                 .isInstanceOf(CannotKickHostException.class);
         assertThat(room.findPlayer("host")).isPresent();
     }
@@ -163,17 +182,46 @@ class RoomTest {
     void kickingAnUnknownPlayerThrows() {
         Room room = newRoomWithHostAndTwoGuests();
 
-        assertThatThrownBy(() -> room.kickPlayer("ghost"))
+        assertThatThrownBy(() -> room.kickPlayer("ghost", Instant.now()))
                 .isInstanceOf(PlayerNotFoundException.class);
     }
 
     @Test
-    void kickingOutsideTheLobbyIsRejected() {
+    void hostCanKickAGuestMidGameWithoutRemovingThemFromTheTurnOrder() {
         Room room = newRoomWithHostAndTwoGuests();
         room.start(DEFAULT_PHASE_WORD_SETS, Instant.now());
 
-        assertThatThrownBy(() -> room.kickPlayer("guestA"))
-                .isInstanceOf(RoomNotInLobbyException.class);
+        room.kickPlayer("guestA", Instant.now());
+
+        assertThat(room.findPlayer("guestA")).isPresent();
+        assertThat(room.findPlayer("guestA").orElseThrow().isConnected()).isFalse();
+        assertThat(room.findPlayer("guestA").orElseThrow().isKicked()).isTrue();
+        // Round's turn order was already dealt at start and must keep
+        // referencing every original player id regardless of a later kick
+        // (see Room.kickPlayer's javadoc) so the disconnected-skip logic in
+        // GameApplicationService keeps working unchanged.
+        assertThat(room.round().turnOrder()).contains("guestA");
+    }
+
+    @Test
+    void kickingAPlayerMidGameDoesNotReapplyTheAutomaticInfiltratorCount() {
+        Room room = newRoomWithHostAndTwoGuests();
+        room.start(DEFAULT_PHASE_WORD_SETS, Instant.now());
+        int infiltratorCountAtStart = room.settings().infiltratorCount();
+
+        room.kickPlayer("guestA", Instant.now());
+
+        assertThat(room.settings().infiltratorCount()).isEqualTo(infiltratorCountAtStart);
+    }
+
+    @Test
+    void kickingOutsideLobbyOrInProgressIsRejected() {
+        Room room = newRoomWithHostAndTwoGuests();
+        room.start(DEFAULT_PHASE_WORD_SETS, Instant.now());
+        room.finishCooperatively(Instant.now());
+
+        assertThatThrownBy(() -> room.kickPlayer("guestA", Instant.now()))
+                .isInstanceOf(RoomNotKickableException.class);
         assertThat(room.findPlayer("guestA")).isPresent();
     }
 }

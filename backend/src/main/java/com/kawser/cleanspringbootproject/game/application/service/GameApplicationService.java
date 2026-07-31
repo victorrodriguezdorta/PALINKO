@@ -333,7 +333,17 @@ public class GameApplicationService implements
         Room room = roomRepository.mutate(command.roomCode(), r -> {
             requireValidToken(r, command.playerId(), command.reconnectToken());
             r.requireHost(command.playerId());
-            r.kickPlayer(command.targetPlayerId());
+            r.kickPlayer(command.targetPlayerId(), Instant.now());
+            // Mirrors handleDisconnect: don't make everyone wait out the
+            // kicked player's own turn timeout if it was theirs when they
+            // got removed — cancel it and immediately re-derive whose turn
+            // it is (or end the chain), same as a dropped connection would.
+            if (r.status() == RoomStatus.IN_PROGRESS && r.hasRound()
+                    && r.round().phase() == RoundPhase.WORD_CHAIN
+                    && r.round().currentTurnPlayerId().equals(command.targetPlayerId())) {
+                phaseScheduler.cancel(r.code());
+                endWordChainOrScheduleNextTurn(r);
+            }
             return r;
         });
         roomNotifier.notifyRoomUpdated(room);
@@ -458,6 +468,13 @@ public class GameApplicationService implements
     private void requireValidToken(Room room, String playerId, String reconnectToken) {
         Player player = room.findPlayer(playerId).orElseThrow(() -> new PlayerNotFoundException(playerId));
         if (!player.matchesReconnectToken(reconnectToken)) {
+            throw new PlayerNotFoundException(playerId);
+        }
+        // A kicked player is kept in the roster (see Room.kickPlayer) so
+        // Round's already-dealt turnOrder can still find and auto-skip
+        // them, but every action of theirs — including reconnect — must
+        // keep failing exactly as if they were never in the room at all.
+        if (player.isKicked()) {
             throw new PlayerNotFoundException(playerId);
         }
     }

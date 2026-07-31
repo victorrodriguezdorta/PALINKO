@@ -8,6 +8,7 @@ import com.kawser.cleanspringbootproject.game.application.dto.DisconnectCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.JoinRoomCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.JoinRoomResult;
 import com.kawser.cleanspringbootproject.game.application.dto.KickPlayerCommand;
+import com.kawser.cleanspringbootproject.game.application.dto.ReconnectCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.StartGameCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.SubmitVoteCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.SubmitWordCommand;
@@ -21,6 +22,7 @@ import com.kawser.cleanspringbootproject.game.application.port.out.WordRelation;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelationChecker;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordSpellingCorrector;
 import com.kawser.cleanspringbootproject.game.domain.exception.NotHostException;
+import com.kawser.cleanspringbootproject.game.domain.exception.PlayerNotFoundException;
 import com.kawser.cleanspringbootproject.game.domain.exception.RoomNotJoinableException;
 import com.kawser.cleanspringbootproject.game.domain.model.GameLanguage;
 import com.kawser.cleanspringbootproject.game.domain.model.Room;
@@ -300,6 +302,37 @@ class GameApplicationServiceTest {
         service.kickPlayer(new KickPlayerCommand(roomCode, hostPlayerId, hostToken, guestId));
 
         assertThat(room().findPlayer(guestId)).isEmpty();
+    }
+
+    @Test
+    void hostCanKickAGuestMidGameAndTheGuestCanNeverReconnect() {
+        startGame();
+        String guestId = tokensByPlayerId.keySet().stream()
+                .filter(id -> !id.equals(hostPlayerId) && !id.equals(room().round().currentTurnPlayerId()))
+                .findFirst()
+                .orElseThrow();
+
+        service.kickPlayer(new KickPlayerCommand(roomCode, hostPlayerId, hostToken, guestId));
+
+        assertThat(room().status()).isEqualTo(RoomStatus.IN_PROGRESS);
+        assertThat(room().findPlayer(guestId)).isPresent();
+        assertThat(room().findPlayer(guestId).orElseThrow().isKicked()).isTrue();
+        assertThat(room().round().turnOrder()).contains(guestId);
+        assertThatThrownBy(() -> service.reconnect(
+                new ReconnectCommand(roomCode, guestId, tokensByPlayerId.get(guestId))))
+                .isInstanceOf(PlayerNotFoundException.class);
+    }
+
+    @Test
+    void kickingThePlayerWhoseTurnItCurrentlyIsSkipsToTheNextPlayerImmediately() {
+        startGame();
+        String kickedPlayerId = room().round().currentTurnPlayerId();
+
+        service.kickPlayer(new KickPlayerCommand(roomCode, hostPlayerId, hostToken, kickedPlayerId));
+
+        // Mirrors handleDisconnect's own equivalent: nobody should be stuck
+        // waiting out the kicked player's own turn timeout.
+        assertThat(room().round().currentTurnPlayerId()).isNotEqualTo(kickedPlayerId);
     }
 
     @Test

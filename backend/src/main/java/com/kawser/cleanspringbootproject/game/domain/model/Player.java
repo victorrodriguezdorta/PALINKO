@@ -24,6 +24,7 @@ public class Player {
     private int score;
     private boolean connected;
     private Instant disconnectedAt;
+    private boolean kicked;
 
     private Player(String id, String reconnectToken, String name, String avatarSeed, boolean host) {
         this.id = id;
@@ -34,6 +35,7 @@ public class Player {
         this.score = 0;
         this.connected = true;
         this.disconnectedAt = null;
+        this.kicked = false;
     }
 
     public static Player host(String id, String reconnectToken, String name, String avatarSeed) {
@@ -75,6 +77,22 @@ public class Player {
     public void markDisconnected(Instant now) {
         this.connected = false;
         this.disconnectedAt = now;
+    }
+
+    /**
+     * A host-initiated removal, as opposed to a dropped connection: unlike
+     * markDisconnected, this is permanent and never eligible for
+     * reconnect (see Room.kickPlayer / requireValidToken), regardless of
+     * how the room otherwise treats disconnected players.
+     */
+    public void markKicked(Instant now) {
+        this.connected = false;
+        this.disconnectedAt = now;
+        this.kicked = true;
+    }
+
+    public boolean isKicked() {
+        return kicked;
     }
 
     /**

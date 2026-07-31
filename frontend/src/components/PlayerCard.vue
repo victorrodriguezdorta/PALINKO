@@ -6,7 +6,10 @@
         {{ player.name }}
         <span v-if="isSelf" class="player-card__tag player-card__tag--self">{{ t('room.players.you') }}</span>
         <span v-if="player.host" class="player-card__tag">{{ t('room.players.host') }}</span>
-        <span v-if="!player.connected" class="player-card__tag player-card__tag--muted">
+        <span v-if="player.kicked" class="player-card__tag player-card__tag--muted">
+          {{ t('room.players.kicked') }}
+        </span>
+        <span v-else-if="!player.connected" class="player-card__tag player-card__tag--muted">
           {{ t('room.players.disconnected') }}
         </span>
       </p>

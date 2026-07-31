@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto p-6" :class="snapshot?.status === 'LOBBY' ? 'max-w-6xl' : 'max-w-2xl'">
+  <div class="mx-auto p-6" :class="snapshot?.status === 'LOBBY' || (snapshot && snapshot.status !== 'CLOSED' && !isDaily) ? 'max-w-6xl' : 'max-w-2xl'">
     <AppHeader
       :title="isDaily ? t('room.titleDaily') : t('room.title', { code: roomCode })"
       show-back
@@ -77,30 +77,19 @@
         </div>
       </section>
 
-      <div v-else class="rounded-2xl border-2 border-white/20 bg-white p-4 shadow-lg">
-      <section v-if="!isDaily" class="mb-6">
-        <h2 class="mb-2 font-semibold">
-          {{ t('room.players.heading') }}
-          <span class="text-sm font-normal text-gray-500">
-            ({{ t('room.players.capacity', { count: snapshot.players.length, max: MAX_ROOM_PLAYERS }) }})
-          </span>
-        </h2>
-        <ul class="flex flex-col gap-1">
-          <li
-            v-for="player in snapshot.players"
-            :key="player.id"
-            class="flex items-center justify-between rounded border border-gray-200 px-3 py-1 text-sm"
-          >
-            <span>
-              {{ player.name }}
-              <span v-if="player.host" class="text-xs text-secondary-500">{{ t('room.players.host') }}</span>
-              <span v-if="!player.connected" class="text-xs text-gray-400">{{ t('room.players.disconnected') }}</span>
-            </span>
-            <span class="font-mono">{{ player.score }} {{ t('common.pts') }}</span>
-          </li>
-        </ul>
-      </section>
+      <div v-else class="grid gap-4" :class="!isDaily ? 'md:grid-cols-[16rem_1fr]' : ''">
+      <aside v-if="!isDaily" class="md:sticky md:top-4 md:self-start">
+        <PlayerScoreboardCard
+          :players="snapshot.players"
+          :viewer-player-id="snapshot.viewerPlayerId"
+          :host-player-id="snapshot.hostPlayerId"
+          :is-host="gameStore.isHost"
+          :max-players="MAX_ROOM_PLAYERS"
+          @kick="onKickPlayer"
+        />
+      </aside>
 
+      <div class="rounded-2xl border-2 border-white/20 bg-white p-4 shadow-lg">
       <section v-if="(snapshot.status === 'IN_PROGRESS' || snapshot.status === 'FINISHED') && chain">
         <p v-if="chain.totalPhases > 1" class="mb-1 text-sm font-semibold text-gray-600">
           {{ t('room.chain.phaseProgress', { current: chain.currentPhaseNumber, total: chain.totalPhases }) }}
@@ -287,6 +276,7 @@
         </CartoonButton>
       </section>
       </div>
+      </div>
     </template>
   </div>
 </template>
@@ -304,6 +294,7 @@ import AppHeader from '@/components/AppHeader.vue'
 import PlayerAvatar from '@/components/PlayerAvatar.vue'
 import RulesCard from '@/components/RulesCard.vue'
 import PlayerRosterCard from '@/components/PlayerRosterCard.vue'
+import PlayerScoreboardCard from '@/components/PlayerScoreboardCard.vue'
 import { loadOrCreateAvatarSeed, persistAvatarSeed, randomAvatarSeed } from '@/utils/avatar'
 import { THEME_COLORS } from '@/assets/theme'
 import type { ApiError, AttemptView, GameLanguage } from '@/types/game'
@@ -424,7 +415,7 @@ const otherTypingPreview = computed(() => {
 })
 
 const votablePlayers = computed(() =>
-  (snapshot.value?.players ?? []).filter((player) => player.id !== gameStore.playerId),
+  (snapshot.value?.players ?? []).filter((player) => player.id !== gameStore.playerId && !player.kicked),
 )
 
 const myVoteSuspectId = computed(() => {
