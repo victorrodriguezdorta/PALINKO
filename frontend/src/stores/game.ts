@@ -92,6 +92,14 @@ export const useGameStore = defineStore('game', () => {
         snapshot.value = newSnapshot
       },
       (error) => {
+        // The host removed this player from the room: there is no room
+        // left for this client to keep showing, so drop the stored
+        // identity/socket the same way leaveRoom does — RoomView reacts to
+        // the KICKED code on errorMessage to redirect back to Home.
+        if (error.code === 'KICKED') {
+          gameSocket.disconnect()
+          clearIdentity()
+        }
         errorMessage.value = error
       },
       (typing) => {
@@ -105,8 +113,8 @@ export const useGameStore = defineStore('game', () => {
   // takes them, so the server always starts a fresh room with its own
   // fixed defaults. Language is the one exception: it's the host's own
   // chosen language, so it has to be supplied here.
-  async function createRoom(hostName: string, language: GameLanguage) {
-    const result = await createRoomRequest({ hostName, language })
+  async function createRoom(hostName: string, avatarSeed: string, language: GameLanguage) {
+    const result = await createRoomRequest({ hostName, avatarSeed, language })
     roomCode.value = result.roomCode
     playerId.value = result.playerId
     reconnectToken.value = result.reconnectToken
@@ -127,8 +135,8 @@ export const useGameStore = defineStore('game', () => {
     persistIdentity()
   }
 
-  async function joinRoom(code: string, playerName: string) {
-    const result = await joinRoomRequest(code, playerName)
+  async function joinRoom(code: string, playerName: string, avatarSeed: string) {
+    const result = await joinRoomRequest(code, playerName, avatarSeed)
     roomCode.value = result.roomCode
     playerId.value = result.playerId
     reconnectToken.value = result.reconnectToken
@@ -164,6 +172,10 @@ export const useGameStore = defineStore('game', () => {
 
   function playAgain() {
     if (roomCode.value) gameSocket.playAgain(roomCode.value)
+  }
+
+  function kickPlayer(targetPlayerId: string) {
+    if (roomCode.value) gameSocket.kickPlayer(roomCode.value, targetPlayerId)
   }
 
   function updateSettings(
@@ -209,6 +221,7 @@ export const useGameStore = defineStore('game', () => {
     clearTypingPreview,
     submitVote,
     playAgain,
+    kickPlayer,
     updateSettings,
     leaveRoom,
     dismissError,

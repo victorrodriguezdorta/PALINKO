@@ -1,5 +1,6 @@
 package com.kawser.cleanspringbootproject.game.domain.model;
 
+import com.kawser.cleanspringbootproject.game.domain.exception.CannotKickHostException;
 import com.kawser.cleanspringbootproject.game.domain.exception.DuplicatePlayerNameException;
 import com.kawser.cleanspringbootproject.game.domain.exception.InvalidInfiltratorCountException;
 import com.kawser.cleanspringbootproject.game.domain.exception.NotEnoughPlayersException;
@@ -251,6 +252,25 @@ public class Room {
         status = RoomStatus.LOBBY;
         reapplyAutomaticInfiltratorCount();
         touch(now);
+    }
+
+    /**
+     * Host-only removal of another player while still in the lobby — unlike
+     * removeExpiredDisconnectedPlayers (a background sweep triggered by
+     * inactivity), this is an explicit host action, so it validates the
+     * host's own invariants (host itself can never be kicked; only allowed
+     * pre-start, same as updateSettings) rather than silently no-op'ing.
+     */
+    public void kickPlayer(String targetPlayerId) {
+        if (status != RoomStatus.LOBBY) {
+            throw new RoomNotInLobbyException(code);
+        }
+        if (isHost(targetPlayerId)) {
+            throw new CannotKickHostException(targetPlayerId);
+        }
+        requirePlayer(targetPlayerId);
+        players.remove(targetPlayerId);
+        reapplyAutomaticInfiltratorCount();
     }
 
     public void markDisconnected(String playerId, Instant now) {

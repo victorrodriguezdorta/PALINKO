@@ -170,9 +170,9 @@ class RoundTest {
 
         round.startVoting(Instant.now().plusSeconds(30));
         round.reveal(new DefaultScoringPolicy(), List.of(
-                Player.host("alice", "t1", "Alice"),
-                Player.guest("bob", "t2", "Bob"),
-                Player.guest("carol", "t3", "Carol")));
+                Player.host("alice", "t1", "Alice", "seed-alice"),
+                Player.guest("bob", "t2", "Bob", "seed-bob"),
+                Player.guest("carol", "t3", "Carol", "seed-carol")));
 
         assertThat(round.phase()).isEqualTo(RoundPhase.REVEAL);
         assertThat(round.phaseDeadline()).isNull();

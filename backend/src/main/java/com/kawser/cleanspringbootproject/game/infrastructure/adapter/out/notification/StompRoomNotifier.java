@@ -5,10 +5,13 @@ import com.kawser.cleanspringbootproject.game.application.port.out.RoomNotifier;
 import com.kawser.cleanspringbootproject.game.domain.model.Player;
 import com.kawser.cleanspringbootproject.game.domain.model.Room;
 import com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.stomp.StompSessionRegistry;
+import com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.stomp.dto.StompErrorMessage;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 /**
  * Builds one personalized RoomSnapshot per player (each sees their own
@@ -32,6 +35,7 @@ import org.springframework.stereotype.Component;
 public class StompRoomNotifier implements RoomNotifier {
 
     private static final String DESTINATION = "/queue/room-updates";
+    private static final String ERRORS_DESTINATION = "/queue/errors";
 
     private final SimpMessagingTemplate messagingTemplate;
     private final StompSessionRegistry sessionRegistry;
@@ -51,6 +55,17 @@ public class StompRoomNotifier implements RoomNotifier {
                 accessor.setLeaveMutable(true);
                 messagingTemplate.convertAndSendToUser(sessionId, DESTINATION, snapshot, accessor.getMessageHeaders());
             }
+        }
+    }
+
+    @Override
+    public void notifyPlayerKicked(String roomCode, String kickedPlayerId) {
+        StompErrorMessage message = new StompErrorMessage("KICKED", "You were removed from the room by the host", Map.of());
+        for (String sessionId : sessionRegistry.sessionIdsFor(roomCode, kickedPlayerId)) {
+            SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
+            accessor.setSessionId(sessionId);
+            accessor.setLeaveMutable(true);
+            messagingTemplate.convertAndSendToUser(sessionId, ERRORS_DESTINATION, message, accessor.getMessageHeaders());
         }
     }
 }

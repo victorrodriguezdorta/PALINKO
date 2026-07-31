@@ -14,4 +14,14 @@ import com.kawser.cleanspringbootproject.game.domain.model.Room;
 public interface RoomNotifier {
 
     void notifyRoomUpdated(Room room);
+
+    /**
+     * Tells a just-removed player's own client that they were kicked, since
+     * notifyRoomUpdated alone can't: it only pushes to players still in
+     * room.players(), which the kicked player no longer is. Delivered on
+     * the same per-session error channel as any other domain error (see
+     * StompRoomNotifier), so the frontend can special-case this one error
+     * code to leave the room.
+     */
+    void notifyPlayerKicked(String roomCode, String kickedPlayerId);
 }

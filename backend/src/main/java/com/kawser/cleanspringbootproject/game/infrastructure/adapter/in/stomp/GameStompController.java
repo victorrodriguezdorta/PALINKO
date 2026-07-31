@@ -1,10 +1,12 @@
 package com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.stomp;
 
+import com.kawser.cleanspringbootproject.game.application.dto.KickPlayerCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.ResetRoomCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.StartGameCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.SubmitVoteCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.SubmitWordCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.UpdateRoomSettingsCommand;
+import com.kawser.cleanspringbootproject.game.application.port.in.KickPlayerUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.ResetRoomUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.StartGameUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.SubmitVoteUseCase;
@@ -13,6 +15,7 @@ import com.kawser.cleanspringbootproject.game.application.port.in.UpdateRoomSett
 import com.kawser.cleanspringbootproject.game.domain.exception.GameDomainException;
 import com.kawser.cleanspringbootproject.game.domain.exception.UnauthenticatedSessionException;
 import com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.stomp.StompSessionRegistry.SessionIdentity;
+import com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.stomp.dto.KickPlayerMessage;
 import com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.stomp.dto.StompErrorMessage;
 import com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.stomp.dto.SubmitVoteMessage;
 import com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.stomp.dto.SubmitWordMessage;
@@ -46,6 +49,7 @@ public class GameStompController {
     private final SubmitVoteUseCase submitVoteUseCase;
     private final ResetRoomUseCase resetRoomUseCase;
     private final UpdateRoomSettingsUseCase updateRoomSettingsUseCase;
+    private final KickPlayerUseCase kickPlayerUseCase;
     private final StompSessionRegistry sessionRegistry;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -55,6 +59,7 @@ public class GameStompController {
             SubmitVoteUseCase submitVoteUseCase,
             ResetRoomUseCase resetRoomUseCase,
             UpdateRoomSettingsUseCase updateRoomSettingsUseCase,
+            KickPlayerUseCase kickPlayerUseCase,
             StompSessionRegistry sessionRegistry,
             SimpMessagingTemplate messagingTemplate) {
         this.startGameUseCase = startGameUseCase;
@@ -62,6 +67,7 @@ public class GameStompController {
         this.submitVoteUseCase = submitVoteUseCase;
         this.resetRoomUseCase = resetRoomUseCase;
         this.updateRoomSettingsUseCase = updateRoomSettingsUseCase;
+        this.kickPlayerUseCase = kickPlayerUseCase;
         this.sessionRegistry = sessionRegistry;
         this.messagingTemplate = messagingTemplate;
     }
@@ -101,6 +107,13 @@ public class GameStompController {
                 identity.roomCode(), identity.playerId(), identity.reconnectToken(),
                 message.wordTimeSeconds(), message.voteTimeSeconds(), message.language(),
                 message.infiltratorCount(), message.phaseCount()));
+    }
+
+    @MessageMapping("/rooms/{code}/kick")
+    public void kick(KickPlayerMessage message, SimpMessageHeaderAccessor headerAccessor) {
+        SessionIdentity identity = requireIdentity(headerAccessor);
+        kickPlayerUseCase.kickPlayer(new KickPlayerCommand(
+                identity.roomCode(), identity.playerId(), identity.reconnectToken(), message.targetPlayerId()));
     }
 
     /**

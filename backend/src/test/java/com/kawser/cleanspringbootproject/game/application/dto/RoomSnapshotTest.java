@@ -36,10 +36,10 @@ class RoomSnapshotTest {
         // so these infiltrator-focused assertions need at least 3 players
         // for the default infiltratorCount=1 to actually deal one in.
         RoomSettings settings = new RoomSettings(30, 30, GameLanguage.SPANISH, 1, phaseCount, false);
-        Player host = Player.host("host-1", "token-1", "Host");
+        Player host = Player.host("host-1", "token-1", "Host", "seed-host-1");
         Room room = Room.create("ABC123", settings, host, Instant.now());
-        room.addPlayer(Player.guest("guest-1", "token-2", "Guest"), Instant.now());
-        room.addPlayer(Player.guest("guest-2", "token-3", "Guest2"), Instant.now());
+        room.addPlayer(Player.guest("guest-1", "token-2", "Guest", "seed-guest-1"), Instant.now());
+        room.addPlayer(Player.guest("guest-2", "token-3", "Guest2", "seed-guest-2"), Instant.now());
         List<WordSet> phaseWordSets = phaseCount == 1
                 ? List.of(new WordSet("Bolígrafo", "Cama", "Océano"))
                 : List.of(new WordSet("Bolígrafo", "Cama", "Océano"), new WordSet("Cama", "Fresa", "Coche"));

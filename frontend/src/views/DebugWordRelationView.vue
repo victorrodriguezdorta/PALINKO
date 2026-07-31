@@ -2,7 +2,7 @@
   <div class="mx-auto max-w-md p-6">
     <div class="mb-6 flex items-center justify-between">
       <h1 class="text-2xl font-bold">{{ t('debug.wordRelation.heading') }}</h1>
-      <RouterLink to="/" class="text-sm text-blue-600 underline">{{ t('debug.back') }}</RouterLink>
+      <RouterLink to="/" class="text-sm text-secondary-500 underline">{{ t('debug.back') }}</RouterLink>
     </div>
 
     <section class="rounded-lg border border-gray-300 p-4">
@@ -23,7 +23,7 @@
             </option>
           </select>
         </label>
-        <button type="submit" class="mt-2 rounded bg-blue-600 p-2 font-semibold text-white" :disabled="loading">
+        <button type="submit" class="mt-2 rounded bg-secondary-500 p-2 font-semibold text-white" :disabled="loading">
           {{ t('debug.wordRelation.submit') }}
         </button>
       </form>
@@ -33,7 +33,7 @@
         <span class="font-semibold">{{ t('debug.wordRelation.justificationLabel') }}:</span>
         {{ result.justification }}
       </p>
-      <p v-if="error" class="mt-4 rounded bg-red-100 p-2 text-sm text-red-700">{{ error }}</p>
+      <p v-if="error" class="mt-4 rounded bg-error-100 p-2 text-sm text-error-700">{{ error }}</p>
     </section>
   </div>
 </template>

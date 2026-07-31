@@ -3,10 +3,17 @@
     "appTitle": "Word Chain",
     "yourName": "Your name",
     "close": "close",
-    "pts": "pts"
+    "pts": "pts",
+    "footer": {
+      "text": "© {year} Word Chain. All rights reserved."
+    }
   },
   "home": {
     "languageLabel": "Language",
+    "avatar": {
+      "shuffle": "Shuffle avatar",
+      "hint": "Click your avatar to randomize it"
+    },
     "daily": {
       "heading": "Daily challenge",
       "hint": "One chain a day, the same for everyone. No time limit per turn.",
@@ -24,6 +31,13 @@
       "submit": "Join"
     }
   },
+  "playerSetup": {
+    "pageTitle": "Choose your name",
+    "createHeading": "Choose your name and avatar",
+    "joinHeading": "Join room {code}",
+    "createSubmit": "Create room",
+    "joinSubmit": "Join"
+  },
   "room": {
     "pageTitle": "Room",
     "title": "Room {code}",
@@ -38,7 +52,13 @@
       "heading": "Players",
       "capacity": "{count}/{max} players",
       "host": "(host)",
-      "disconnected": "(disconnected)"
+      "disconnected": "(disconnected)",
+      "you": "(you)",
+      "kick": "Remove",
+      "kickAriaLabel": "Remove {name} from the room",
+      "kickConfirm": "Remove {name}?",
+      "kickConfirmYes": "Yes",
+      "kickConfirmCancel": "Cancel"
     },
     "lobby": {
       "shareCodeLabel": "Share this code with the rest of the players:",
@@ -47,9 +67,12 @@
       "voteTimeLabel": "Seconds to vote for the infiltrator",
       "languageLabel": "Room language",
       "infiltratorCountLabel": "Number of impostors",
-      "infiltratorCountHint": "Max {max} with the current players (a third of the total). 0 means a cooperative game with no impostor.",
       "phaseCountLabel": "Number of phases",
-      "phaseCountHint": "Every phase is computed when the game starts. Once a phase is completed, the next one starts from the target word it just reached.",
+      "infiltratorsToggleLabel": "Impostors",
+      "infiltratorsToggleOn": "Enabled",
+      "infiltratorsToggleOff": "Disabled",
+      "infiltratorsToggleMinPlayers": "At least 3 players in the room are needed to enable impostors.",
+      "infiltratorCountError": "The number of impostors can't exceed {max} (a third of the players). It has been reset to 0.",
       "wordTimeReadonly": "Seconds per turn: {value}",
       "voteTimeReadonly": "Seconds to vote: {value}",
       "languageReadonly": "Language: {value}",
@@ -132,7 +155,9 @@
     "ROUND_NOT_STARTED": "No round has started yet.",
     "UNAUTHENTICATED_SESSION": "Your session isn't valid. Rejoin the room.",
     "ROOM_FULL": "This room already has the maximum of 10 players.",
-    "INVALID_INFILTRATOR_COUNT": "You can't have {requested} impostors with this many players (max {maxAllowed})."
+    "INVALID_INFILTRATOR_COUNT": "You can't have {requested} impostors with this many players (max {maxAllowed}).",
+    "CANNOT_KICK_HOST": "The host can't be removed from the room.",
+    "KICKED": "You were removed from the room by the host."
   },
   "languages": {
     "ENGLISH": "English",

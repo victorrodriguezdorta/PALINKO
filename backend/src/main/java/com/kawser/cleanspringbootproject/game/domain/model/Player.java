@@ -19,27 +19,29 @@ public class Player {
     private final String id;
     private final String reconnectToken;
     private final String name;
+    private final String avatarSeed;
     private final boolean host;
     private int score;
     private boolean connected;
     private Instant disconnectedAt;
 
-    private Player(String id, String reconnectToken, String name, boolean host) {
+    private Player(String id, String reconnectToken, String name, String avatarSeed, boolean host) {
         this.id = id;
         this.reconnectToken = reconnectToken;
         this.name = name;
+        this.avatarSeed = avatarSeed;
         this.host = host;
         this.score = 0;
         this.connected = true;
         this.disconnectedAt = null;
     }
 
-    public static Player host(String id, String reconnectToken, String name) {
-        return new Player(id, reconnectToken, validateName(name), true);
+    public static Player host(String id, String reconnectToken, String name, String avatarSeed) {
+        return new Player(id, reconnectToken, validateName(name), avatarSeed, true);
     }
 
-    public static Player guest(String id, String reconnectToken, String name) {
-        return new Player(id, reconnectToken, validateName(name), false);
+    public static Player guest(String id, String reconnectToken, String name, String avatarSeed) {
+        return new Player(id, reconnectToken, validateName(name), avatarSeed, false);
     }
 
     private static String validateName(String name) {
@@ -92,6 +94,10 @@ public class Player {
 
     public String name() {
         return name;
+    }
+
+    public String avatarSeed() {
+        return avatarSeed;
     }
 
     public boolean isHost() {

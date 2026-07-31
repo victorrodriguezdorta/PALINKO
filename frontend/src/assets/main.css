@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap')
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Fredoka:wght@400..700&display=swap')
 layer(base);
 
 @import 'tailwindcss';
@@ -8,6 +8,7 @@ layer(base);
 @theme {
   --font-*: initial;
   --font-outfit: Outfit, sans-serif;
+  --font-fredoka: Fredoka, sans-serif;
 
   --color-current: currentColor;
   --color-transparent: transparent;
@@ -40,9 +41,34 @@ layer(base);
   --color-gray-900: #101828;
   --color-gray-950: #0c111d;
 
+  --color-success-50: #ecfdf3;
+  --color-success-100: #d1fadf;
   --color-success-500: #12b76a;
+  --color-success-700: #027a48;
+
+  --color-error-50: #fef3f2;
+  --color-error-100: #fee4e2;
+  --color-error-300: #fda29b;
   --color-error-500: #f04438;
+  --color-error-700: #b42318;
+
   --color-warning-500: #f79009;
+
+  --color-accent-100: #ede4ff;
+  --color-accent-200: #d9c7ff;
+  --color-accent-500: #8b5cf6;
+  --color-accent-700: #5b21b6;
+
+  --color-secondary-50: #eff6ff;
+  --color-secondary-400: #60a5fa;
+  --color-secondary-500: #3b82f6;
+  --color-secondary-700: #1d4ed8;
+
+  --color-bg-navy-950: #0a1730;
+  --color-bg-navy-900: #0b1a3a;
+  --color-bg-navy-800: #0d1f47;
+  --color-bg-navy-700: #0f2350;
+  --color-bg-sky-300: #a9c1ff;
 
   --shadow-theme-md: 0px 4px 8px -2px rgba(16, 24, 40, 0.1), 0px 2px 4px -2px rgba(16, 24, 40, 0.06);
   --shadow-theme-sm: 0px 1px 3px 0px rgba(16, 24, 40, 0.1), 0px 1px 2px 0px rgba(16, 24, 40, 0.06);
@@ -61,6 +87,12 @@ layer(base);
     cursor: pointer;
   }
   body {
-    @apply relative font-normal font-outfit bg-gray-50 text-gray-900;
+    @apply relative min-h-screen font-normal font-outfit text-gray-900;
+    background: transparent;
+  }
+  #app {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
   }
 }

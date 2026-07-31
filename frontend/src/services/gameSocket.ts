@@ -87,6 +87,10 @@ export class GameSocket {
     this.publish(`/app/rooms/${roomCode}/play-again`, {})
   }
 
+  kickPlayer(roomCode: string, targetPlayerId: string): void {
+    this.publish(`/app/rooms/${roomCode}/kick`, { targetPlayerId })
+  }
+
   updateSettings(
     roomCode: string,
     wordTimeSeconds: number,

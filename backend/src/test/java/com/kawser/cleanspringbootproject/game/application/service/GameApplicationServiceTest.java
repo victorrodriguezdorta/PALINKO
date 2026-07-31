@@ -7,6 +7,7 @@ import com.kawser.cleanspringbootproject.game.application.dto.CreateRoomResult;
 import com.kawser.cleanspringbootproject.game.application.dto.DisconnectCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.JoinRoomCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.JoinRoomResult;
+import com.kawser.cleanspringbootproject.game.application.dto.KickPlayerCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.StartGameCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.SubmitVoteCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.SubmitWordCommand;
@@ -19,6 +20,7 @@ import com.kawser.cleanspringbootproject.game.application.port.out.RoomRepositor
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelation;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelationChecker;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordSpellingCorrector;
+import com.kawser.cleanspringbootproject.game.domain.exception.NotHostException;
 import com.kawser.cleanspringbootproject.game.domain.exception.RoomNotJoinableException;
 import com.kawser.cleanspringbootproject.game.domain.model.GameLanguage;
 import com.kawser.cleanspringbootproject.game.domain.model.Room;
@@ -81,15 +83,15 @@ class GameApplicationServiceTest {
                 roomRepository, roomNotifier, wordRelationChecker, wordSpellingCorrector, chainWordBank,
                 roomCodeGenerator, phaseScheduler, new DefaultScoringPolicy());
 
-        CreateRoomResult created = service.createRoom(new CreateRoomCommand("Host", GameLanguage.SPANISH));
+        CreateRoomResult created = service.createRoom(new CreateRoomCommand("Host", "seed-host", GameLanguage.SPANISH));
         roomCode = created.roomCode();
         hostPlayerId = created.playerId();
         hostToken = created.reconnectToken();
         tokensByPlayerId.put(hostPlayerId, hostToken);
 
-        JoinRoomResult guestB = service.joinRoom(new JoinRoomCommand(roomCode, "GuestB"));
+        JoinRoomResult guestB = service.joinRoom(new JoinRoomCommand(roomCode, "GuestB", "seed-guestB"));
         tokensByPlayerId.put(guestB.playerId(), guestB.reconnectToken());
-        JoinRoomResult guestC = service.joinRoom(new JoinRoomCommand(roomCode, "GuestC"));
+        JoinRoomResult guestC = service.joinRoom(new JoinRoomCommand(roomCode, "GuestC", "seed-guestC"));
         tokensByPlayerId.put(guestC.playerId(), guestC.reconnectToken());
     }
 
@@ -292,6 +294,29 @@ class GameApplicationServiceTest {
     }
 
     @Test
+    void hostCanKickAGuestFromTheLobby() {
+        String guestId = tokensByPlayerId.keySet().stream().filter(id -> !id.equals(hostPlayerId)).findFirst().orElseThrow();
+
+        service.kickPlayer(new KickPlayerCommand(roomCode, hostPlayerId, hostToken, guestId));
+
+        assertThat(room().findPlayer(guestId)).isEmpty();
+    }
+
+    @Test
+    void nonHostCannotKickAnotherPlayer() {
+        String guestId = tokensByPlayerId.keySet().stream().filter(id -> !id.equals(hostPlayerId)).findFirst().orElseThrow();
+        String otherGuestId = tokensByPlayerId.keySet().stream()
+                .filter(id -> !id.equals(hostPlayerId) && !id.equals(guestId))
+                .findFirst()
+                .orElseThrow();
+
+        assertThatThrownBy(() -> service.kickPlayer(
+                new KickPlayerCommand(roomCode, guestId, tokensByPlayerId.get(guestId), otherGuestId)))
+                .isInstanceOf(NotHostException.class);
+        assertThat(room().findPlayer(otherGuestId)).isPresent();
+    }
+
+    @Test
     void createDailyRoomStartsASoloCooperativeGameWithNoTimer() {
         CreateRoomResult created = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH));
 
@@ -325,7 +350,7 @@ class GameApplicationServiceTest {
     void secondPlayerCannotJoinADailyRoom() {
         CreateRoomResult created = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH));
 
-        assertThatThrownBy(() -> service.joinRoom(new JoinRoomCommand(created.roomCode(), "Intruder")))
+        assertThatThrownBy(() -> service.joinRoom(new JoinRoomCommand(created.roomCode(), "Intruder", "seed-intruder")))
                 .isInstanceOf(RoomNotJoinableException.class);
     }
 

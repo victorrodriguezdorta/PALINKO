@@ -13,5 +13,6 @@ import jakarta.validation.constraints.NotNull;
  */
 public record CreateRoomRequest(
         @NotBlank(message = "hostName cannot be blank") String hostName,
+        @NotBlank(message = "avatarSeed cannot be blank") String avatarSeed,
         @NotNull(message = "language is required") GameLanguage language) {
 }

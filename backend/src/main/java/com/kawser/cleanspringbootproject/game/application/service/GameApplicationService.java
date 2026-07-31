@@ -7,6 +7,7 @@ import com.kawser.cleanspringbootproject.game.application.dto.CreateRoomResult;
 import com.kawser.cleanspringbootproject.game.application.dto.DisconnectCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.JoinRoomCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.JoinRoomResult;
+import com.kawser.cleanspringbootproject.game.application.dto.KickPlayerCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.ReconnectCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.ResetRoomCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.RoomSnapshot;
@@ -19,6 +20,7 @@ import com.kawser.cleanspringbootproject.game.application.port.in.CreateDailyRoo
 import com.kawser.cleanspringbootproject.game.application.port.in.CreateRoomUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.HandleDisconnectUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.JoinRoomUseCase;
+import com.kawser.cleanspringbootproject.game.application.port.in.KickPlayerUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.ReconnectPlayerUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.ResetRoomUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.StartGameUseCase;
@@ -61,6 +63,7 @@ public class GameApplicationService implements
         CreateRoomUseCase,
         CreateDailyRoomUseCase,
         JoinRoomUseCase,
+        KickPlayerUseCase,
         ReconnectPlayerUseCase,
         HandleDisconnectUseCase,
         StartGameUseCase,
@@ -72,6 +75,7 @@ public class GameApplicationService implements
 
     private static final int DAILY_PHASE_COUNT = 3;
     private static final String DAILY_PLAYER_NAME = "#";
+    private static final String DAILY_PLAYER_AVATAR_SEED = "daily-challenge";
 
     private final RoomRepository roomRepository;
     private final RoomNotifier roomNotifier;
@@ -106,7 +110,7 @@ public class GameApplicationService implements
         String code = generateUniqueRoomCode();
         String hostId = UUID.randomUUID().toString();
         String hostToken = UUID.randomUUID().toString();
-        Player host = Player.host(hostId, hostToken, command.hostName());
+        Player host = Player.host(hostId, hostToken, command.hostName(), command.avatarSeed());
 
         Instant now = Instant.now();
         Room room = Room.create(code, RoomSettings.defaults(command.language()), host, now);
@@ -129,10 +133,11 @@ public class GameApplicationService implements
         String code = generateUniqueRoomCode();
         String hostId = UUID.randomUUID().toString();
         String hostToken = UUID.randomUUID().toString();
-        // A solo daily room has nobody else to show a name to, so the
-        // player never types one — every daily room's sole player is named
-        // "#" rather than taking arbitrary client input here.
-        Player host = Player.host(hostId, hostToken, DAILY_PLAYER_NAME);
+        // A solo daily room has nobody else to show a name (or an avatar)
+        // to, so the player never picks either — every daily room's sole
+        // player is named "#" and given a fixed avatar seed rather than
+        // taking arbitrary client input here.
+        Player host = Player.host(hostId, hostToken, DAILY_PLAYER_NAME, DAILY_PLAYER_AVATAR_SEED);
 
         long seed = DailySeed.seedFor(DailySeed.today(), command.language());
         List<WordSet> phaseWordSets =
@@ -152,7 +157,7 @@ public class GameApplicationService implements
     public JoinRoomResult joinRoom(JoinRoomCommand command) {
         String playerId = UUID.randomUUID().toString();
         String reconnectToken = UUID.randomUUID().toString();
-        Player guest = Player.guest(playerId, reconnectToken, command.playerName());
+        Player guest = Player.guest(playerId, reconnectToken, command.playerName(), command.avatarSeed());
 
         Room room = roomRepository.mutate(command.roomCode(), r -> {
             r.addPlayer(guest, Instant.now());
@@ -321,6 +326,18 @@ public class GameApplicationService implements
             return r;
         });
         roomNotifier.notifyRoomUpdated(room);
+    }
+
+    @Override
+    public void kickPlayer(KickPlayerCommand command) {
+        Room room = roomRepository.mutate(command.roomCode(), r -> {
+            requireValidToken(r, command.playerId(), command.reconnectToken());
+            r.requireHost(command.playerId());
+            r.kickPlayer(command.targetPlayerId());
+            return r;
+        });
+        roomNotifier.notifyRoomUpdated(room);
+        roomNotifier.notifyPlayerKicked(command.roomCode(), command.targetPlayerId());
     }
 
     @Override

@@ -49,8 +49,8 @@ public class RoomController {
     @ApiResponse(responseCode = "200", description = "Room created")
     @PostMapping
     public ResponseEntity<RoomJoinedResponse> create(@RequestBody @Valid CreateRoomRequest request) {
-        CreateRoomResult result =
-                createRoomUseCase.createRoom(new CreateRoomCommand(request.hostName(), request.language()));
+        CreateRoomResult result = createRoomUseCase.createRoom(
+                new CreateRoomCommand(request.hostName(), request.avatarSeed(), request.language()));
 
         return ResponseEntity.ok(new RoomJoinedResponse(
                 result.roomCode(), result.playerId(), result.reconnectToken(), result.snapshot()));
@@ -75,7 +75,8 @@ public class RoomController {
     public ResponseEntity<RoomJoinedResponse> join(
             @PathVariable("code") String code,
             @RequestBody @Valid JoinRoomRequest request) {
-        JoinRoomResult result = joinRoomUseCase.joinRoom(new JoinRoomCommand(code, request.playerName()));
+        JoinRoomResult result =
+                joinRoomUseCase.joinRoom(new JoinRoomCommand(code, request.playerName(), request.avatarSeed()));
 
         return ResponseEntity.ok(new RoomJoinedResponse(
                 code, result.playerId(), result.reconnectToken(), result.snapshot()));

@@ -6,6 +6,7 @@ export type GameLanguage = 'ENGLISH' | 'SPANISH'
 export interface PlayerView {
   id: string
   name: string
+  avatarSeed: string
   score: number
   connected: boolean
   host: boolean

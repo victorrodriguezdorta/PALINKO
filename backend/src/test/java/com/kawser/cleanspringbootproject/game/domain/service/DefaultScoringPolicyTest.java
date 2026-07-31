@@ -46,9 +46,9 @@ class DefaultScoringPolicyTest {
 
     private List<Player> players() {
         return List.of(
-                Player.host("alice", "t1", "Alice"),
-                Player.guest("bob", "t2", "Bob"),
-                Player.guest("carol", "t3", "Carol"));
+                Player.host("alice", "t1", "Alice", "seed-alice"),
+                Player.guest("bob", "t2", "Bob", "seed-bob"),
+                Player.guest("carol", "t3", "Carol", "seed-carol"));
     }
 
     @Test

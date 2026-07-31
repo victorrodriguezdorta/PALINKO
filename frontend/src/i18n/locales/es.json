@@ -3,10 +3,17 @@
     "appTitle": "Cadena de palabras",
     "yourName": "Tu nombre",
     "close": "cerrar",
-    "pts": "pts"
+    "pts": "pts",
+    "footer": {
+      "text": "© {year} Cadena de palabras. Todos los derechos reservados."
+    }
   },
   "home": {
     "languageLabel": "Idioma",
+    "avatar": {
+      "shuffle": "Cambiar icono",
+      "hint": "Haz clic en tu icono para cambiarlo al azar"
+    },
     "daily": {
       "heading": "Reto diario",
       "hint": "Una cadena al día, igual para todos. Sin límite de tiempo por turno.",
@@ -24,6 +31,13 @@
       "submit": "Unirse"
     }
   },
+  "playerSetup": {
+    "pageTitle": "Elige tu nombre",
+    "createHeading": "Elige tu nombre e icono",
+    "joinHeading": "Unirte a la sala {code}",
+    "createSubmit": "Crear sala",
+    "joinSubmit": "Entrar"
+  },
   "room": {
     "pageTitle": "Sala",
     "title": "Sala {code}",
@@ -38,7 +52,13 @@
       "heading": "Jugadores",
       "capacity": "{count}/{max} jugadores",
       "host": "(host)",
-      "disconnected": "(desconectado)"
+      "disconnected": "(desconectado)",
+      "you": "(tú)",
+      "kick": "Expulsar",
+      "kickAriaLabel": "Expulsar a {name} de la sala",
+      "kickConfirm": "¿Expulsar a {name}?",
+      "kickConfirmYes": "Sí",
+      "kickConfirmCancel": "Cancelar"
     },
     "lobby": {
       "shareCodeLabel": "Comparte este código con el resto de jugadores:",
@@ -47,9 +67,12 @@
       "voteTimeLabel": "Segundos para votar al infiltrado",
       "languageLabel": "Idioma de la sala",
       "infiltratorCountLabel": "Número de impostores",
-      "infiltratorCountHint": "Máximo {max} con los jugadores actuales (un tercio del total). 0 significa partida cooperativa, sin impostor.",
       "phaseCountLabel": "Número de fases",
-      "phaseCountHint": "Todas las fases se calculan al empezar la partida. Al completar una fase, la siguiente empieza con la palabra objetivo que se acaba de alcanzar.",
+      "infiltratorsToggleLabel": "Impostores",
+      "infiltratorsToggleOn": "Activado",
+      "infiltratorsToggleOff": "Desactivado",
+      "infiltratorsToggleMinPlayers": "Se necesitan al menos 3 jugadores en la sala para activar los impostores.",
+      "infiltratorCountError": "El número de impostores no puede superar {max} (un tercio de los jugadores). Se ha restablecido a 0.",
       "wordTimeReadonly": "Segundos por turno: {value}",
       "voteTimeReadonly": "Segundos para votar: {value}",
       "languageReadonly": "Idioma: {value}",
@@ -132,7 +155,9 @@
     "ROUND_NOT_STARTED": "Todavía no ha empezado ninguna ronda.",
     "UNAUTHENTICATED_SESSION": "Tu sesión no es válida. Vuelve a entrar en la sala.",
     "ROOM_FULL": "Esta sala ya tiene el máximo de 10 jugadores.",
-    "INVALID_INFILTRATOR_COUNT": "No puedes tener {requested} impostores con estos jugadores (máximo {maxAllowed})."
+    "INVALID_INFILTRATOR_COUNT": "No puedes tener {requested} impostores con estos jugadores (máximo {maxAllowed}).",
+    "CANNOT_KICK_HOST": "No se puede expulsar al host de la sala.",
+    "KICKED": "El host te ha expulsado de la sala."
   },
   "languages": {
     "ENGLISH": "Inglés",

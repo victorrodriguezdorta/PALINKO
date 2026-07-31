@@ -1,32 +1,83 @@
 <template>
-  <div class="mx-auto max-w-2xl p-6">
-    <header class="mb-4 flex items-center justify-between">
-      <h1 class="text-xl font-bold">{{ isDaily ? t('room.titleDaily') : t('room.title', { code: roomCode }) }}</h1>
-      <button class="text-sm text-blue-600 underline" @click="onLeave">{{ t('room.backToHome') }}</button>
-    </header>
+  <div class="mx-auto p-6" :class="snapshot?.status === 'LOBBY' ? 'max-w-6xl' : 'max-w-2xl'">
+    <AppHeader
+      :title="isDaily ? t('room.titleDaily') : t('room.title', { code: roomCode })"
+      show-back
+      center-logo
+      :back-label="t('room.backToHome')"
+      @back="onLeave"
+    />
 
-    <p v-if="gameStore.errorMessage" class="mb-4 rounded bg-red-100 p-2 text-sm text-red-700">
-      {{ translateError(gameStore.errorMessage) }}
-      <button class="ml-2 underline" @click="gameStore.dismissError">{{ t('common.close') }}</button>
+    <p v-if="gameStore.errorMessage" class="mb-4 flex items-center gap-2 rounded bg-error-100 p-2 text-sm text-error-700">
+      <span>{{ translateError(gameStore.errorMessage) }}</span>
+      <CartoonButton size="sm" :color="THEME_COLORS.error500" @click="gameStore.dismissError">{{ t('common.close') }}</CartoonButton>
     </p>
 
-    <section v-if="needsNameToJoin" class="rounded-lg border border-gray-300 p-4">
-      <h2 class="mb-3 font-semibold">{{ t('room.joinPrompt.heading', { code: roomCode }) }}</h2>
+    <CartoonCard v-if="needsNameToJoin" :accent="THEME_COLORS.success500">
+      <template #title>{{ t('room.joinPrompt.heading', { code: roomCode }) }}</template>
+      <div class="mb-3 flex flex-col items-center gap-2">
+        <PlayerAvatar
+          :seed="joinByLinkAvatarSeed"
+          size="lg"
+          editable
+          :shuffle-label="t('home.avatar.shuffle')"
+          @shuffle="onShuffleJoinByLinkAvatar"
+        />
+        <p class="text-xs text-gray-500">{{ t('home.avatar.hint') }}</p>
+      </div>
       <form class="flex flex-col gap-2" @submit.prevent="onJoinByLink">
         <label class="text-sm">
           {{ t('common.yourName') }}
           <input v-model="joinByLinkName" class="w-full rounded border border-gray-300 p-2" required maxlength="24" autofocus />
         </label>
-        <button type="submit" class="mt-2 rounded bg-green-600 p-2 font-semibold text-white" :disabled="joinByLinkLoading">
+        <CartoonButton type="submit" block :color="THEME_COLORS.success500" class="mt-2" :disabled="joinByLinkLoading">
           {{ t('room.joinPrompt.submit') }}
-        </button>
+        </CartoonButton>
       </form>
-      <p v-if="joinByLinkError" class="mt-3 rounded bg-red-100 p-2 text-sm text-red-700">{{ joinByLinkError }}</p>
-    </section>
+      <p v-if="joinByLinkError" class="mt-3 rounded bg-error-100 p-2 text-sm text-error-700">{{ joinByLinkError }}</p>
+    </CartoonCard>
 
     <div v-else-if="!snapshot" class="text-gray-500">{{ t('room.connecting') }}</div>
 
     <template v-else>
+      <section v-if="snapshot.status === 'LOBBY'">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border-2 border-white/20 bg-white p-4 shadow-lg">
+          <p>{{ t('room.lobby.shareCodeLabel') }} <strong>{{ roomCode }}</strong></p>
+
+          <CartoonButton
+            v-if="gameStore.isHost"
+            :color="settingsValid ? THEME_COLORS.secondary500 : THEME_COLORS.gray400"
+            :disabled="!settingsValid"
+            @click="gameStore.start"
+          >
+            {{ t('room.lobby.startButton') }}
+          </CartoonButton>
+          <p v-else class="text-gray-500">{{ t('room.lobby.waitingForHost') }}</p>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <RulesCard
+            :settings="snapshot.settings"
+            :is-host="gameStore.isHost"
+            :max-infiltrator-count="maxInfiltratorCount"
+            :max-phase-count="MAX_PHASE_COUNT"
+            :player-count="snapshot.players.length"
+            @update="onUpdateSettings"
+            @validity-change="onSettingsValidityChange"
+          />
+          <PlayerRosterCard
+            v-if="!isDaily"
+            :players="snapshot.players"
+            :host-player-id="snapshot.hostPlayerId"
+            :viewer-player-id="snapshot.viewerPlayerId"
+            :is-host="gameStore.isHost"
+            :max-players="MAX_ROOM_PLAYERS"
+            @kick="onKickPlayer"
+          />
+        </div>
+      </section>
+
+      <div v-else class="rounded-2xl border-2 border-white/20 bg-white p-4 shadow-lg">
       <section v-if="!isDaily" class="mb-6">
         <h2 class="mb-2 font-semibold">
           {{ t('room.players.heading') }}
@@ -42,7 +93,7 @@
           >
             <span>
               {{ player.name }}
-              <span v-if="player.host" class="text-xs text-blue-600">{{ t('room.players.host') }}</span>
+              <span v-if="player.host" class="text-xs text-secondary-500">{{ t('room.players.host') }}</span>
               <span v-if="!player.connected" class="text-xs text-gray-400">{{ t('room.players.disconnected') }}</span>
             </span>
             <span class="font-mono">{{ player.score }} {{ t('common.pts') }}</span>
@@ -50,83 +101,7 @@
         </ul>
       </section>
 
-      <section v-if="snapshot.status === 'LOBBY'">
-        <p class="mb-4">{{ t('room.lobby.shareCodeLabel') }} <strong>{{ roomCode }}</strong></p>
-
-        <div class="mb-4 rounded border border-gray-300 p-3">
-          <h3 class="mb-2 font-semibold">{{ t('room.lobby.rulesHeading') }}</h3>
-          <template v-if="gameStore.isHost">
-            <label class="mb-2 block text-sm">
-              {{ t('room.lobby.wordTimeLabel') }}
-              <input
-                v-model.number="editWordTimeSeconds"
-                type="number"
-                min="5"
-                class="w-full rounded border border-gray-300 p-2"
-                @change="onUpdateSettings"
-              />
-            </label>
-            <label class="mb-2 block text-sm">
-              {{ t('room.lobby.voteTimeLabel') }}
-              <input
-                v-model.number="editVoteTimeSeconds"
-                type="number"
-                min="5"
-                class="w-full rounded border border-gray-300 p-2"
-                @change="onUpdateSettings"
-              />
-            </label>
-            <label class="mb-2 block text-sm">
-              {{ t('room.lobby.languageLabel') }}
-              <select v-model="editLanguage" class="w-full rounded border border-gray-300 p-2" @change="onUpdateSettings">
-                <option v-for="option in SUPPORTED_LANGUAGES" :key="option.locale" :value="option.gameLanguage">
-                  {{ option.label }}
-                </option>
-              </select>
-            </label>
-            <label class="mb-1 block text-sm">
-              {{ t('room.lobby.infiltratorCountLabel') }}
-              <input
-                v-model.number="editInfiltratorCount"
-                type="number"
-                min="0"
-                :max="maxInfiltratorCount"
-                class="w-full rounded border border-gray-300 p-2"
-                @change="onUpdateSettings"
-              />
-            </label>
-            <p class="mb-2 text-xs text-gray-500">
-              {{ t('room.lobby.infiltratorCountHint', { max: maxInfiltratorCount }) }}
-            </p>
-            <label class="mb-2 block text-sm">
-              {{ t('room.lobby.phaseCountLabel') }}
-              <input
-                v-model.number="editPhaseCount"
-                type="number"
-                min="1"
-                :max="MAX_PHASE_COUNT"
-                class="w-full rounded border border-gray-300 p-2"
-                @change="onUpdateSettings"
-              />
-            </label>
-            <p class="mb-2 text-xs text-gray-500">{{ t('room.lobby.phaseCountHint') }}</p>
-          </template>
-          <ul v-else class="text-sm text-gray-600">
-            <li>{{ t('room.lobby.wordTimeReadonly', { value: snapshot.settings.wordTimeSeconds }) }}</li>
-            <li>{{ t('room.lobby.voteTimeReadonly', { value: snapshot.settings.voteTimeSeconds }) }}</li>
-            <li>{{ t('room.lobby.languageReadonly', { value: t(`languages.${snapshot.settings.language}`) }) }}</li>
-            <li>{{ t('room.lobby.infiltratorCountReadonly', { value: snapshot.settings.infiltratorCount }) }}</li>
-            <li>{{ t('room.lobby.phaseCountReadonly', { value: snapshot.settings.phaseCount }) }}</li>
-          </ul>
-        </div>
-
-        <button v-if="gameStore.isHost" class="rounded bg-blue-600 px-4 py-2 font-semibold text-white" @click="gameStore.start">
-          {{ t('room.lobby.startButton') }}
-        </button>
-        <p v-else class="text-gray-500">{{ t('room.lobby.waitingForHost') }}</p>
-      </section>
-
-      <section v-else-if="(snapshot.status === 'IN_PROGRESS' || snapshot.status === 'FINISHED') && chain">
+      <section v-if="(snapshot.status === 'IN_PROGRESS' || snapshot.status === 'FINISHED') && chain">
         <p v-if="chain.totalPhases > 1" class="mb-1 text-sm font-semibold text-gray-600">
           {{ t('room.chain.phaseProgress', { current: chain.currentPhaseNumber, total: chain.totalPhases }) }}
         </p>
@@ -139,7 +114,7 @@
             v-for="phaseWord in phaseChainWords"
             :key="phaseWord.phaseNumber"
             class="rounded border px-3 py-1"
-            :class="phaseWord.phaseNumber === chain.currentPhaseNumber ? 'border-blue-400 bg-blue-50' : 'border-gray-200 text-gray-500'"
+            :class="phaseWord.phaseNumber === chain.currentPhaseNumber ? 'border-secondary-400 bg-secondary-50' : 'border-gray-200 text-gray-500'"
           >
             {{ t('room.chain.phaseLabel', { number: phaseWord.phaseNumber }) }}
             <strong>{{ phaseWord.startWord }}</strong> → <strong>{{ phaseWord.targetWord }}</strong>
@@ -166,7 +141,7 @@
                 {{ t('room.chain.relatedPercent', { value: attempt.relatednessToPrevious }) }}
                 <template v-if="attempt.justification"> — {{ attempt.justification }}</template>
               </span>
-              <span v-if="attempt.reachedTarget" class="text-xs text-green-700">{{ t('room.chain.targetReached') }}</span>
+              <span v-if="attempt.reachedTarget" class="text-xs text-success-700">{{ t('room.chain.targetReached') }}</span>
             </template>
           </li>
           <li v-if="currentPhaseAttempts.length === 0" class="text-sm text-gray-400">{{ t('room.chain.noAttempts') }}</li>
@@ -191,13 +166,9 @@
                 @input="onTypingInput"
                 @keyup.enter="onSubmitWord"
               />
-              <button
-                class="rounded bg-blue-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
-                :disabled="!wordDraft.trim()"
-                @click="onSubmitWord"
-              >
+              <CartoonButton :color="THEME_COLORS.secondary500" :disabled="!wordDraft.trim()" @click="onSubmitWord">
                 {{ t('room.chain.submit') }}
-              </button>
+              </CartoonButton>
             </div>
             <p v-else class="rounded border border-dashed border-gray-300 p-2 text-gray-600">
               {{ otherTypingPreview || '…' }}
@@ -213,7 +184,7 @@
               <li v-for="player in votablePlayers" :key="player.id">
                 <button
                   class="w-full rounded border p-2 text-left"
-                  :class="myVoteSuspectId === player.id ? 'border-blue-600 bg-blue-50' : 'border-gray-300'"
+                  :class="myVoteSuspectId === player.id ? 'border-secondary-500 bg-secondary-50' : 'border-gray-300'"
                   @click="onSelectVote(player.id)"
                 >
                   {{ player.name }}
@@ -228,10 +199,10 @@
 
         <template v-else-if="snapshot.status === 'FINISHED' && chain.reveal">
           <div v-if="chain.reveal.infiltratorPlayerIds.length === 0" class="mb-4 rounded border border-gray-300 p-3">
-            <p class="font-semibold text-green-700">{{ t('room.reveal.cooperativeSuccess') }}</p>
+            <p class="font-semibold text-success-700">{{ t('room.reveal.cooperativeSuccess') }}</p>
           </div>
-          <div v-else-if="chain.reveal.endedByInfiltratorWord" class="mb-4 rounded border border-red-300 bg-red-50 p-3">
-            <p class="mb-1 font-semibold text-red-700">{{ t('room.reveal.infiltratorWordGuessed') }}</p>
+          <div v-else-if="chain.reveal.endedByInfiltratorWord" class="mb-4 rounded border border-error-300 bg-error-50 p-3">
+            <p class="mb-1 font-semibold text-error-700">{{ t('room.reveal.infiltratorWordGuessed') }}</p>
             <p class="mb-1">
               {{ t('room.reveal.infiltratorsWereLabel', chain.reveal.infiltratorPlayerIds.length) }}
               <strong>{{ infiltratorNames }}</strong>
@@ -249,7 +220,7 @@
                 {{ t('room.reveal.mostVotedLabel') }} <strong>{{ nameFor(chain.reveal.accusedPlayerId) }}</strong>
               </p>
               <p v-else class="mb-1">{{ t('room.reveal.noSingleMostVoted') }}</p>
-              <p class="font-semibold" :class="chain.reveal.crewWon ? 'text-green-700' : 'text-red-700'">
+              <p class="font-semibold" :class="chain.reveal.crewWon ? 'text-success-700' : 'text-error-700'">
                 {{ chain.reveal.crewWon ? t('room.reveal.crewWon') : t('room.reveal.infiltratorEscaped') }}
               </p>
             </div>
@@ -292,16 +263,12 @@
             </li>
           </ol>
           <div class="flex items-center gap-3">
-            <button
-              v-if="gameStore.isHost && !isDaily"
-              class="rounded bg-green-600 px-4 py-2 font-semibold text-white"
-              @click="gameStore.playAgain"
-            >
+            <CartoonButton v-if="gameStore.isHost && !isDaily" :color="THEME_COLORS.success500" @click="gameStore.playAgain">
               {{ t('room.reveal.playAgain') }}
-            </button>
-            <button class="rounded bg-blue-600 px-4 py-2 font-semibold text-white" @click="onLeave">
+            </CartoonButton>
+            <CartoonButton :color="THEME_COLORS.secondary500" @click="onLeave">
               {{ t('room.backToHome') }}
-            </button>
+            </CartoonButton>
           </div>
           <p v-if="!gameStore.isHost" class="mt-2 text-sm text-gray-500">
             {{ t('room.reveal.waitingPlayAgain') }}
@@ -315,10 +282,11 @@
       <section v-else-if="snapshot.status === 'CLOSED'">
         <h2 class="mb-3 text-lg font-semibold">{{ t('room.closed.heading') }}</h2>
         <p class="mb-4 text-gray-500">{{ t('room.closed.text') }}</p>
-        <button class="rounded bg-blue-600 px-4 py-2 font-semibold text-white" @click="onLeave">
+        <CartoonButton :color="THEME_COLORS.secondary500" @click="onLeave">
           {{ t('room.closed.backNow') }}
-        </button>
+        </CartoonButton>
       </section>
+      </div>
     </template>
   </div>
 </template>
@@ -328,9 +296,16 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useGameStore } from '@/stores/game'
-import { SUPPORTED_LANGUAGES } from '@/i18n/languages'
 import { translateError } from '@/i18n'
 import DailyCountdown from '@/components/DailyCountdown.vue'
+import CartoonButton from '@/components/CartoonButton.vue'
+import CartoonCard from '@/components/CartoonCard.vue'
+import AppHeader from '@/components/AppHeader.vue'
+import PlayerAvatar from '@/components/PlayerAvatar.vue'
+import RulesCard from '@/components/RulesCard.vue'
+import PlayerRosterCard from '@/components/PlayerRosterCard.vue'
+import { loadOrCreateAvatarSeed, persistAvatarSeed, randomAvatarSeed } from '@/utils/avatar'
+import { THEME_COLORS } from '@/assets/theme'
 import type { ApiError, AttemptView, GameLanguage } from '@/types/game'
 
 // Mirrors the backend's own Room.MAXIMUM_PLAYERS — manual mirror, same
@@ -347,8 +322,14 @@ const gameStore = useGameStore()
 const roomCode = (route.params.code as string).trim().toUpperCase()
 
 const joinByLinkName = ref('')
+const joinByLinkAvatarSeed = ref(loadOrCreateAvatarSeed())
 const joinByLinkLoading = ref(false)
 const joinByLinkError = ref<string | null>(null)
+
+function onShuffleJoinByLinkAvatar() {
+  joinByLinkAvatarSeed.value = randomAvatarSeed()
+  persistAvatarSeed(joinByLinkAvatarSeed.value)
+}
 // True until this browser tab either already holds an identity for this
 // room code (rejoining/reconnecting) or successfully joins via the prompt
 // below — covers the "someone opened a shared room link cold" case, which
@@ -359,7 +340,7 @@ async function onJoinByLink() {
   joinByLinkLoading.value = true
   joinByLinkError.value = null
   try {
-    await gameStore.joinRoom(roomCode, joinByLinkName.value)
+    await gameStore.joinRoom(roomCode, joinByLinkName.value, joinByLinkAvatarSeed.value)
     needsNameToJoin.value = false
     gameStore.connectSocket()
     tickInterval = setInterval(() => {
@@ -373,12 +354,6 @@ async function onJoinByLink() {
 }
 
 const wordDraft = ref('')
-
-const editWordTimeSeconds = ref(45)
-const editVoteTimeSeconds = ref(30)
-const editLanguage = ref<GameLanguage>('SPANISH')
-const editInfiltratorCount = ref(1)
-const editPhaseCount = ref(1)
 
 const snapshot = computed(() => gameStore.snapshot)
 const chain = computed(() => snapshot.value?.chain ?? null)
@@ -435,7 +410,7 @@ function nameFor(playerId: string | null): string {
 }
 
 function attemptClass(attempt: AttemptView): string {
-  if (attempt.outcome === 'REJECTED') return 'border-red-300 bg-red-50'
+  if (attempt.outcome === 'REJECTED') return 'border-error-300 bg-error-50'
   if (attempt.outcome === 'SKIPPED') return 'border-gray-200 bg-gray-50'
   return 'border-gray-300'
 }
@@ -510,25 +485,43 @@ watch(
     if (status === 'CLOSED') {
       setTimeout(onLeave, 3000)
     }
-    // Re-sync the editable fields whenever the room (re-)enters LOBBY —
-    // covers the initial lobby and a "play again" reset alike, so the
-    // host always sees the rules that are actually in effect rather than
-    // stale values from a previous visit.
-    if (status === 'LOBBY' && snapshot.value?.settings) {
-      editWordTimeSeconds.value = snapshot.value.settings.wordTimeSeconds
-      editVoteTimeSeconds.value = snapshot.value.settings.voteTimeSeconds
-      editLanguage.value = snapshot.value.settings.language
-      editInfiltratorCount.value = snapshot.value.settings.infiltratorCount
-      editPhaseCount.value = snapshot.value.settings.phaseCount
-    }
   },
   { immediate: true },
 )
 
-function onUpdateSettings() {
-  gameStore.updateSettings(
-    editWordTimeSeconds.value, editVoteTimeSeconds.value, editLanguage.value,
-    editInfiltratorCount.value, editPhaseCount.value)
+// The host just removed this player from the room: the store already
+// cleared this client's identity and disconnected the socket (see
+// game.ts's onError handling of the KICKED code) — this only needs to
+// bounce the view itself back to Home once that happens.
+watch(
+  () => gameStore.errorMessage?.code,
+  (code) => {
+    if (code === 'KICKED') {
+      setTimeout(onLeave, 2000)
+    }
+  },
+)
+
+function onUpdateSettings(
+  wordTimeSeconds: number,
+  voteTimeSeconds: number,
+  language: GameLanguage,
+  infiltratorCount: number,
+  phaseCount: number,
+) {
+  gameStore.updateSettings(wordTimeSeconds, voteTimeSeconds, language, infiltratorCount, phaseCount)
+}
+
+// RulesCard flags an invalid in-progress edit (e.g. infiltrator count over
+// the cap) before it's corrected, so the start button reflects that
+// immediately rather than only after the next settings update lands.
+const settingsValid = ref(true)
+function onSettingsValidityChange(valid: boolean) {
+  settingsValid.value = valid
+}
+
+function onKickPlayer(targetPlayerId: string) {
+  gameStore.kickPlayer(targetPlayerId)
 }
 
 function onTypingInput() {

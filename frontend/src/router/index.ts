@@ -14,6 +14,12 @@ const router = createRouter({
       meta: { titleKey: 'common.appTitle' },
     },
     {
+      path: '/play',
+      name: 'PlayerSetup',
+      component: () => import('../views/PlayerSetupView.vue'),
+      meta: { titleKey: 'playerSetup.pageTitle' },
+    },
+    {
       path: '/room/:code',
       name: 'Room',
       component: () => import('../views/RoomView.vue'),

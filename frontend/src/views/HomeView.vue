@@ -1,50 +1,39 @@
 <template>
-  <div class="mx-auto max-w-md p-6">
-    <div class="mb-6 flex items-center justify-between">
-      <h1 class="text-2xl font-bold">{{ t('common.appTitle') }}</h1>
-      <select
-        :value="localeStore.preferredLocale"
-        class="rounded border border-gray-300 p-1 text-sm"
-        :aria-label="t('home.languageLabel')"
-        @change="onLanguageChange"
-      >
-        <option v-for="option in SUPPORTED_LANGUAGES" :key="option.locale" :value="option.locale">
-          {{ option.label }}
-        </option>
-      </select>
-    </div>
+  <div class="mx-auto max-w-5xl p-6">
+    <AppHeader
+      :title="t('common.appTitle')"
+      show-language-selector
+      :model-value="localeStore.preferredLocale"
+      :options="SUPPORTED_LANGUAGES"
+      :language-aria-label="t('home.languageLabel')"
+      @update:model-value="onLanguageChange"
+    />
 
-    <section class="mb-8 rounded-lg border border-gray-300 p-4">
-      <h2 class="mb-3 font-semibold">{{ t('home.daily.heading') }}</h2>
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-3 md:items-start">
+    <CartoonCard :accent="THEME_COLORS.accent500">
+      <template #title>
+        <span class="flex items-center gap-2">
+          {{ t('home.daily.heading') }}
+          <DailyCountdown :color="THEME_COLORS.accent500" />
+        </span>
+      </template>
       <p class="mb-3 text-xs text-gray-500">{{ t('home.daily.hint') }}</p>
-      <DailyCountdown class="mb-3" />
-      <button
-        type="button"
-        class="w-full rounded bg-purple-600 p-2 font-semibold text-white"
-        :disabled="loading"
-        @click="onPlayDaily"
-      >
+      <CartoonButton block :color="THEME_COLORS.accent500" :disabled="loading" @click="onPlayDaily">
         {{ t('home.daily.submit') }}
-      </button>
-    </section>
+      </CartoonButton>
+    </CartoonCard>
 
-    <section class="mb-8 rounded-lg border border-gray-300 p-4">
-      <h2 class="mb-3 font-semibold">{{ t('home.createRoom.heading') }}</h2>
-      <form class="flex flex-col gap-2" @submit.prevent="onCreateRoom">
-        <label class="text-sm">
-          {{ t('common.yourName') }}
-          <input v-model="hostName" class="w-full rounded border border-gray-300 p-2" required maxlength="24" />
-        </label>
-        <p class="text-xs text-gray-500">{{ t('home.createRoom.hint') }}</p>
-        <button type="submit" class="mt-2 rounded bg-blue-600 p-2 font-semibold text-white" :disabled="loading">
-          {{ t('home.createRoom.submit') }}
-        </button>
-      </form>
-    </section>
+    <CartoonCard :accent="THEME_COLORS.secondary500">
+      <template #title>{{ t('home.createRoom.heading') }}</template>
+      <p class="mb-3 text-xs text-gray-500">{{ t('home.createRoom.hint') }}</p>
+      <CartoonButton block :color="THEME_COLORS.secondary500" class="mt-2" @click="onGoToCreateRoom">
+        {{ t('home.createRoom.submit') }}
+      </CartoonButton>
+    </CartoonCard>
 
-    <section class="rounded-lg border border-gray-300 p-4">
-      <h2 class="mb-3 font-semibold">{{ t('home.joinRoom.heading') }}</h2>
-      <form class="flex flex-col gap-2" @submit.prevent="onJoinRoom">
+    <CartoonCard :accent="THEME_COLORS.success500">
+      <template #title>{{ t('home.joinRoom.heading') }}</template>
+      <form class="flex flex-col gap-2" @submit.prevent="onGoToJoinRoom">
         <label class="text-sm">
           {{ t('home.joinRoom.codeLabel') }}
           <input
@@ -54,19 +43,16 @@
             maxlength="6"
           />
         </label>
-        <label class="text-sm">
-          {{ t('common.yourName') }}
-          <input v-model="joinName" class="w-full rounded border border-gray-300 p-2" required maxlength="24" />
-        </label>
-        <button type="submit" class="mt-2 rounded bg-green-600 p-2 font-semibold text-white" :disabled="loading">
+        <CartoonButton type="submit" block :color="THEME_COLORS.success500" class="mt-2">
           {{ t('home.joinRoom.submit') }}
-        </button>
+        </CartoonButton>
       </form>
-    </section>
+    </CartoonCard>
+    </div>
 
-    <p v-if="error" class="mt-4 rounded bg-red-100 p-2 text-sm text-red-700">{{ error }}</p>
+    <p v-if="error" class="mt-4 rounded bg-error-100 p-2 text-sm text-error-700">{{ error }}</p>
 
-    <RouterLink to="/debug/word-relation" class="mt-6 block text-center text-xs text-gray-400 underline">
+    <RouterLink to="/debug/word-relation" class="mt-6 block text-center text-xs text-white/60 underline">
       {{ t('debug.wordRelation.heading') }}
     </RouterLink>
   </div>
@@ -81,6 +67,10 @@ import { useLocaleStore } from '@/stores/locale'
 import { SUPPORTED_LANGUAGES, gameLanguageForLocale } from '@/i18n/languages'
 import { translateError } from '@/i18n'
 import DailyCountdown from '@/components/DailyCountdown.vue'
+import CartoonButton from '@/components/CartoonButton.vue'
+import CartoonCard from '@/components/CartoonCard.vue'
+import AppHeader from '@/components/AppHeader.vue'
+import { THEME_COLORS } from '@/assets/theme'
 import type { ApiError } from '@/types/game'
 
 const { t } = useI18n()
@@ -88,16 +78,13 @@ const router = useRouter()
 const gameStore = useGameStore()
 const localeStore = useLocaleStore()
 
-const hostName = ref('')
-
 const joinCode = ref('')
-const joinName = ref('')
 
 const loading = ref(false)
 const error = ref<string | null>(null)
 
-function onLanguageChange(event: Event) {
-  localeStore.choose((event.target as HTMLSelectElement).value)
+function onLanguageChange(locale: string) {
+  localeStore.choose(locale)
 }
 
 async function onPlayDaily() {
@@ -113,29 +100,13 @@ async function onPlayDaily() {
   }
 }
 
-async function onCreateRoom() {
-  loading.value = true
-  error.value = null
-  try {
-    await gameStore.createRoom(hostName.value, gameLanguageForLocale(localeStore.preferredLocale))
-    router.push(`/room/${gameStore.roomCode}`)
-  } catch (err) {
-    error.value = translateError(err as ApiError)
-  } finally {
-    loading.value = false
-  }
+function onGoToCreateRoom() {
+  router.push({ path: '/play', query: { mode: 'create' } })
 }
 
-async function onJoinRoom() {
-  loading.value = true
-  error.value = null
-  try {
-    await gameStore.joinRoom(joinCode.value.trim().toUpperCase(), joinName.value)
-    router.push(`/room/${gameStore.roomCode}`)
-  } catch (err) {
-    error.value = translateError(err as ApiError)
-  } finally {
-    loading.value = false
-  }
+function onGoToJoinRoom() {
+  const code = joinCode.value.trim().toUpperCase()
+  if (!code) return
+  router.push({ path: '/play', query: { mode: 'join', code } })
 }
 </script>

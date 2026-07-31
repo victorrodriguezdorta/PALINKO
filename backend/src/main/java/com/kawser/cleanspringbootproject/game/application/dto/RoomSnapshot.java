@@ -64,9 +64,11 @@ public record RoomSnapshot(
         }
     }
 
-    public record PlayerView(String id, String name, int score, boolean connected, boolean host) {
+    public record PlayerView(String id, String name, String avatarSeed, int score, boolean connected, boolean host) {
         static PlayerView from(Player player) {
-            return new PlayerView(player.id(), player.name(), player.score(), player.isConnected(), player.isHost());
+            return new PlayerView(
+                    player.id(), player.name(), player.avatarSeed(), player.score(), player.isConnected(),
+                    player.isHost());
         }
     }
 
