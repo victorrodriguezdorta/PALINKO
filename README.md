@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="frontend/src/assets/images/logo.svg" alt="Palinko logo" width="160" />
+  <img src="frontend/src/assets/images/logo.svg" alt="Palinko logo" width="300" />
 </p>
-
-<h1 align="center">Palinko</h1>
 
 <p align="center">
   A real-time multiplayer word-chain party game where one (or more) of your friends might secretly be an AI.
