@@ -52,9 +52,12 @@
 
     <p v-if="error" class="mt-4 rounded bg-error-100 p-2 text-sm text-error-700">{{ error }}</p>
 
-    <RouterLink to="/debug/word-relation" class="mt-6 block text-center text-xs text-white/60 underline">
-      {{ t('debug.wordRelation.heading') }}
-    </RouterLink>
+    <HowToPlayCard />
+
+    <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 md:items-start">
+      <ShareCard />
+      <FeedbackCard />
+    </div>
   </div>
 </template>
 
@@ -70,6 +73,9 @@ import DailyCountdown from '@/components/DailyCountdown.vue'
 import CartoonButton from '@/components/CartoonButton.vue'
 import CartoonCard from '@/components/CartoonCard.vue'
 import AppHeader from '@/components/AppHeader.vue'
+import HowToPlayCard from '@/components/HowToPlayCard.vue'
+import ShareCard from '@/components/ShareCard.vue'
+import FeedbackCard from '@/components/FeedbackCard.vue'
 import { THEME_COLORS } from '@/assets/theme'
 import type { ApiError } from '@/types/game'
 

@@ -16,25 +16,40 @@
       <img :src="logoUrl" :alt="title" class="app-header__logo" />
     </h1>
 
-    <LanguageSelector
-      v-if="showLanguageSelector"
-      class="app-header__lang"
-      :model-value="modelValue"
-      :options="options"
-      :ariaLabel="languageAriaLabel"
-      @update:model-value="$emit('update:modelValue', $event)"
-    />
-    <span v-else class="app-header__spacer" aria-hidden="true" />
+    <div class="app-header__right">
+      <button
+        type="button"
+        class="app-header__mute"
+        :aria-label="isMuted ? 'Unmute sound' : 'Mute sound'"
+        @click="toggleMuted"
+      >
+        <VolumeX v-if="isMuted" :size="18" aria-hidden="true" />
+        <Volume2 v-else :size="18" aria-hidden="true" />
+      </button>
+
+      <LanguageSelector
+        v-if="showLanguageSelector"
+        class="app-header__lang"
+        :model-value="modelValue"
+        :options="options"
+        :ariaLabel="languageAriaLabel"
+        @update:model-value="$emit('update:modelValue', $event)"
+      />
+      <span v-else class="app-header__spacer" aria-hidden="true" />
+    </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft } from 'lucide-vue-next'
+import { ArrowLeft, Volume2, VolumeX } from 'lucide-vue-next'
 import CartoonButton from '@/components/CartoonButton.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
 import type { LanguageOption } from '@/i18n/languages'
 import logoUrl from '@/assets/images/logo.svg'
 import { THEME_COLORS } from '@/assets/theme'
+import { useSound } from '@/composables/useSound'
+
+const { isMuted, toggleMuted } = useSound()
 
 withDefaults(
   defineProps<{
@@ -155,6 +170,35 @@ const headerWaveStyle = {
   .app-header__back-label {
     display: none;
   }
+}
+
+.app-header__right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.app-header__mute {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  border: 2px solid color-mix(in srgb, var(--color-white) 40%, transparent);
+  background: transparent;
+  color: var(--color-white);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+.app-header__mute:hover {
+  background: color-mix(in srgb, var(--color-white) 15%, transparent);
+  transform: scale(1.08);
 }
 
 .app-header__lang,

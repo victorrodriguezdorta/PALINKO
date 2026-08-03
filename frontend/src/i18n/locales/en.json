@@ -5,7 +5,10 @@
     "close": "close",
     "pts": "pts",
     "footer": {
-      "text": "© {year} PALINKO. All rights reserved."
+      "text": "© {year} PALINKO. All rights reserved.",
+      "author": "Víctor Rodríguez Dorta",
+      "linkedin": "Follow me on LinkedIn",
+      "github": "Follow me on GitHub"
     }
   },
   "home": {
@@ -29,6 +32,30 @@
       "heading": "Join room",
       "codeLabel": "Room code",
       "submit": "Join"
+    },
+    "howToPlay": {
+      "heading": "How to play?",
+      "hint": "Each player says a word related to the previous one, getting closer to the target word.",
+      "steps": [
+        { "emoji": "📚", "word": "Book" },
+        { "emoji": "📖", "word": "School" },
+        { "emoji": "🧑‍🔬", "word": "Biology" },
+        { "emoji": "🌊", "word": "Ocean" },
+        { "emoji": "🐠", "word": "Fish" }
+      ]
+    },
+    "share": {
+      "heading": "Share with friends",
+      "hint": "Enjoying it? Invite your friends to play a game.",
+      "copyButton": "Copy link to share",
+      "copied": "Link copied!",
+      "text": "Do you dare play PALINKO with me? 🔗🧠 Let's chain some words! 🎮 {url}"
+    },
+    "feedback": {
+      "heading": "Feedback & support",
+      "hint": "Got suggestions or found a bug? Message me on LinkedIn, and if you enjoyed the project, support it with a star on GitHub!",
+      "linkedin": "Message me on LinkedIn",
+      "github": "Give it a star on GitHub"
     }
   },
   "playerSetup": {
@@ -42,6 +69,7 @@
     "pageTitle": "Room",
     "title": "Room {code}",
     "titleDaily": "Daily challenge",
+    "dailyBanner": "Daily challenge",
     "backToHome": "Back to home",
     "connecting": "Connecting...",
     "joinPrompt": {
@@ -73,6 +101,7 @@
       "infiltratorsToggleOn": "Enabled",
       "infiltratorsToggleOff": "Disabled",
       "infiltratorsToggleMinPlayers": "At least 3 players in the room are needed to enable impostors.",
+      "infiltratorsComingSoon": "Coming soon: impostors will be available in a future update.",
       "infiltratorCountError": "The number of impostors can't exceed {max} (a third of the players). It has been reset to 0.",
       "wordTimeReadonly": "Seconds per turn: {value}",
       "voteTimeReadonly": "Seconds to vote: {value}",
@@ -95,7 +124,7 @@
       "phaseTargetReached": "Phase {number} target reached",
       "noAttempts": "No word has been played yet.",
       "turnOfLabel": "Turn:",
-      "secondsRemaining": "({value}s)",
+      "secondsRemaining": "{value}s",
       "noTimeLimit": "No time limit — take your time.",
       "relateHint": "Relate {word} to reach {target}",
       "startWordPlayed": "Starting word",
@@ -125,10 +154,16 @@
       "infiltratorEscaped": "The infiltrator got away.",
       "votingResultsHeading": "Voting results",
       "nobodyVoted": "Nobody voted.",
-      "cooperativeSuccess": "You completed the chain together!",
       "wordChainHeading": "Full word chain",
       "averageAccuracy": "Average accuracy: {value}%",
       "wordsForPhase": "Phase {phase}: {count} words",
+      "completedBanner": "Completed!",
+      "finalScoreHeading": "Final scores",
+      "shareHeading": "Share your result",
+      "shareHint": "Copy this and send it to your friends so more people play!",
+      "shareText": "I managed to connect:\n🔗 {words} 📚 in just {wordCount} words\n🎯 {accuracy}% accuracy\nCould you beat it?😏\n🎮 Play PALINKO for free: {url}",
+      "copyButton": "Copy",
+      "copied": "Copied!",
       "playAgain": "Play again",
       "waitingPlayAgain": "Waiting for the host to decide whether to play again..."
     },

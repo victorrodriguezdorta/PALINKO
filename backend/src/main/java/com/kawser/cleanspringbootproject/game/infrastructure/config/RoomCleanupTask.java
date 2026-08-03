@@ -17,6 +17,13 @@ import java.time.Instant;
  * Sweeps rooms out of memory once they're no longer useful, and — for rooms
  * that are still alive — drops any player whose reconnect grace window has
  * expired:
+ *   - A room with zero connected players is deleted immediately, without
+ *     waiting out its status TTL — nobody is left to read a lingering
+ *     snapshot, so there is nothing gained by keeping it around. (The host
+ *     leaving is already handled synchronously in
+ *     GameApplicationService.handleDisconnect; this catches every other
+ *     way a room can end up empty, e.g. every non-host player dropping
+ *     while the host's own session hasn't fired a disconnect event yet.)
  *   - FINISHED/CLOSED rooms get a short grace period so clients can still
  *     read the final snapshot (or, for CLOSED, the "host left" screen).
  *   - A LOBBY nobody ever starts gets a much shorter leash than an idle
@@ -64,6 +71,11 @@ public class RoomCleanupTask {
     }
 
     private boolean deleteIfExpired(Room room, Instant now) {
+        if (room.connectedHumanPlayerCount() == 0) {
+            phaseScheduler.cancel(room.code());
+            roomRepository.deleteByCode(room.code());
+            return true;
+        }
         Duration idleFor = Duration.between(room.lastActivityAt(), now);
         Duration ttl = ttlFor(room.status());
         if (idleFor.compareTo(ttl) < 0) {

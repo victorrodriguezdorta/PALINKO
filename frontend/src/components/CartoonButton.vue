@@ -5,6 +5,7 @@
     :class="[`cartoon-btn--${size}`, { 'cartoon-btn--block': block }]"
     :style="cssVars"
     :disabled="disabled || loading"
+    @click="onClick"
   >
     <span class="cartoon-btn__label">
       <slot />
@@ -15,6 +16,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { THEME_COLORS } from '@/assets/theme'
+import { useSound } from '@/composables/useSound'
 
 const props = withDefaults(
   defineProps<{
@@ -53,6 +55,11 @@ const cssVars = computed(() => ({
   '--cartoon-shadow': props.shadowColor || darken(props.color, 0.35),
   '--cartoon-text': props.textColor,
 }))
+
+const { play } = useSound()
+function onClick() {
+  play('buttonClick')
+}
 </script>
 
 <style scoped>

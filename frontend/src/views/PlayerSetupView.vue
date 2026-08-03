@@ -59,6 +59,7 @@ import AppHeader from '@/components/AppHeader.vue'
 import PlayerAvatar from '@/components/PlayerAvatar.vue'
 import { loadOrCreateAvatarSeed, persistAvatarSeed, randomAvatarSeed } from '@/utils/avatar'
 import { THEME_COLORS } from '@/assets/theme'
+import { useSound } from '@/composables/useSound'
 import type { ApiError } from '@/types/game'
 
 const { t } = useI18n()
@@ -66,6 +67,7 @@ const route = useRoute()
 const router = useRouter()
 const gameStore = useGameStore()
 const localeStore = useLocaleStore()
+const { play } = useSound()
 
 // 'join' when arriving from the Home "join room" form with a code already
 // picked; anything else (including missing/invalid) falls back to create,
@@ -93,6 +95,7 @@ async function onSubmit() {
   try {
     if (mode === 'join') {
       await gameStore.joinRoom(roomCode, name.value, avatarSeed.value)
+      play('roomEnter')
     } else {
       await gameStore.createRoom(name.value, avatarSeed.value, gameLanguageForLocale(localeStore.preferredLocale))
     }

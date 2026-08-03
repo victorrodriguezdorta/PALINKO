@@ -5,7 +5,10 @@
     "close": "cerrar",
     "pts": "pts",
     "footer": {
-      "text": "© {year} PALINKO. Todos los derechos reservados."
+      "text": "© {year} PALINKO. Todos los derechos reservados.",
+      "author": "Víctor Rodríguez Dorta",
+      "linkedin": "Sígueme en LinkedIn",
+      "github": "Sígueme en GitHub"
     }
   },
   "home": {
@@ -22,13 +25,37 @@
     },
     "createRoom": {
       "heading": "Crear sala",
-      "hint": "Podrás ajustar el tiempo por turno, el tiempo de votación y el número máximo de turnos una vez dentro de la sala.",
+      "hint": "Jugar con amigos es más divertido, crea una sala e invíta a los demás jugadores",
       "submit": "Crear sala"
     },
     "joinRoom": {
       "heading": "Unirse a sala",
       "codeLabel": "Código de sala",
       "submit": "Unirse"
+    },
+    "howToPlay": {
+      "heading": "¿Cómo jugar?",
+      "hint": "Cada jugador dice una palabra relacionada con la anterior, acercándose a la palabra objetivo.",
+      "steps": [
+        { "emoji": "📚", "word": "Libro" },
+        { "emoji": "📖", "word": "Escuela" },
+        { "emoji": "🧑‍🔬", "word": "Biología" },
+        { "emoji": "🌊", "word": "Océano" },
+        { "emoji": "🐠", "word": "Pez" }
+      ]
+    },
+    "share": {
+      "heading": "Comparte con tus amigos",
+      "hint": "¿Te está gustando? Invita a tus amigos a jugar una partida.",
+      "copyButton": "Copiar enlace para compartir",
+      "copied": "¡Enlace copiado!",
+      "text": "¿Te atreves a jugar a PALINKO conmigo? 🔗🧠 ¡Vamos a encadenar palabras! 🎮 {url}"
+    },
+    "feedback": {
+      "heading": "Feedback y apoyo",
+      "hint": "¿Tienes sugerencias o encontraste un fallo? Escríbeme por LinkedIn, y si te ha gustado el proyecto, ¡apóyalo con una estrella en GitHub!",
+      "linkedin": "Escríbeme en LinkedIn",
+      "github": "Dale una estrella en GitHub"
     }
   },
   "playerSetup": {
@@ -42,6 +69,7 @@
     "pageTitle": "Sala",
     "title": "Sala {code}",
     "titleDaily": "Reto diario",
+    "dailyBanner": "Reto diario",
     "backToHome": "Volver al inicio",
     "connecting": "Conectando...",
     "joinPrompt": {
@@ -73,6 +101,7 @@
       "infiltratorsToggleOn": "Activado",
       "infiltratorsToggleOff": "Desactivado",
       "infiltratorsToggleMinPlayers": "Se necesitan al menos 3 jugadores en la sala para activar los impostores.",
+      "infiltratorsComingSoon": "Próximamente: los impostores estarán disponibles en una futura actualización.",
       "infiltratorCountError": "El número de impostores no puede superar {max} (un tercio de los jugadores). Se ha restablecido a 0.",
       "wordTimeReadonly": "Segundos por turno: {value}",
       "voteTimeReadonly": "Segundos para votar: {value}",
@@ -95,7 +124,7 @@
       "phaseTargetReached": "Meta de la fase {number} alcanzada",
       "noAttempts": "Todavía no se ha jugado ninguna palabra.",
       "turnOfLabel": "Turno de",
-      "secondsRemaining": "({value}s)",
+      "secondsRemaining": "{value}s",
       "noTimeLimit": "Sin límite de tiempo — tómate el tiempo que necesites.",
       "relateHint": "Relaciona {word} para llegar a {target}",
       "startWordPlayed": "Palabra de inicio",
@@ -125,10 +154,16 @@
       "infiltratorEscaped": "El infiltrado escapó.",
       "votingResultsHeading": "Resultado de la votación",
       "nobodyVoted": "Nadie votó.",
-      "cooperativeSuccess": "¡Completasteis la cadena en equipo!",
       "wordChainHeading": "Cadena de palabras completa",
       "averageAccuracy": "Precisión media: {value}%",
       "wordsForPhase": "Fase {phase}: {count} palabras",
+      "completedBanner": "¡Completado!",
+      "finalScoreHeading": "Puntuaciones finales",
+      "shareHeading": "Comparte tu resultado",
+      "shareHint": "¡Copia esto y envíaselo a tus amigos para que más gente juegue!",
+      "shareText": "He conseguido relacionar :\n🔗 {words} 📚 en solo {wordCount} palabras\n🎯 {accuracy}% de precisión\n¿Serías capaz de superarlo?😏\n🎮 Juega gratis a PALINKO: {url}",
+      "copyButton": "Copiar",
+      "copied": "¡Copiado!",
       "playAgain": "Jugar de nuevo",
       "waitingPlayAgain": "Esperando a que el host decida si jugar de nuevo..."
     },

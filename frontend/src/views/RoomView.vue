@@ -77,8 +77,8 @@
         </div>
       </section>
 
-      <div v-else class="grid gap-4" :class="!isDaily ? 'md:grid-cols-[16rem_1fr]' : ''">
-      <aside v-if="!isDaily" class="md:sticky md:top-4 md:self-start">
+      <div v-else class="grid gap-4" :class="!isDaily && snapshot.status !== 'FINISHED' ? 'md:grid-cols-[16rem_1fr]' : ''">
+      <aside v-if="!isDaily && snapshot.status !== 'FINISHED'" class="md:sticky md:top-4 md:self-start">
         <PlayerScoreboardCard
           :players="snapshot.players"
           :viewer-player-id="snapshot.viewerPlayerId"
@@ -89,7 +89,10 @@
         />
       </aside>
 
-      <div class="rounded-2xl border-2 border-white/20 bg-white p-4 shadow-lg">
+      <div class="relative rounded-2xl border-2 border-white/20 bg-white p-4 shadow-lg">
+      <div v-if="isDaily && (snapshot.status === 'IN_PROGRESS' || snapshot.status === 'FINISHED') && chain" class="absolute left-4 top-0 translate-y-[-90%]">
+        <DailyChallengeBanner />
+      </div>
       <section v-if="(snapshot.status === 'IN_PROGRESS' || snapshot.status === 'FINISHED') && chain">
         <p v-if="chain.totalPhases > 1 && chain.phase === 'VOTING'" class="mb-3 text-center text-sm font-semibold text-gray-600">
           {{ t('room.chain.phaseProgress', { current: chain.currentPhaseNumber, total: chain.totalPhases }) }}
@@ -185,10 +188,7 @@
         </template>
 
         <template v-else-if="snapshot.status === 'FINISHED' && chain.reveal">
-          <div v-if="chain.reveal.infiltratorPlayerIds.length === 0" class="mb-4 rounded border border-gray-300 p-3">
-            <p class="font-semibold text-success-700">{{ t('room.reveal.cooperativeSuccess') }}</p>
-          </div>
-          <div v-else-if="chain.reveal.endedByInfiltratorWord" class="mb-4 rounded border border-error-300 bg-error-50 p-3">
+          <div v-if="chain.reveal.infiltratorPlayerIds.length > 0 && chain.reveal.endedByInfiltratorWord" class="mb-4 rounded border border-error-300 bg-error-50 p-3">
             <p class="mb-1 font-semibold text-error-700">{{ t('room.reveal.infiltratorWordGuessed') }}</p>
             <p class="mb-1">
               {{ t('room.reveal.infiltratorsWereLabel', chain.reveal.infiltratorPlayerIds.length) }}
@@ -196,7 +196,7 @@
               {{ t('room.reveal.secretTarget', { word: chain.reveal.infiltratorTargetWord }) }}
             </p>
           </div>
-          <template v-else>
+          <template v-else-if="chain.reveal.infiltratorPlayerIds.length > 0">
             <div class="mb-4 rounded border border-gray-300 p-3">
               <p class="mb-1">
                 {{ t('room.reveal.infiltratorsWereLabel', chain.reveal.infiltratorPlayerIds.length) }}
@@ -226,29 +226,13 @@
             </div>
           </template>
 
-          <div v-if="chain.reveal.acceptedWordChain.length > 0" class="mb-4 rounded border border-gray-300 p-3">
-            <h3 class="mb-2 font-semibold">{{ t('room.reveal.wordChainHeading') }}</h3>
-            <p class="mb-2 text-sm text-gray-600">{{ chain.reveal.gameStartWord }} → {{ chain.reveal.acceptedWordChain.join(' → ') }}</p>
-            <p v-if="averageAccuracyPercent !== null" class="mb-2 text-sm text-gray-600">
-              {{ t('room.reveal.averageAccuracy', { value: averageAccuracyPercent }) }}
-            </p>
-            <ul class="flex flex-col gap-1 text-xs text-gray-500">
-              <li v-for="(count, index) in chain.reveal.acceptedWordCountByPhase" :key="index">
-                {{ t('room.reveal.wordsForPhase', { phase: index + 1, count }) }}
-              </li>
-            </ul>
-          </div>
+          <GameResultsCard
+            class="mb-4"
+            :chain="chain as ChainView & { reveal: NonNullable<ChainView['reveal']> }"
+            :sorted-by-score="sortedByScore"
+            :average-accuracy-percent="averageAccuracyPercent"
+          />
 
-          <ol class="mb-4 flex flex-col gap-1">
-            <li
-              v-for="player in sortedByScore"
-              :key="player.id"
-              class="flex justify-between rounded border border-gray-300 p-2"
-            >
-              <span>{{ player.name }}</span>
-              <span class="font-mono">{{ player.score }} {{ t('common.pts') }}</span>
-            </li>
-          </ol>
           <div class="flex items-center gap-3">
             <CartoonButton v-if="gameStore.isHost && !isDaily" :color="THEME_COLORS.success500" @click="gameStore.playAgain">
               {{ t('room.reveal.playAgain') }}
@@ -286,6 +270,7 @@ import { useI18n } from 'vue-i18n'
 import { useGameStore } from '@/stores/game'
 import { translateError } from '@/i18n'
 import DailyCountdown from '@/components/DailyCountdown.vue'
+import DailyChallengeBanner from '@/components/DailyChallengeBanner.vue'
 import CartoonButton from '@/components/CartoonButton.vue'
 import CartoonCard from '@/components/CartoonCard.vue'
 import AppHeader from '@/components/AppHeader.vue'
@@ -294,9 +279,11 @@ import RulesCard from '@/components/RulesCard.vue'
 import PlayerRosterCard from '@/components/PlayerRosterCard.vue'
 import PlayerScoreboardCard from '@/components/PlayerScoreboardCard.vue'
 import ChainBoardCard from '@/components/ChainBoardCard.vue'
+import GameResultsCard from '@/components/GameResultsCard.vue'
 import { loadOrCreateAvatarSeed, persistAvatarSeed, randomAvatarSeed } from '@/utils/avatar'
 import { THEME_COLORS } from '@/assets/theme'
-import type { ApiError, AttemptView, GameLanguage } from '@/types/game'
+import { useSound } from '@/composables/useSound'
+import type { ApiError, AttemptView, ChainView, GameLanguage } from '@/types/game'
 
 // Mirrors the backend's own Room.MAXIMUM_PLAYERS — manual mirror, same
 // convention already used for the GameLanguage enum.
@@ -308,6 +295,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const gameStore = useGameStore()
+const { play } = useSound()
 
 const roomCode = (route.params.code as string).trim().toUpperCase()
 
@@ -331,6 +319,7 @@ async function onJoinByLink() {
   joinByLinkError.value = null
   try {
     await gameStore.joinRoom(roomCode, joinByLinkName.value, joinByLinkAvatarSeed.value)
+    play('roomEnter')
     needsNameToJoin.value = false
     gameStore.connectSocket()
     tickInterval = setInterval(() => {
@@ -484,11 +473,23 @@ const remainingSeconds = computed(() => {
   return Math.max(0, Math.floor((new Date(deadline).getTime() - now.value) / 1000))
 })
 
+// Ticks once per second for the last 10 seconds of a turn/vote deadline —
+// the change-detection on remainingSeconds itself (driven by the 1s `now`
+// ticker above) is what keeps this from firing more than once per second.
+watch(remainingSeconds, (seconds, previousSeconds) => {
+  if (seconds === null || seconds === previousSeconds) return
+  if (seconds > 0 && seconds <= 10) play('timeRunningOutTick')
+})
+
 watch(
   () => chain.value?.currentTurnPlayerId,
-  (newTurnPlayerId) => {
+  (newTurnPlayerId, oldTurnPlayerId) => {
     wordDraft.value = ''
     if (newTurnPlayerId) gameStore.clearTypingPreview(newTurnPlayerId)
+    // Skip the very first turn of the round (oldTurnPlayerId undefined) so
+    // this doesn't double up with the WORD_CHAIN-phase-start cue below.
+    if (!oldTurnPlayerId || !newTurnPlayerId) return
+    play(newTurnPlayerId === gameStore.playerId ? 'yourTurn' : 'turnPassed')
   },
 )
 
@@ -500,6 +501,72 @@ watch(
     }
   },
   { immediate: true },
+)
+
+// Reacts to phase transitions and round outcomes purely off the snapshot,
+// so every client hears the same cue at the same moment regardless of
+// which action (if any) of theirs caused it.
+watch(
+  () => chain.value?.phase,
+  (phase, previousPhase) => {
+    if (!phase || phase === previousPhase) return
+    if (phase === 'VOTING') play('votingStart')
+  },
+)
+
+watch(
+  () => snapshot.value?.status,
+  (status, previousStatus) => {
+    if (status !== 'FINISHED' || previousStatus === status) return
+    const reveal = chain.value?.reveal
+    if (!reveal) return
+    if (reveal.endedByInfiltratorWord) play('infiltratorWordGuessed')
+    else if (reveal.infiltratorPlayerIds.length === 0 || reveal.crewWon) play('crewWon')
+    else play('infiltratorEscaped')
+  },
+)
+
+watch(
+  () => snapshot.value?.status,
+  (status, previousStatus) => {
+    if (status === 'IN_PROGRESS' && previousStatus === 'LOBBY') play('hostStartGame')
+  },
+)
+
+// Every new attempt (accepted/rejected/skipped/reached-target) is heard by
+// all players at once, since attempts arrive as part of the shared
+// snapshot rather than only to whoever submitted them.
+const seenAttemptIds = new Set<string>()
+watch(
+  () => chain.value?.attempts,
+  (attempts) => {
+    if (!attempts) return
+    for (const attempt of attempts) {
+      if (seenAttemptIds.has(attempt.id)) continue
+      seenAttemptIds.add(attempt.id)
+      if (attempt.outcome === 'REJECTED') play('wordRejected')
+      else if (attempt.outcome === 'SKIPPED') play('wordTimedOut')
+      else if (attempt.reachedTarget) play('targetReached')
+      else if (attempt.outcome === 'ACCEPTED') play('wordAccepted')
+    }
+  },
+  { deep: true },
+)
+
+watch(
+  () => snapshot.value?.players.length,
+  (count, previousCount) => {
+    if (previousCount === undefined || count === undefined) return
+    if (count > previousCount) play('playerJoin')
+    else if (count < previousCount) play('playerLeave')
+  },
+)
+
+watch(
+  () => gameStore.errorMessage,
+  (error) => {
+    if (error) play(error.code === 'KICKED' ? 'playerKicked' : 'gameError')
+  },
 )
 
 // The host just removed this player from the room: the store already
@@ -522,6 +589,7 @@ function onUpdateSettings(
   infiltratorCount: number,
   phaseCount: number,
 ) {
+  play('settingsChange')
   gameStore.updateSettings(wordTimeSeconds, voteTimeSeconds, language, infiltratorCount, phaseCount)
 }
 
@@ -544,17 +612,20 @@ function onTypingInput() {
 function onSubmitWord() {
   const text = wordDraft.value.trim()
   if (!text) return
+  play('wordSubmit')
   chainBoardRef.value?.submitPending(text)
   gameStore.submitWord(text)
   wordDraft.value = ''
 }
 
 function onRewindWord() {
+  play('rewindUsed')
   gameStore.rewindWord()
 }
 
 function onSelectVote(suspectPlayerId: string) {
   if (myVoteSuspectId.value === suspectPlayerId) return
+  play('voteCast')
   gameStore.submitVote(suspectPlayerId)
 }
 

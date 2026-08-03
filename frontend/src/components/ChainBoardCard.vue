@@ -1,6 +1,6 @@
 <template>
   <div class="chain-board">
-    <p v-if="!isDaily" class="chain-board__infiltrator-note">
+    <p v-if="!isDaily && infiltratorCount > 0" class="chain-board__infiltrator-note">
       {{ t('room.chain.infiltratorCountLabel') }} <strong>{{ infiltratorCount }}</strong>
     </p>
 
@@ -103,6 +103,14 @@
       </div>
 
       <div class="chain-board__turn-slot">
+        <div
+          v-if="!isDaily && remainingSeconds !== null"
+          class="chain-board__timer"
+          :class="{ 'chain-board__timer--urgent': remainingSeconds <= 10 }"
+        >
+          {{ t('room.chain.secondsRemaining', { value: remainingSeconds }) }}
+        </div>
+
         <template v-if="isMyTurn">
           <p class="chain-board__turn-hint">
             <i18n-t keypath="room.chain.relateHint" scope="global">
@@ -162,9 +170,6 @@
             <PlayerAvatar :seed="avatarSeedFor(currentTurnPlayerId)" size="sm" />
             <p class="chain-board__turn-name">
               {{ nameFor(currentTurnPlayerId) }}
-              <span v-if="remainingSeconds !== null" class="chain-board__turn-seconds">
-                {{ t('room.chain.secondsRemaining', { value: remainingSeconds }) }}
-              </span>
             </p>
           </div>
           <p class="chain-board__typing-preview">{{ otherTypingPreview || '…' }}</p>
@@ -403,6 +408,49 @@ watch(
   flex-direction: column;
   gap: 1rem;
   font-family: 'Outfit', sans-serif;
+}
+
+.chain-board__timer {
+  position: absolute;
+  top: -0.6rem;
+  right: -0.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
+  border: 2px solid var(--color-secondary-500);
+  background: var(--color-secondary-50);
+  color: var(--color-secondary-700);
+  font-family: 'Fredoka', 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  line-height: 1;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.chain-board__timer--urgent {
+  border-color: var(--color-error-500);
+  background: var(--color-error-50);
+  color: var(--color-error-700);
+  animation: chain-board-timer-pulse 1s ease-in-out infinite;
+}
+
+@keyframes chain-board-timer-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chain-board__timer--urgent {
+    animation: none;
+  }
 }
 
 .chain-board__phase-badge {
@@ -647,6 +695,7 @@ watch(
 }
 
 .chain-board__turn-slot {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -810,13 +859,6 @@ watch(
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--color-gray-700);
-}
-
-.chain-board__turn-seconds {
-  display: block;
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: var(--color-gray-500);
 }
 
 .chain-board__typing-preview {

@@ -30,12 +30,12 @@
 
     <label class="rules-card__field">
       {{ t('room.lobby.infiltratorsToggleLabel') }}
-      <select v-model="infiltratorsEnabledSelect" class="rules-card__input" :disabled="!canEnableInfiltrators" @change="onToggleInfiltrators">
+      <select v-model="infiltratorsEnabledSelect" class="rules-card__input" disabled @change="onToggleInfiltrators">
         <option value="off">{{ t('room.lobby.infiltratorsToggleOff') }}</option>
         <option value="on">{{ t('room.lobby.infiltratorsToggleOn') }}</option>
       </select>
     </label>
-    <p v-if="!canEnableInfiltrators" class="rules-card__hint">{{ t('room.lobby.infiltratorsToggleMinPlayers') }}</p>
+    <p class="rules-card__hint">{{ t('room.lobby.infiltratorsComingSoon') }}</p>
 
     <template v-if="infiltratorsEnabledSelect === 'on'">
       <label class="rules-card__field">
