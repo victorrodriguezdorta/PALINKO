@@ -1,11 +1,11 @@
 {
   "common": {
-    "appTitle": "Word Chain",
+    "appTitle": "PALINKO",
     "yourName": "Your name",
     "close": "close",
     "pts": "pts",
     "footer": {
-      "text": "© {year} Word Chain. All rights reserved."
+      "text": "© {year} PALINKO. All rights reserved."
     }
   },
   "home": {
@@ -91,13 +91,25 @@
       "timedOut": "ran out of time, turn skipped",
       "relatedPercent": "({value}% related)",
       "targetReached": "(target reached!)",
+      "rejected": "Not related enough",
+      "phaseTargetReached": "Phase {number} target reached",
       "noAttempts": "No word has been played yet.",
       "turnOfLabel": "Turn:",
       "secondsRemaining": "({value}s)",
       "noTimeLimit": "No time limit — take your time.",
-      "relateHint": "Relate the word {word} to reach {target}.",
+      "relateHint": "Relate {word} to reach {target}",
+      "startWordPlayed": "Starting word",
+      "lastPlayedWord": "Last word played",
+      "processing": "Processing...",
       "inputPlaceholder": "Type a related word...",
-      "submit": "Submit"
+      "submit": "Submit",
+      "rewindAriaLabel": "Rewind the last word",
+      "rewindTitleAvailable": "Rewind the last word (1 use left)",
+      "rewindTitleNotYourTurn": "Rewind: only available on your turn",
+      "rewindTitleUsed": "You've already used your rewind this game",
+      "rewindConfirm": "Remove the last word played?",
+      "rewindConfirmYes": "Yes",
+      "rewindConfirmCancel": "Cancel"
     },
     "voting": {
       "prompt": "Who do you think is the infiltrator? You can change your vote while this phase lasts.",
@@ -159,7 +171,8 @@
     "INVALID_INFILTRATOR_COUNT": "You can't have {requested} impostors with this many players (max {maxAllowed}).",
     "CANNOT_KICK_HOST": "The host can't be removed from the room.",
     "ROOM_NOT_KICKABLE": "Players can no longer be removed from this game.",
-    "KICKED": "You were removed from the room by the host."
+    "KICKED": "You were removed from the room by the host.",
+    "NO_REWIND_AVAILABLE": "You can't use rewind anymore."
   },
   "languages": {
     "ENGLISH": "English",

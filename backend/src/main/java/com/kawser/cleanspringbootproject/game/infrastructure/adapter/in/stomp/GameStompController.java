@@ -2,12 +2,14 @@ package com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.stomp;
 
 import com.kawser.cleanspringbootproject.game.application.dto.KickPlayerCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.ResetRoomCommand;
+import com.kawser.cleanspringbootproject.game.application.dto.RewindWordCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.StartGameCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.SubmitVoteCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.SubmitWordCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.UpdateRoomSettingsCommand;
 import com.kawser.cleanspringbootproject.game.application.port.in.KickPlayerUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.ResetRoomUseCase;
+import com.kawser.cleanspringbootproject.game.application.port.in.RewindWordUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.StartGameUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.SubmitVoteUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.SubmitWordUseCase;
@@ -50,6 +52,7 @@ public class GameStompController {
     private final ResetRoomUseCase resetRoomUseCase;
     private final UpdateRoomSettingsUseCase updateRoomSettingsUseCase;
     private final KickPlayerUseCase kickPlayerUseCase;
+    private final RewindWordUseCase rewindWordUseCase;
     private final StompSessionRegistry sessionRegistry;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -60,6 +63,7 @@ public class GameStompController {
             ResetRoomUseCase resetRoomUseCase,
             UpdateRoomSettingsUseCase updateRoomSettingsUseCase,
             KickPlayerUseCase kickPlayerUseCase,
+            RewindWordUseCase rewindWordUseCase,
             StompSessionRegistry sessionRegistry,
             SimpMessagingTemplate messagingTemplate) {
         this.startGameUseCase = startGameUseCase;
@@ -68,6 +72,7 @@ public class GameStompController {
         this.resetRoomUseCase = resetRoomUseCase;
         this.updateRoomSettingsUseCase = updateRoomSettingsUseCase;
         this.kickPlayerUseCase = kickPlayerUseCase;
+        this.rewindWordUseCase = rewindWordUseCase;
         this.sessionRegistry = sessionRegistry;
         this.messagingTemplate = messagingTemplate;
     }
@@ -114,6 +119,13 @@ public class GameStompController {
         SessionIdentity identity = requireIdentity(headerAccessor);
         kickPlayerUseCase.kickPlayer(new KickPlayerCommand(
                 identity.roomCode(), identity.playerId(), identity.reconnectToken(), message.targetPlayerId()));
+    }
+
+    @MessageMapping("/rooms/{code}/rewind")
+    public void rewind(SimpMessageHeaderAccessor headerAccessor) {
+        SessionIdentity identity = requireIdentity(headerAccessor);
+        rewindWordUseCase.rewindWord(
+                new RewindWordCommand(identity.roomCode(), identity.playerId(), identity.reconnectToken()));
     }
 
     /**

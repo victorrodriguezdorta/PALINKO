@@ -58,6 +58,8 @@ export interface ChainView {
   attempts: AttemptView[]
   votes: VoteView[]
   reveal: RevealView | null
+  rewindUsed: boolean
+  canRewind: boolean
 }
 
 export interface RoomSettingsView {

@@ -91,6 +91,10 @@ export class GameSocket {
     this.publish(`/app/rooms/${roomCode}/kick`, { targetPlayerId })
   }
 
+  rewindWord(roomCode: string): void {
+    this.publish(`/app/rooms/${roomCode}/rewind`, {})
+  }
+
   updateSettings(
     roomCode: string,
     wordTimeSeconds: number,

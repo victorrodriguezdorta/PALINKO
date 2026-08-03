@@ -1,5 +1,6 @@
 package com.kawser.cleanspringbootproject.game.domain.model;
 
+import com.kawser.cleanspringbootproject.game.domain.exception.NoRewindAvailableException;
 import com.kawser.cleanspringbootproject.game.domain.exception.NotYourTurnException;
 import com.kawser.cleanspringbootproject.game.domain.exception.PlayerNotFoundException;
 import com.kawser.cleanspringbootproject.game.domain.exception.SelfVoteNotAllowedException;
@@ -9,6 +10,7 @@ import com.kawser.cleanspringbootproject.game.domain.service.ScoringPolicy;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +47,10 @@ public class Round {
     private final Set<String> infiltratorPlayerIds;
     private final List<ChainAttempt> attempts = new ArrayList<>();
     private final List<Vote> votes = new ArrayList<>();
+    // Every player who has already spent their one-per-game rewind power
+    // (see rewindLastAcceptedWord) — never cleared for the lifetime of this
+    // Round, since the power is a whole-game allowance, not a per-phase one.
+    private final Set<String> rewindUsedByPlayerId = new HashSet<>();
     private int currentTurnIndex;
     private int currentPhaseIndex;
     private int phaseStartAttemptCount;
@@ -191,6 +197,52 @@ public class Round {
         currentTurnIndex = (currentTurnIndex + 1) % turnOrder.size();
     }
 
+    /**
+     * Whether playerId still has their one-per-game rewind power available:
+     * never spent before, and there is a currently-accepted word to undo
+     * (the dealt start word doesn't count, since it isn't a ChainAttempt).
+     */
+    public boolean canRewind(String playerId) {
+        return !rewindUsedByPlayerId.contains(playerId) && phase == RoundPhase.WORD_CHAIN
+                && lastAcceptedAttemptIndex() >= 0;
+    }
+
+    /**
+     * Spends the current-turn player's one-per-game rewind power: undoes
+     * the most recently ACCEPTED attempt in the whole chain (whoever wrote
+     * it, not just the caller's own words) by dropping it from the log, so
+     * {@link #latestChainWord()} naturally falls back to whatever was
+     * accepted before it (or the phase's dealt start word, if this was the
+     * first accepted word). The word's author keeps whatever else they may
+     * have scored elsewhere, but the score awarded for this one accepted
+     * attempt is handed back to the caller so GameApplicationService can
+     * reverse it on the author's Player — Round has no access to Player/
+     * scoring itself. Turn order is left untouched: rewinding does not
+     * hand the turn back to the undone word's author, it simply removes
+     * their word and lets the current player try again in their own turn.
+     */
+    public ChainAttempt rewindLastAcceptedWord(String playerId) {
+        requireCurrentTurn(playerId);
+        if (rewindUsedByPlayerId.contains(playerId)) {
+            throw new NoRewindAvailableException(playerId);
+        }
+        int index = lastAcceptedAttemptIndex();
+        if (index < 0) {
+            throw new NoRewindAvailableException(playerId);
+        }
+        rewindUsedByPlayerId.add(playerId);
+        return attempts.remove(index);
+    }
+
+    private int lastAcceptedAttemptIndex() {
+        for (int i = attempts.size() - 1; i >= 0; i--) {
+            if (attempts.get(i).outcome() == AttemptOutcome.ACCEPTED) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public void startVoting(Instant deadline) {
         requirePhase(RoundPhase.WORD_CHAIN);
         this.phase = RoundPhase.VOTING;
@@ -331,6 +383,10 @@ public class Round {
 
     public List<ChainAttempt> attempts() {
         return List.copyOf(attempts);
+    }
+
+    public boolean hasUsedRewind(String playerId) {
+        return rewindUsedByPlayerId.contains(playerId);
     }
 
     public List<Vote> votes() {

@@ -1,12 +1,20 @@
 <template>
   <div class="scoreboard-card">
-    <h2 class="scoreboard-card__heading">
-      {{ t('room.players.heading') }}
-      <span class="scoreboard-card__capacity">
-        {{ t('room.players.capacity', { count: players.length, max: maxPlayers }) }}
+    <button
+      type="button"
+      class="scoreboard-card__heading scoreboard-card__heading--toggle"
+      :aria-expanded="isOpen"
+      @click="isOpen = !isOpen"
+    >
+      <span>
+        {{ t('room.players.heading') }}
+        <span class="scoreboard-card__capacity">
+          {{ t('room.players.capacity', { count: players.length, max: maxPlayers }) }}
+        </span>
       </span>
-    </h2>
-    <ul class="scoreboard-card__list">
+      <ChevronDown :size="18" class="scoreboard-card__chevron" :class="{ 'scoreboard-card__chevron--open': isOpen }" aria-hidden="true" />
+    </button>
+    <ul v-show="isOpen" class="scoreboard-card__list">
       <li
         v-for="player in sortedByScore"
         :key="player.id"
@@ -66,7 +74,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Check, X } from 'lucide-vue-next'
+import { Check, ChevronDown, X } from 'lucide-vue-next'
 import PlayerAvatar from '@/components/PlayerAvatar.vue'
 import type { PlayerView } from '@/types/game'
 
@@ -83,6 +91,11 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+// Collapsed by default on mobile to save vertical space above the game
+// board; starts open on desktop (md breakpoint, matches Tailwind's `md:`)
+// where the scoreboard lives in its own sticky sidebar column instead.
+const isOpen = ref(typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : true)
 
 const sortedByScore = computed(() => [...props.players].sort((a, b) => b.score - a.score))
 
@@ -113,6 +126,31 @@ function onConfirmKick(playerId: string) {
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--color-gray-800);
+}
+
+.scoreboard-card__heading--toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.scoreboard-card__chevron {
+  flex-shrink: 0;
+  color: var(--color-gray-500);
+  transition: transform 0.15s ease;
+}
+
+.scoreboard-card__chevron--open {
+  transform: rotate(180deg);
 }
 
 .scoreboard-card__capacity {

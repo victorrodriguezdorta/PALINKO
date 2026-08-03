@@ -9,6 +9,7 @@ import com.kawser.cleanspringbootproject.game.application.dto.JoinRoomCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.JoinRoomResult;
 import com.kawser.cleanspringbootproject.game.application.dto.KickPlayerCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.ReconnectCommand;
+import com.kawser.cleanspringbootproject.game.application.dto.RewindWordCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.StartGameCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.SubmitVoteCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.SubmitWordCommand;
@@ -21,7 +22,9 @@ import com.kawser.cleanspringbootproject.game.application.port.out.RoomRepositor
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelation;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelationChecker;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordSpellingCorrector;
+import com.kawser.cleanspringbootproject.game.domain.exception.NoRewindAvailableException;
 import com.kawser.cleanspringbootproject.game.domain.exception.NotHostException;
+import com.kawser.cleanspringbootproject.game.domain.exception.NotYourTurnException;
 import com.kawser.cleanspringbootproject.game.domain.exception.PlayerNotFoundException;
 import com.kawser.cleanspringbootproject.game.domain.exception.RoomNotJoinableException;
 import com.kawser.cleanspringbootproject.game.domain.model.GameLanguage;
@@ -172,6 +175,67 @@ class GameApplicationServiceTest {
         assertThat(round.latestChainWord()).isEqualTo("Escribir");
         assertThat(round.currentTurnPlayerId()).isNotEqualTo(authorId);
         assertThat(room().findPlayer(authorId).orElseThrow().score()).isEqualTo(90);
+    }
+
+    @Test
+    void rewindUndoesTheLastAcceptedWordAndReversesItsAuthorsPoints() {
+        startGame();
+        String firstAuthor = room().round().currentTurnPlayerId();
+        when(wordRelationChecker.relatedness(eq("Escribir"), eq("Bolígrafo"), any(GameLanguage.class)))
+                .thenReturn(new WordRelation(90, null));
+        when(wordRelationChecker.relatedness(anyString(), eq("Cama"), any(GameLanguage.class)))
+                .thenReturn(new WordRelation(20, null));
+        when(wordRelationChecker.relatedness(anyString(), eq("Océano"), any(GameLanguage.class)))
+                .thenReturn(new WordRelation(20, null));
+        submitWordAsCurrentPlayer("Escribir");
+        assertThat(room().findPlayer(firstAuthor).orElseThrow().score()).isEqualTo(90);
+        String currentTurnPlayerId = room().round().currentTurnPlayerId();
+
+        service.rewindWord(new RewindWordCommand(roomCode, currentTurnPlayerId, tokensByPlayerId.get(currentTurnPlayerId)));
+
+        Round round = room().round();
+        assertThat(round.latestChainWord()).isEqualTo("Bolígrafo");
+        assertThat(round.attempts()).isEmpty();
+        assertThat(room().findPlayer(firstAuthor).orElseThrow().score()).isZero();
+        // Rewinding doesn't hand the undone word's author their turn back —
+        // it stays with whoever was already up next.
+        assertThat(round.currentTurnPlayerId()).isEqualTo(currentTurnPlayerId);
+    }
+
+    @Test
+    void onlyTheCurrentTurnPlayerCanRewind() {
+        startGame();
+        when(wordRelationChecker.relatedness(anyString(), anyString(), any(GameLanguage.class)))
+                .thenReturn(new WordRelation(90, null));
+        submitWordAsCurrentPlayer("Escribir");
+        String notCurrentTurnPlayerId = tokensByPlayerId.keySet().stream()
+                .filter(id -> !id.equals(room().round().currentTurnPlayerId()))
+                .findFirst()
+                .orElseThrow();
+
+        assertThatThrownBy(() -> service.rewindWord(
+                new RewindWordCommand(roomCode, notCurrentTurnPlayerId, tokensByPlayerId.get(notCurrentTurnPlayerId))))
+                .isInstanceOf(NotYourTurnException.class);
+    }
+
+    @Test
+    void rewindCanOnlyBeUsedOncePerPlayerForTheWholeGame() {
+        startGame();
+        when(wordRelationChecker.relatedness(anyString(), anyString(), any(GameLanguage.class)))
+                .thenReturn(new WordRelation(90, null));
+        submitWordAsCurrentPlayer("Escribir");
+        String rewinderId = room().round().currentTurnPlayerId();
+        service.rewindWord(new RewindWordCommand(roomCode, rewinderId, tokensByPlayerId.get(rewinderId)));
+        // rewinderId's turn doesn't change from rewinding itself; play a
+        // full lap of the turn order so it's their turn again before they
+        // try (and fail) to spend the power a second time.
+        submitWordAsCurrentPlayer("Libro");
+        submitWordAsCurrentPlayer("Biblioteca");
+        assertThat(room().round().currentTurnPlayerId()).isEqualTo(rewinderId);
+
+        assertThatThrownBy(() -> service.rewindWord(
+                new RewindWordCommand(roomCode, rewinderId, tokensByPlayerId.get(rewinderId))))
+                .isInstanceOf(NoRewindAvailableException.class);
     }
 
     @Test

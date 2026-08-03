@@ -178,6 +178,10 @@ export const useGameStore = defineStore('game', () => {
     if (roomCode.value) gameSocket.kickPlayer(roomCode.value, targetPlayerId)
   }
 
+  function rewindWord() {
+    if (roomCode.value) gameSocket.rewindWord(roomCode.value)
+  }
+
   function updateSettings(
     wordTimeSeconds: number,
     voteTimeSeconds: number,
@@ -222,6 +226,7 @@ export const useGameStore = defineStore('game', () => {
     submitVote,
     playAgain,
     kickPlayer,
+    rewindWord,
     updateSettings,
     leaveRoom,
     dismissError,

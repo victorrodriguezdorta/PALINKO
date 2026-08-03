@@ -10,6 +10,7 @@ import com.kawser.cleanspringbootproject.game.application.dto.JoinRoomResult;
 import com.kawser.cleanspringbootproject.game.application.dto.KickPlayerCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.ReconnectCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.ResetRoomCommand;
+import com.kawser.cleanspringbootproject.game.application.dto.RewindWordCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.RoomSnapshot;
 import com.kawser.cleanspringbootproject.game.application.dto.StartGameCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.SubmitVoteCommand;
@@ -23,6 +24,7 @@ import com.kawser.cleanspringbootproject.game.application.port.in.JoinRoomUseCas
 import com.kawser.cleanspringbootproject.game.application.port.in.KickPlayerUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.ReconnectPlayerUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.ResetRoomUseCase;
+import com.kawser.cleanspringbootproject.game.application.port.in.RewindWordUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.StartGameUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.SubmitVoteUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.SubmitWordUseCase;
@@ -36,6 +38,7 @@ import com.kawser.cleanspringbootproject.game.application.port.out.WordRelation;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelationChecker;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordSpellingCorrector;
 import com.kawser.cleanspringbootproject.game.domain.exception.PlayerNotFoundException;
+import com.kawser.cleanspringbootproject.game.domain.model.ChainAttempt;
 import com.kawser.cleanspringbootproject.game.domain.model.GameLanguage;
 import com.kawser.cleanspringbootproject.game.domain.model.Player;
 import com.kawser.cleanspringbootproject.game.domain.model.Room;
@@ -69,6 +72,7 @@ public class GameApplicationService implements
         StartGameUseCase,
         SubmitWordUseCase,
         SubmitVoteUseCase,
+        RewindWordUseCase,
         AdvancePhaseUseCase,
         ResetRoomUseCase,
         UpdateRoomSettingsUseCase {
@@ -309,6 +313,32 @@ public class GameApplicationService implements
             requireValidToken(r, command.playerId(), command.reconnectToken());
             Round round = r.round();
             round.submitVote(new Vote(command.playerId(), command.suspectPlayerId()));
+            return r;
+        });
+        roomNotifier.notifyRoomUpdated(room);
+    }
+
+    /**
+     * Spends the caller's one-per-game rewind power (see
+     * Round.rewindLastAcceptedWord): the most recently accepted word in the
+     * chain — regardless of who wrote it — is dropped from the log, and
+     * whatever score its author earned for that one attempt is handed back
+     * via awardPoints with a negated delta. Deliberately does not touch
+     * currentTurnIndex or re-schedule the turn timeout: the caller must
+     * already be the current-turn player (Round enforces this), and
+     * rewinding doesn't end their turn or hand it to anyone else, so the
+     * timeout already armed for this turn stays valid.
+     */
+    @Override
+    public void rewindWord(RewindWordCommand command) {
+        Room room = roomRepository.mutate(command.roomCode(), r -> {
+            requireValidToken(r, command.playerId(), command.reconnectToken());
+            Round round = r.round();
+            ChainAttempt undone = round.rewindLastAcceptedWord(command.playerId());
+            boolean metTargetBonus = undone.relatednessToTarget() != null
+                    && undone.relatednessToTarget() >= scoringPolicy.relatednessThreshold();
+            int scoreDelta = scoringPolicy.scoreWordAttempt(true, undone.relatednessToPrevious(), metTargetBonus);
+            r.awardPoints(undone.authorPlayerId(), -scoreDelta);
             return r;
         });
         roomNotifier.notifyRoomUpdated(room);

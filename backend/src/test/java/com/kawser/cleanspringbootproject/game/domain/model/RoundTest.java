@@ -1,5 +1,6 @@
 package com.kawser.cleanspringbootproject.game.domain.model;
 
+import com.kawser.cleanspringbootproject.game.domain.exception.NoRewindAvailableException;
 import com.kawser.cleanspringbootproject.game.domain.exception.NotYourTurnException;
 import com.kawser.cleanspringbootproject.game.domain.exception.PlayerNotFoundException;
 import com.kawser.cleanspringbootproject.game.domain.exception.SelfVoteNotAllowedException;
@@ -275,5 +276,91 @@ class RoundTest {
 
         assertThatThrownBy(round::loseToInfiltrator)
                 .isInstanceOf(WrongPhaseException.class);
+    }
+
+    @Test
+    void rewindDropsTheLastAcceptedWordAndFallsBackToThePenultimateOne() {
+        Round round = newRound();
+        round.submitWord("alice", "Escribir", new WordJudgement(true, 80, null, 20, false));
+        round.submitWord("bob", "Libro", new WordJudgement(true, 70, null, 10, false));
+
+        ChainAttempt undone = round.rewindLastAcceptedWord("carol");
+
+        assertThat(undone.text()).isEqualTo("Libro");
+        assertThat(round.latestChainWord()).isEqualTo("Escribir");
+        assertThat(round.attempts()).hasSize(1);
+    }
+
+    @Test
+    void rewindFallsBackToTheDealtStartWordWhenOnlyOneWordWasEverAccepted() {
+        Round round = newRound();
+        round.submitWord("alice", "Escribir", new WordJudgement(true, 80, null, 20, false));
+
+        round.rewindLastAcceptedWord("bob");
+
+        assertThat(round.latestChainWord()).isEqualTo("Bolígrafo");
+        assertThat(round.attempts()).isEmpty();
+    }
+
+    @Test
+    void rewindDoesNotChangeWhoseTurnItIs() {
+        Round round = newRound();
+        round.submitWord("alice", "Escribir", new WordJudgement(true, 80, null, 20, false));
+
+        assertThat(round.currentTurnPlayerId()).isEqualTo("bob");
+        round.rewindLastAcceptedWord("bob");
+        assertThat(round.currentTurnPlayerId()).isEqualTo("bob");
+    }
+
+    @Test
+    void rewindOnlyWorksOnTheCurrentTurnPlayer() {
+        Round round = newRound();
+        round.submitWord("alice", "Escribir", new WordJudgement(true, 80, null, 20, false));
+
+        assertThatThrownBy(() -> round.rewindLastAcceptedWord("alice"))
+                .isInstanceOf(NotYourTurnException.class);
+    }
+
+    @Test
+    void rewindCanOnlyBeUsedOncePerPlayerPerGame() {
+        Round round = newRound();
+        round.submitWord("alice", "Escribir", new WordJudgement(true, 80, null, 20, false));
+        round.submitWord("bob", "Libro", new WordJudgement(true, 70, null, 10, false));
+        round.submitWord("carol", "Biblioteca", new WordJudgement(true, 60, null, 5, false));
+        // Back to alice's turn; she rewinds once, then plays again so the
+        // turn comes back around to her a second time.
+        round.rewindLastAcceptedWord("alice");
+        round.submitWord("alice", "Cuaderno", new WordJudgement(true, 75, null, 15, false));
+        round.submitWord("bob", "Papel", new WordJudgement(true, 65, null, 5, false));
+        round.submitWord("carol", "Lápiz", new WordJudgement(true, 55, null, 5, false));
+
+        assertThatThrownBy(() -> round.rewindLastAcceptedWord("alice"))
+                .isInstanceOf(NoRewindAvailableException.class);
+    }
+
+    @Test
+    void rewindFailsWhenNothingHasBeenAcceptedYet() {
+        Round round = newRound();
+
+        assertThatThrownBy(() -> round.rewindLastAcceptedWord("alice"))
+                .isInstanceOf(NoRewindAvailableException.class);
+    }
+
+    @Test
+    void canRewindReflectsWhetherThePlayerHasAnUnspentPowerAndAnAcceptedWordToUndo() {
+        Round round = newRound();
+
+        assertThat(round.canRewind("alice")).isFalse();
+
+        round.submitWord("alice", "Escribir", new WordJudgement(true, 80, null, 20, false));
+
+        assertThat(round.canRewind("alice")).isTrue();
+        assertThat(round.canRewind("bob")).isTrue();
+
+        round.rewindLastAcceptedWord("bob");
+
+        assertThat(round.canRewind("bob")).isFalse();
+        assertThat(round.hasUsedRewind("bob")).isTrue();
+        assertThat(round.hasUsedRewind("alice")).isFalse();
     }
 }

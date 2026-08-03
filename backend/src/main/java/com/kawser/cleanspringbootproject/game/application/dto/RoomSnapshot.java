@@ -87,7 +87,9 @@ public record RoomSnapshot(
             List<String> yourPhaseTargetWords,
             List<AttemptView> attempts,
             List<VoteView> votes,
-            RevealView reveal) {
+            RevealView reveal,
+            boolean rewindUsed,
+            boolean canRewind) {
 
         static ChainView from(Round round, String viewerPlayerId) {
             boolean revealed = round.phase() == RoundPhase.REVEAL;
@@ -124,7 +126,9 @@ public record RoomSnapshot(
                     yourPhaseTargetWords,
                     attemptViews,
                     voteViews,
-                    revealView);
+                    revealView,
+                    round.hasUsedRewind(viewerPlayerId),
+                    round.canRewind(viewerPlayerId));
         }
     }
 

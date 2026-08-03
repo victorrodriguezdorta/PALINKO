@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto p-6" :class="snapshot?.status === 'LOBBY' || (snapshot && snapshot.status !== 'CLOSED' && !isDaily) ? 'max-w-6xl' : 'max-w-2xl'">
+  <div class="mx-auto p-6" :class="snapshot && snapshot.status !== 'CLOSED' ? 'max-w-6xl' : 'max-w-2xl'">
     <AppHeader
       :title="isDaily ? t('room.titleDaily') : t('room.title', { code: roomCode })"
       show-back
@@ -91,80 +91,78 @@
 
       <div class="rounded-2xl border-2 border-white/20 bg-white p-4 shadow-lg">
       <section v-if="(snapshot.status === 'IN_PROGRESS' || snapshot.status === 'FINISHED') && chain">
-        <p v-if="chain.totalPhases > 1" class="mb-1 text-sm font-semibold text-gray-600">
+        <p v-if="chain.totalPhases > 1 && chain.phase === 'VOTING'" class="mb-3 text-center text-sm font-semibold text-gray-600">
           {{ t('room.chain.phaseProgress', { current: chain.currentPhaseNumber, total: chain.totalPhases }) }}
         </p>
-        <p v-if="!isDaily" class="mb-1 text-sm text-gray-500">
-          {{ t('room.chain.infiltratorCountLabel') }} <strong>{{ chain.infiltratorCount }}</strong>
-        </p>
 
-        <ol v-if="chain.totalPhases > 1" class="mb-3 flex flex-col gap-1 text-sm">
-          <li
-            v-for="phaseWord in phaseChainWords"
-            :key="phaseWord.phaseNumber"
-            class="rounded border px-3 py-1"
-            :class="phaseWord.phaseNumber === chain.currentPhaseNumber ? 'border-secondary-400 bg-secondary-50' : 'border-gray-200 text-gray-500'"
-          >
-            {{ t('room.chain.phaseLabel', { number: phaseWord.phaseNumber }) }}
-            <strong>{{ phaseWord.startWord }}</strong> → <strong>{{ phaseWord.targetWord }}</strong>
-          </li>
-        </ol>
+        <template v-if="snapshot.status === 'IN_PROGRESS' && chain.phase === 'WORD_CHAIN'">
+          <ChainBoardCard
+            ref="chainBoardRef"
+            v-model:word-draft="wordDraft"
+            :players="snapshot.players"
+            :viewer-player-id="snapshot.viewerPlayerId"
+            :attempts="currentPhaseAttempts"
+            :current-phase-number="chain.currentPhaseNumber"
+            :total-phases="chain.totalPhases"
+            :infiltrator-count="chain.infiltratorCount"
+            :start-word="chain.startWord"
+            :your-target-word="chain.yourTargetWord"
+            :current-word="chain.currentWord"
+            :current-turn-player-id="chain.currentTurnPlayerId"
+            :remaining-seconds="remainingSeconds"
+            :is-my-turn="isMyTurn"
+            :is-daily="isDaily"
+            :other-typing-preview="otherTypingPreview"
+            :previous-phase-target-word="previousPhaseTargetWord"
+            :previous-phase-final-attempt="previousPhaseFinalAttempt"
+            :can-rewind="chain.canRewind"
+            :rewind-used="chain.rewindUsed"
+            @typing="onTypingInput"
+            @submit="onSubmitWord"
+            @rewind="onRewindWord"
+          />
+        </template>
 
-        <p class="mb-1 text-sm text-gray-500">{{ t('room.chain.startWordLabel') }} <strong>{{ chain.startWord }}</strong></p>
-        <p class="mb-4 text-sm text-gray-500">{{ t('room.chain.yourTargetLabel') }} <strong>{{ chain.yourTargetWord }}</strong></p>
+        <template v-else-if="snapshot.status === 'IN_PROGRESS' && chain.phase === 'VOTING'">
+          <ol v-if="chain.totalPhases > 1" class="mb-3 flex flex-col gap-1 text-sm">
+            <li
+              v-for="phaseWord in phaseChainWords"
+              :key="phaseWord.phaseNumber"
+              class="rounded border px-3 py-1"
+              :class="phaseWord.phaseNumber === chain.currentPhaseNumber ? 'border-secondary-400 bg-secondary-50' : 'border-gray-200 text-gray-500'"
+            >
+              {{ t('room.chain.phaseLabel', { number: phaseWord.phaseNumber }) }}
+              <strong>{{ phaseWord.startWord }}</strong> → <strong>{{ phaseWord.targetWord }}</strong>
+            </li>
+          </ol>
 
-        <ol class="mb-4 flex flex-col gap-1">
-          <li
-            v-for="attempt in currentPhaseAttempts"
-            :key="attempt.id"
-            class="rounded border px-3 py-1 text-sm"
-            :class="attemptClass(attempt)"
-          >
-            <span v-if="!isDaily" class="font-semibold">{{ nameFor(attempt.authorPlayerId) }}:</span>
-            <template v-if="attempt.outcome === 'SKIPPED'">
-              <span class="italic text-gray-500">{{ t('room.chain.timedOut') }}</span>
-            </template>
-            <template v-else>
-              {{ attempt.text }}
-              <span class="text-xs text-gray-500">
-                {{ t('room.chain.relatedPercent', { value: attempt.relatednessToPrevious }) }}
-                <template v-if="attempt.justification"> — {{ attempt.justification }}</template>
-              </span>
-              <span v-if="attempt.reachedTarget" class="text-xs text-success-700">{{ t('room.chain.targetReached') }}</span>
-            </template>
-          </li>
-          <li v-if="currentPhaseAttempts.length === 0" class="text-sm text-gray-400">{{ t('room.chain.noAttempts') }}</li>
-        </ol>
+          <p class="mb-1 text-sm text-gray-500">{{ t('room.chain.startWordLabel') }} <strong>{{ chain.startWord }}</strong></p>
+          <p class="mb-4 text-sm text-gray-500">{{ t('room.chain.yourTargetLabel') }} <strong>{{ chain.yourTargetWord }}</strong></p>
 
-        <template v-if="snapshot.status === 'IN_PROGRESS'">
-          <div v-if="chain.phase === 'WORD_CHAIN'">
-            <p v-if="isDaily" class="mb-2 text-sm text-gray-500">{{ t('room.chain.noTimeLimit') }}</p>
-            <p v-else class="mb-2 text-sm text-gray-500">
-              {{ t('room.chain.turnOfLabel') }} <strong>{{ nameFor(chain.currentTurnPlayerId) }}</strong>
-              <span v-if="remainingSeconds !== null"> {{ t('room.chain.secondsRemaining', { value: remainingSeconds }) }}</span>
-            </p>
+          <ol class="mb-4 flex flex-col gap-1">
+            <li
+              v-for="attempt in currentPhaseAttempts"
+              :key="attempt.id"
+              class="rounded border px-3 py-1 text-sm"
+              :class="attemptClass(attempt)"
+            >
+              <span v-if="!isDaily" class="font-semibold">{{ nameFor(attempt.authorPlayerId) }}:</span>
+              <template v-if="attempt.outcome === 'SKIPPED'">
+                <span class="italic text-gray-500">{{ t('room.chain.timedOut') }}</span>
+              </template>
+              <template v-else>
+                {{ attempt.text }}
+                <span class="text-xs text-gray-500">
+                  {{ t('room.chain.relatedPercent', { value: attempt.relatednessToPrevious }) }}
+                  <template v-if="attempt.justification"> — {{ attempt.justification }}</template>
+                </span>
+                <span v-if="attempt.reachedTarget" class="text-xs text-success-700">{{ t('room.chain.targetReached') }}</span>
+              </template>
+            </li>
+            <li v-if="currentPhaseAttempts.length === 0" class="text-sm text-gray-400">{{ t('room.chain.noAttempts') }}</li>
+          </ol>
 
-            <div v-if="isMyTurn">
-              <p class="mb-1 text-sm text-gray-600">
-                {{ t('room.chain.relateHint', { word: chain.currentWord, target: chain.yourTargetWord }) }}
-              </p>
-              <input
-                v-model="wordDraft"
-                class="mb-2 w-full rounded border border-gray-300 p-2"
-                :placeholder="t('room.chain.inputPlaceholder')"
-                @input="onTypingInput"
-                @keyup.enter="onSubmitWord"
-              />
-              <CartoonButton :color="THEME_COLORS.secondary500" :disabled="!wordDraft.trim()" @click="onSubmitWord">
-                {{ t('room.chain.submit') }}
-              </CartoonButton>
-            </div>
-            <p v-else class="rounded border border-dashed border-gray-300 p-2 text-gray-600">
-              {{ otherTypingPreview || '…' }}
-            </p>
-          </div>
-
-          <div v-else-if="chain.phase === 'VOTING'">
+          <div>
             <p class="mb-2 text-sm text-gray-500">
               {{ t('room.voting.prompt') }}
               <span v-if="remainingSeconds !== null"> {{ t('room.chain.secondsRemaining', { value: remainingSeconds }) }}</span>
@@ -295,6 +293,7 @@ import PlayerAvatar from '@/components/PlayerAvatar.vue'
 import RulesCard from '@/components/RulesCard.vue'
 import PlayerRosterCard from '@/components/PlayerRosterCard.vue'
 import PlayerScoreboardCard from '@/components/PlayerScoreboardCard.vue'
+import ChainBoardCard from '@/components/ChainBoardCard.vue'
 import { loadOrCreateAvatarSeed, persistAvatarSeed, randomAvatarSeed } from '@/utils/avatar'
 import { THEME_COLORS } from '@/assets/theme'
 import type { ApiError, AttemptView, GameLanguage } from '@/types/game'
@@ -345,6 +344,7 @@ async function onJoinByLink() {
 }
 
 const wordDraft = ref('')
+const chainBoardRef = ref<InstanceType<typeof ChainBoardCard> | null>(null)
 
 const snapshot = computed(() => gameStore.snapshot)
 const chain = computed(() => snapshot.value?.chain ?? null)
@@ -370,6 +370,28 @@ const phaseChainWords = computed(() => {
     startWord,
     targetWord: c.yourPhaseTargetWords[index] ?? '',
   }))
+})
+
+// The target word of the phase just completed, shown as a "phase cleared"
+// marker at the top of the attempts column once the next phase begins —
+// null during phase 1, since there's no previous phase to recap yet.
+const previousPhaseTargetWord = computed(() => {
+  const c = chain.value
+  if (!c || c.currentPhaseNumber <= 1) return null
+  return c.yourPhaseTargetWords[c.currentPhaseNumber - 2] ?? null
+})
+
+// The attempt that actually reached the previous phase's target — it lives
+// under the old phase's own phaseIndex, so currentPhaseAttempts (filtered
+// to the current phase) never includes it. ChainBoardCard needs the real
+// attempt (not just the target word) so that word can still appear in the
+// played-words column, right where it drops to once the phase marker
+// pushes it down, instead of vanishing the moment the phase changes.
+const previousPhaseFinalAttempt = computed(() => {
+  const c = chain.value
+  if (!c || c.currentPhaseNumber <= 1) return null
+  const previousPhaseIndex = c.currentPhaseNumber - 2
+  return c.attempts.find((attempt) => attempt.phaseIndex === previousPhaseIndex && attempt.reachedTarget) ?? null
 })
 
 // Only the current phase's own attempts count toward that phase — an
@@ -522,8 +544,13 @@ function onTypingInput() {
 function onSubmitWord() {
   const text = wordDraft.value.trim()
   if (!text) return
+  chainBoardRef.value?.submitPending(text)
   gameStore.submitWord(text)
   wordDraft.value = ''
+}
+
+function onRewindWord() {
+  gameStore.rewindWord()
 }
 
 function onSelectVote(suspectPlayerId: string) {
