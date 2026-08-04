@@ -15,7 +15,7 @@
             <PlayerAvatar :seed="avatarSeedFor(flash.authorPlayerId)" size="sm" />
             <div class="chain-board__word-pill-body">
               <p class="chain-board__word-text">{{ flash.text }}</p>
-              <p class="chain-board__word-meta">{{ t('room.chain.rejected') }}</p>
+              <p class="chain-board__word-meta">{{ t('room.chain.rejected', { value: flash.relatednessToPrevious }) }}</p>
               <p v-if="flash.justification" class="chain-board__justification">{{ flash.justification }}</p>
             </div>
           </div>
@@ -113,6 +113,8 @@
         </div>
 
         <template v-if="isMyTurn">
+          <StreakHintCard :visible="streakHintVisible" :message="streakHintMessage" @dismiss="$emit('dismissStreakHint')" />
+
           <p class="chain-board__turn-hint">
             <i18n-t keypath="room.chain.relateHint" scope="global">
               <template #word><strong class="chain-board__hint-highlight">{{ currentWord }}</strong></template>
@@ -123,11 +125,16 @@
             :value="wordDraft"
             class="chain-board__input"
             :placeholder="t('room.chain.inputPlaceholder')"
+            :disabled="streakHintVisible"
             @input="onInput"
             @keyup.enter="$emit('submit')"
           />
           <div class="chain-board__turn-actions">
-            <CartoonButton :color="THEME_COLORS.secondary500" :disabled="!wordDraft.trim()" @click="$emit('submit')">
+            <CartoonButton
+              :color="THEME_COLORS.secondary500"
+              :disabled="!wordDraft.trim() || streakHintVisible"
+              @click="$emit('submit')"
+            >
               {{ t('room.chain.submit') }}
             </CartoonButton>
 
@@ -218,6 +225,7 @@ import { useI18n } from 'vue-i18n'
 import { Check, Flag, RotateCcw, X } from 'lucide-vue-next'
 import PlayerAvatar from '@/components/PlayerAvatar.vue'
 import CartoonButton from '@/components/CartoonButton.vue'
+import StreakHintCard from '@/components/StreakHintCard.vue'
 import { THEME_COLORS } from '@/assets/theme'
 import type { AttemptView, PlayerView } from '@/types/game'
 
@@ -255,6 +263,13 @@ const props = defineProps<{
   // word that just ended the previous phase can still show up as a played
   // word instead of disappearing the instant the phase changes.
   previousPhaseFinalAttempt: AttemptView | null
+  // Whether the too-many-rejections-in-a-row hint is currently shown above
+  // the input — while true, typing/submitting is blocked so the player
+  // actually reads the hint before trying again.
+  streakHintVisible: boolean
+  // The hint's own message text (personal vs. whole-room streak), computed
+  // by the parent from the shared attempts list.
+  streakHintMessage: string
 }>()
 
 const emit = defineEmits<{
@@ -262,13 +277,34 @@ const emit = defineEmits<{
   typing: []
   submit: []
   rewind: []
+  dismissStreakHint: []
 }>()
 
 const { t } = useI18n()
 
+const MAX_WORDS = 2
+
+// Caps the field at two space-separated words (e.g. "buenos dias") by
+// dropping anything typed past the second word, rather than rejecting the
+// whole input — a third word most often arrives as trailing text after a
+// space, so only that tail needs trimming.
+function limitToMaxWords(value: string): string {
+  const trailingSpace = /\s$/.test(value)
+  const words = value.trim().split(/\s+/).filter(Boolean)
+  if (words.length <= MAX_WORDS) {
+    return value
+  }
+  const limited = words.slice(0, MAX_WORDS).join(' ')
+  return trailingSpace ? limited + ' ' : limited
+}
+
 function onInput(event: Event) {
-  const value = (event.target as HTMLInputElement).value
-  emit('update:wordDraft', value)
+  const input = event.target as HTMLInputElement
+  const limited = limitToMaxWords(input.value)
+  if (limited !== input.value) {
+    input.value = limited
+  }
+  emit('update:wordDraft', limited)
   emit('typing')
 }
 
@@ -364,7 +400,9 @@ defineExpose({ submitPending })
 // never gets re-queued if the snapshot re-renders before it clears. Plain
 // rejections flash briefly, but ones carrying the AI's justification stay
 // up long enough to actually read the sentence.
-const rejectedFlashes = ref<{ id: string; text: string; authorPlayerId: string; justification: string | null }[]>([])
+const rejectedFlashes = ref<
+  { id: string; text: string; authorPlayerId: string; justification: string | null; relatednessToPrevious: number }[]
+>([])
 const seenRejectedIds = new Set<string>()
 const REJECTED_FLASH_MS = 1000
 const REJECTED_FLASH_WITH_JUSTIFICATION_MS = 4000
@@ -377,7 +415,13 @@ watch(
       seenRejectedIds.add(attempt.id)
       rejectedFlashes.value = [
         ...rejectedFlashes.value,
-        { id: attempt.id, text: attempt.text, authorPlayerId: attempt.authorPlayerId, justification: attempt.justification },
+        {
+          id: attempt.id,
+          text: attempt.text,
+          authorPlayerId: attempt.authorPlayerId,
+          justification: attempt.justification,
+          relatednessToPrevious: attempt.relatednessToPrevious,
+        },
       ]
       setTimeout(
         () => {

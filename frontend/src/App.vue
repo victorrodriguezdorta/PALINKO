@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AnimatedBackground from '@/components/AnimatedBackground.vue'
 import AppFooter from '@/components/AppFooter.vue'
@@ -21,6 +21,15 @@ watch(
   },
   { immediate: true },
 )
+
+// Static loader lives outside the Vue app (see index.html) so it's visible
+// before Vue even finishes parsing/mounting. Remove it once the app has
+// actually painted its first frame.
+onMounted(() => {
+  requestAnimationFrame(() => {
+    document.getElementById('app-loader')?.remove()
+  })
+})
 </script>
 
 <style scoped>

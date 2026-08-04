@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultScoringPolicy implements ScoringPolicy {
 
-    public static final int RELATEDNESS_THRESHOLD = 50;
+    public static final int RELATEDNESS_THRESHOLD = 40;
     public static final int POINTS_TARGET_BONUS = 15;
     public static final int POINTS_CREW_BONUS = 50;
     public static final int POINTS_INFILTRATOR_ESCAPE_BONUS = 75;

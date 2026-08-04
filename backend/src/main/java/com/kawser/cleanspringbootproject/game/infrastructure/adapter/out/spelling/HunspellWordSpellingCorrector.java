@@ -44,15 +44,35 @@ public class HunspellWordSpellingCorrector implements WordSpellingCorrector {
             return word;
         }
 
+        // Players may submit up to two words (e.g. "buenos dias"); each
+        // token is spell-checked independently so a typo in one doesn't
+        // send the whole phrase to Hunspell as a single unknown string,
+        // and a correct word next to a typo isn't needlessly touched.
+        String[] tokens = trimmed.split("\\s+");
+        if (tokens.length == 1) {
+            return correctSingleWord(tokens[0], language);
+        }
+
+        StringBuilder corrected = new StringBuilder(trimmed.length());
+        for (int i = 0; i < tokens.length; i++) {
+            if (i > 0) {
+                corrected.append(' ');
+            }
+            corrected.append(correctSingleWord(tokens[i], language));
+        }
+        return corrected.toString();
+    }
+
+    private String correctSingleWord(String token, GameLanguage language) {
         Hunspell hunspell = instanceFor(language);
-        if (hunspell == null || hunspell.spell(trimmed)) {
-            return word;
+        if (hunspell == null || hunspell.spell(token)) {
+            return token;
         }
 
         try {
-            String[] suggestions = hunspell.suggest(trimmed);
+            String[] suggestions = hunspell.suggest(token);
             if (suggestions.length == 0) {
-                return word;
+                return token;
             }
             // Hunspell ranks suggestions best-first; only the top one is
             // used, and only when it's a single word - a multi-word
@@ -61,12 +81,12 @@ public class HunspellWordSpellingCorrector implements WordSpellingCorrector {
             // the original typo for the relatedness judge to score as-is.
             String bestSuggestion = suggestions[0];
             if (bestSuggestion.indexOf(' ') >= 0) {
-                return word;
+                return token;
             }
             return bestSuggestion;
         } catch (RuntimeException e) {
-            log.warn("Hunspell suggestion lookup failed for '{}' ({}); leaving word uncorrected", trimmed, language, e);
-            return word;
+            log.warn("Hunspell suggestion lookup failed for '{}' ({}); leaving word uncorrected", token, language, e);
+            return token;
         }
     }
 

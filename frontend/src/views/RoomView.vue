@@ -120,9 +120,12 @@
             :previous-phase-final-attempt="previousPhaseFinalAttempt"
             :can-rewind="chain.canRewind"
             :rewind-used="chain.rewindUsed"
+            :streak-hint-visible="streakHintVisible"
+            :streak-hint-message="streakHintMessage"
             @typing="onTypingInput"
             @submit="onSubmitWord"
             @rewind="onRewindWord"
+            @dismiss-streak-hint="dismissStreakHint"
           />
         </template>
 
@@ -549,6 +552,65 @@ watch(
       else if (attempt.reachedTarget) play('targetReached')
       else if (attempt.outcome === 'ACCEPTED') play('wordAccepted')
     }
+  },
+  { deep: true },
+)
+
+// Cartoon-style nudge shown after too many REJECTED words in a row, hinting
+// the player(s) should try a different strategy instead of small variations
+// on the same guess. Two independent triggers share the same fixed message:
+// - Personal: the viewer's own last N attempts (in submission order) are
+//   all REJECTED — only that player sees it.
+// - Room-wide: the last N attempts across the whole room (any author) are
+//   all REJECTED — every player sees it, since it means the group as a
+//   whole is stuck rather than any one person.
+// Both counters look only at ACCEPTED/REJECTED attempts (SKIPPED turns
+// don't count as a "failure" toward either streak) and reset the moment a
+// word is accepted.
+const STREAK_THRESHOLD = 5
+const streakHintVisible = ref(false)
+const streakHintMessage = t('room.chain.streakHint')
+let streakHintDismissedForRun = false
+
+function dismissStreakHint() {
+  streakHintVisible.value = false
+  streakHintDismissedForRun = true
+}
+
+watch(
+  () => chain.value?.attempts,
+  (attempts) => {
+    if (!attempts) return
+    const scored = attempts.filter((a) => a.outcome === 'ACCEPTED' || a.outcome === 'REJECTED')
+
+    let roomStreak = 0
+    for (let i = scored.length - 1; i >= 0; i--) {
+      if (scored[i].outcome !== 'REJECTED') break
+      roomStreak++
+    }
+
+    let personalStreak = 0
+    const myId = gameStore.playerId
+    if (myId) {
+      for (let i = scored.length - 1; i >= 0; i--) {
+        if (scored[i].authorPlayerId !== myId) continue
+        if (scored[i].outcome !== 'REJECTED') break
+        personalStreak++
+      }
+    }
+
+    // A fresh accepted word (or the streak simply not being long enough
+    // yet) resets the "already dismissed" flag, so the hint can pop up
+    // again the next time either streak reaches the threshold.
+    if (roomStreak < STREAK_THRESHOLD && personalStreak < STREAK_THRESHOLD) {
+      streakHintDismissedForRun = false
+      streakHintVisible.value = false
+      return
+    }
+
+    if (streakHintDismissedForRun) return
+
+    streakHintVisible.value = true
   },
   { deep: true },
 )

@@ -24,12 +24,15 @@ import org.springframework.stereotype.Component;
  * score) because the LLM can actually reason about the pair rather than
  * just compare vector geometry.
  *
- * <p>Uses Groq's fastest chat model ({@code llama-3.1-8b-instant}) with a
- * terse prompt and a small output budget, since round-trip latency directly
- * delays every word submission in a live game. The prompt asks for strict
- * JSON so the response can be parsed without a second round-trip; on any
- * failure (network error, malformed JSON, missing key) this adapter fails
- * closed with a 0% relation rather than blocking the game.
+ * <p>Uses Groq's {@code llama-3.3-70b-versatile} chat model with a terse
+ * prompt and a small output budget, since round-trip latency directly
+ * delays every word submission in a live game. Groq's LPU inference keeps
+ * this fast despite the larger model, and the extra reasoning quality over
+ * the previous 8B model catches more of the abstract/associative relations
+ * this judgment call depends on. The prompt asks for strict JSON so the
+ * response can be parsed without a second round-trip; on any failure
+ * (network error, malformed JSON, missing key) this adapter fails closed
+ * with a 0% relation rather than blocking the game.
  */
 @Primary
 @Component
@@ -37,7 +40,7 @@ public class GroqWordRelationChecker implements WordRelationChecker {
 
     private static final Logger log = LoggerFactory.getLogger(GroqWordRelationChecker.class);
     private static final URI GROQ_ENDPOINT = URI.create("https://api.groq.com/openai/v1/chat/completions");
-    private static final String MODEL = "llama-3.1-8b-instant";
+    private static final String MODEL = "llama-3.3-70b-versatile";
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
@@ -84,9 +87,17 @@ public class GroqWordRelationChecker implements WordRelationChecker {
 
     private Object chatRequest(String wordA, String wordB, GameLanguage language) {
         String replyLanguage = language == GameLanguage.SPANISH ? "Spanish" : "English";
-        String systemPrompt = "You judge how semantically related two words are. "
-                + "Reply with ONLY compact JSON: {\"percentage\": <0-100 integer>, \"reason\": \"<very short justification>\"}. "
-                + "The \"reason\" text must be written in " + replyLanguage + ". No markdown, no extra text.";
+        String systemPrompt = "You judge how related two words or short phrases are, for a word-chain party "
+                + "game where players connect words the way a human free-associates, not the way a thesaurus "
+                + "does. Score generously: give credit not only to synonyms and same-category words, but also to "
+                + "cause-and-effect pairs (rain / umbrella), part-whole pairs (wheel / car), typical "
+                + "co-occurrence or context (beach / sunscreen), tool-and-user or tool-and-purpose (needle / "
+                + "sew), opposites (hot / cold), and well-known cultural, idiomatic, or pop-culture associations "
+                + "(Batman / Gotham). A pair only deserves a low score when a reasonable person would find no "
+                + "plausible link between them at all, even a loose or indirect one. "
+                + "Reply with ONLY compact JSON: {\"percentage\": <0-100 integer>, \"reason\": \"<very short "
+                + "justification>\"}. The \"reason\" text must be written in " + replyLanguage
+                + ". No markdown, no extra text.";
         String userPrompt = "Word A: \"" + wordA + "\"\nWord B: \"" + wordB + "\"";
 
         return new ChatRequest(

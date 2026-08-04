@@ -120,7 +120,7 @@
       "timedOut": "se le acabó el tiempo, turno saltado",
       "relatedPercent": "({value}% relación)",
       "targetReached": "(¡meta alcanzada!)",
-      "rejected": "Poca relación",
+      "rejected": "Poca relación ({value}%)",
       "phaseTargetReached": "Meta de la fase {number} alcanzada",
       "noAttempts": "Todavía no se ha jugado ninguna palabra.",
       "turnOfLabel": "Turno de",
@@ -138,7 +138,8 @@
       "rewindTitleUsed": "Ya has usado tu rebobinado en esta partida",
       "rewindConfirm": "¿Eliminar la última palabra jugada?",
       "rewindConfirmYes": "Sí",
-      "rewindConfirmCancel": "Cancelar"
+      "rewindConfirmCancel": "Cancelar",
+      "streakHint": "Prueba a cambiar la estrategia"
     },
     "voting": {
       "prompt": "¿Quién crees que es el infiltrado? Puedes cambiar tu voto mientras dure esta fase.",

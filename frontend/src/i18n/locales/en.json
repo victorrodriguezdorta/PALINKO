@@ -120,7 +120,7 @@
       "timedOut": "ran out of time, turn skipped",
       "relatedPercent": "({value}% related)",
       "targetReached": "(target reached!)",
-      "rejected": "Not related enough",
+      "rejected": "Not related enough ({value}%)",
       "phaseTargetReached": "Phase {number} target reached",
       "noAttempts": "No word has been played yet.",
       "turnOfLabel": "Turn:",
@@ -138,7 +138,8 @@
       "rewindTitleUsed": "You've already used your rewind this game",
       "rewindConfirm": "Remove the last word played?",
       "rewindConfirmYes": "Yes",
-      "rewindConfirmCancel": "Cancel"
+      "rewindConfirmCancel": "Cancel",
+      "streakHint": "Try changing your strategy"
     },
     "voting": {
       "prompt": "Who do you think is the infiltrator? You can change your vote while this phase lasts.",

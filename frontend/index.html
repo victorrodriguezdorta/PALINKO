@@ -7,7 +7,34 @@
     <title>PALINKO</title>
   </head>
   <body class="dark:bg-gray-900">
+    <div id="app-loader">
+      <div class="app-loader__spinner"></div>
+    </div>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
+    <style>
+      #app-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0a1730;
+      }
+      .app-loader__spinner {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        border: 4px solid rgba(139, 92, 246, 0.25);
+        border-top-color: #8b5cf6;
+        animation: app-loader-spin 0.8s linear infinite;
+      }
+      @keyframes app-loader-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </body>
 </html>
