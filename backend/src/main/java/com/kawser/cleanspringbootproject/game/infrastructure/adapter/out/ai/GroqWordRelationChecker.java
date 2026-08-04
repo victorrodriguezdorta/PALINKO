@@ -24,15 +24,15 @@ import org.springframework.stereotype.Component;
  * score) because the LLM can actually reason about the pair rather than
  * just compare vector geometry.
  *
- * <p>Uses Groq's {@code llama-3.3-70b-versatile} chat model with a terse
+ * <p>Uses Groq's {@code llama-3.1-8b-instant} chat model with a terse
  * prompt and a small output budget, since round-trip latency directly
- * delays every word submission in a live game. Groq's LPU inference keeps
- * this fast despite the larger model, and the extra reasoning quality over
- * the previous 8B model catches more of the abstract/associative relations
- * this judgment call depends on. The prompt asks for strict JSON so the
- * response can be parsed without a second round-trip; on any failure
- * (network error, malformed JSON, missing key) this adapter fails closed
- * with a 0% relation rather than blocking the game.
+ * delays every word submission in a live game. This 8B model trades some
+ * reasoning quality for materially lower latency than the 70B model,
+ * which matters more here given how often this call is made per game.
+ * The prompt asks for strict JSON so the response can be parsed without
+ * a second round-trip; on any failure (network error, malformed JSON,
+ * missing key) this adapter fails closed with a 0% relation rather than
+ * blocking the game.
  */
 @Primary
 @Component
@@ -40,7 +40,7 @@ public class GroqWordRelationChecker implements WordRelationChecker {
 
     private static final Logger log = LoggerFactory.getLogger(GroqWordRelationChecker.class);
     private static final URI GROQ_ENDPOINT = URI.create("https://api.groq.com/openai/v1/chat/completions");
-    private static final String MODEL = "llama-3.3-70b-versatile";
+    private static final String MODEL = "llama-3.1-8b-instant";
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
