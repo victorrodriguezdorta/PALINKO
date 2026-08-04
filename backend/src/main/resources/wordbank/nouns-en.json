@@ -1,34 +1,65 @@
-[
-  "pen", "strawberry", "car", "plant", "pizza", "cat", "dog", "book", "table", "chair",
-  "window", "door", "tree", "mountain", "river", "sea", "beach", "sun", "moon", "star",
-  "cloud", "rain", "snow", "wind", "fire", "stone", "sand", "forest", "flower", "leaf",
-  "root", "seed", "fruit", "apple", "banana", "orange", "grape", "lemon", "watermelon", "melon",
-  "bread", "cheese", "milk", "egg", "meat", "fish", "rice", "pasta", "soup", "salad",
-  "sugar", "salt", "oil", "vinegar", "coffee", "tea", "water", "wine", "beer", "juice",
-  "spoon", "fork", "knife", "plate", "glass", "cup", "pot", "pan", "oven", "fridge",
-  "bed", "sofa", "wardrobe", "mirror", "lamp", "carpet", "curtain", "clock", "phone", "television",
-  "computer", "mouse", "keyboard", "screen", "camera", "radio", "battery", "cable", "plug", "bulb",
-  "shirt", "trousers", "dress", "skirt", "shoe", "boot", "hat", "glove", "scarf", "belt",
-  "coat", "jacket", "sock", "pyjamas", "suit", "tie", "backpack", "purse", "suitcase", "umbrella",
-  "bicycle", "motorcycle", "bus", "train", "airplane", "ship", "truck", "taxi", "subway", "road",
-  "bridge", "tunnel", "traffic light", "station", "airport", "harbor", "garage", "wheel", "engine", "anchor",
-  "house", "building", "school", "hospital", "church", "castle", "tower", "wall", "roof", "garden",
-  "city", "village", "street", "square", "park", "museum", "library", "market", "shop", "factory",
-  "farm", "barn", "coop", "cave", "island", "valley", "desert", "jungle", "volcano", "glacier",
-  "horse", "cow", "sheep", "pig", "chicken", "duck", "rabbit", "squirrel", "bat", "mole",
-  "lion", "tiger", "bear", "wolf", "fox", "deer", "elephant", "giraffe", "monkey", "zebra",
-  "eagle", "owl", "parrot", "pigeon", "crow", "penguin", "dolphin", "whale", "shark", "octopus",
-  "bee", "ant", "spider", "butterfly", "mosquito", "beetle", "snake", "lizard", "frog", "turtle",
-  "head", "face", "eye", "nose", "mouth", "ear", "tooth", "tongue", "neck", "shoulder",
-  "arm", "hand", "finger", "leg", "foot", "knee", "back", "chest", "heart", "stomach",
-  "doctor", "teacher", "firefighter", "police officer", "chef", "waiter", "lawyer", "engineer", "pilot", "farmer",
-  "painter", "musician", "actor", "singer", "writer", "journalist", "electrician", "carpenter", "baker", "gardener",
-  "guitar", "piano", "violin", "drum", "flute", "trumpet", "harp", "accordion", "microphone", "speaker",
-  "ball", "puck", "racket", "skate", "helmet", "net", "goal", "court", "stadium", "medal",
-  "coin", "banknote", "bank", "card", "wallet", "gift", "box", "envelope", "stamp", "letter",
-  "pencil", "eraser", "scissors", "paper", "notebook", "map", "flag", "key", "padlock", "ladder",
-  "candle", "flashlight", "hammer", "nail", "screw", "saw", "axe", "shovel", "hose", "broom",
-  "soap", "towel", "brush", "comb", "shampoo", "perfume", "bathtub", "shower", "faucet", "bucket",
-  "planet", "comet", "rocket", "satellite", "telescope", "compass", "calendar", "thermometer", "magnet", "gear",
-  "thunder", "lightning", "rainbow", "fog", "ice", "rock", "waterfall", "lake", "pond", "cliff"
-]
+{
+  "food": [
+    "pen", "strawberry", "pizza", "bread", "cheese", "milk", "egg", "meat", "fish", "rice",
+    "pasta", "soup", "salad", "sugar", "salt", "oil", "vinegar", "coffee", "tea", "water",
+    "wine", "beer", "juice", "fruit", "apple", "banana", "orange", "grape", "lemon", "watermelon", "melon"
+  ],
+  "nature": [
+    "plant", "tree", "mountain", "river", "sea", "beach", "sun", "moon", "star", "cloud",
+    "rain", "snow", "wind", "fire", "stone", "sand", "forest", "flower", "leaf", "root",
+    "seed", "planet", "comet", "thunder", "lightning", "rainbow", "fog", "ice", "rock",
+    "waterfall", "lake", "pond", "cliff", "valley", "desert", "jungle", "volcano", "glacier", "island", "cave"
+  ],
+  "animals": [
+    "cat", "dog", "horse", "cow", "sheep", "pig", "chicken", "duck", "rabbit", "squirrel",
+    "bat", "mole", "lion", "tiger", "bear", "wolf", "fox", "deer", "elephant", "giraffe",
+    "monkey", "zebra", "eagle", "owl", "parrot", "pigeon", "crow", "penguin", "dolphin",
+    "whale", "shark", "octopus", "bee", "ant", "spider", "butterfly", "mosquito", "beetle",
+    "snake", "lizard", "frog", "turtle"
+  ],
+  "home": [
+    "book", "table", "chair", "window", "door", "bed", "sofa", "wardrobe", "mirror", "lamp",
+    "carpet", "curtain", "clock", "spoon", "fork", "knife", "plate", "glass", "cup", "pot",
+    "pan", "oven", "fridge", "candle", "flashlight", "broom", "bucket"
+  ],
+  "electronics": [
+    "phone", "television", "computer", "mouse", "keyboard", "screen", "camera", "radio",
+    "battery", "cable", "plug", "bulb", "microphone", "speaker"
+  ],
+  "clothing": [
+    "shirt", "trousers", "dress", "skirt", "shoe", "boot", "hat", "glove", "scarf", "belt",
+    "coat", "jacket", "sock", "pyjamas", "suit", "tie", "backpack", "purse", "suitcase", "umbrella"
+  ],
+  "transport": [
+    "car", "bicycle", "motorcycle", "bus", "train", "airplane", "ship", "truck", "taxi",
+    "subway", "road", "bridge", "tunnel", "traffic light", "station", "airport", "harbor",
+    "garage", "wheel", "engine", "anchor", "rocket", "satellite"
+  ],
+  "buildings": [
+    "house", "building", "school", "hospital", "church", "castle", "tower", "wall", "roof",
+    "garden", "city", "village", "street", "square", "park", "museum", "library", "market",
+    "shop", "factory", "farm", "barn", "coop"
+  ],
+  "body": [
+    "head", "face", "eye", "nose", "mouth", "ear", "tooth", "tongue", "neck", "shoulder",
+    "arm", "hand", "finger", "leg", "foot", "knee", "back", "chest", "heart", "stomach"
+  ],
+  "professions": [
+    "doctor", "teacher", "firefighter", "police officer", "chef", "waiter", "lawyer",
+    "engineer", "pilot", "farmer", "painter", "musician", "actor", "singer", "writer",
+    "journalist", "electrician", "carpenter", "baker", "gardener"
+  ],
+  "music": [
+    "guitar", "piano", "violin", "drum", "flute", "trumpet", "harp", "accordion"
+  ],
+  "sports": [
+    "ball", "puck", "racket", "skate", "helmet", "net", "goal", "court", "stadium", "medal"
+  ],
+  "objects": [
+    "coin", "banknote", "bank", "card", "wallet", "gift", "box", "envelope", "stamp",
+    "letter", "pencil", "eraser", "scissors", "paper", "notebook", "map", "flag", "key",
+    "padlock", "ladder", "hammer", "nail", "screw", "saw", "axe", "shovel", "hose",
+    "soap", "towel", "brush", "comb", "shampoo", "perfume", "bathtub", "shower", "faucet",
+    "compass", "calendar", "thermometer", "magnet", "gear", "telescope"
+  ]
+}

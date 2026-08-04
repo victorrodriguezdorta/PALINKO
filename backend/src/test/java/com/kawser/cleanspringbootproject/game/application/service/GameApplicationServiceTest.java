@@ -38,6 +38,7 @@ import com.kawser.cleanspringbootproject.game.domain.service.DefaultScoringPolic
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -350,13 +351,34 @@ class GameApplicationServiceTest {
     }
 
     @Test
-    void hostDisconnectingDeletesTheRoomImmediately() {
+    void hostDisconnectingKeepsTheRoomAliveForOtherPlayers() {
         startGame();
         String hostId = room().hostPlayerId();
 
         service.handleDisconnect(new DisconnectCommand(roomCode, hostId));
 
-        assertThat(roomRepository.findByCode(roomCode)).isEmpty();
+        // A momentary host disconnect no longer tears the room down or
+        // evicts everyone else — it's still there, just with the host
+        // marked disconnected, so they (or the cleanup sweep after the
+        // grace window) can decide what happens next.
+        Room room = room();
+        assertThat(room.status()).isEqualTo(RoomStatus.IN_PROGRESS);
+        assertThat(room.findPlayer(hostId).orElseThrow().isConnected()).isFalse();
+    }
+
+    @Test
+    void hostReconnectingAfterADisconnectClearsTheirDisconnectedFlag() {
+        startGame();
+        String hostId = room().hostPlayerId();
+        service.handleDisconnect(new DisconnectCommand(roomCode, hostId));
+
+        service.reconnect(new ReconnectCommand(roomCode, hostId, hostToken));
+
+        Room room = room();
+        assertThat(room.status()).isEqualTo(RoomStatus.IN_PROGRESS);
+        assertThat(room.findPlayer(hostId).orElseThrow().isConnected()).isTrue();
+        assertThat(room.isHostReconnectWindowExpired(Instant.now().plusSeconds(999_999), Duration.ofSeconds(120)))
+                .isFalse();
     }
 
     @Test
@@ -458,8 +480,7 @@ class GameApplicationServiceTest {
         // WORD_SET regardless — this test instead pins down the contract
         // GameApplicationService must uphold: createDailyRoom always calls
         // through fullChain(language, phaseCount, seed) rather than the
-        // unseeded overload, which real adapters (see
-        // EmbeddingChainWordBankTest) rely on for determinism.
+        // unseeded overload, which real adapters rely on for determinism.
         CreateRoomResult first = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH));
         CreateRoomResult second = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH));
 

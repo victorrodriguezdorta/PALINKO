@@ -517,6 +517,17 @@ watch(
   },
 )
 
+// Fires when the round moves on to the next WORD_CHAIN phase (e.g. after a
+// REVEAL that didn't end the game), not on the very first phase of the
+// round — matches the "double up" guard on the turn-passed watcher above.
+watch(
+  () => chain.value?.currentPhaseNumber,
+  (current, previous) => {
+    if (!current || previous === undefined || current <= previous) return
+    play('phaseAdvanced')
+  },
+)
+
 watch(
   () => snapshot.value?.status,
   (status, previousStatus) => {

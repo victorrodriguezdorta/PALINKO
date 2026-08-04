@@ -1,34 +1,65 @@
-[
-  "bolígrafo", "fresa", "coche", "planta", "pizza", "gato", "perro", "libro", "mesa", "silla",
-  "ventana", "puerta", "árbol", "montaña", "río", "mar", "playa", "sol", "luna", "estrella",
-  "nube", "lluvia", "nieve", "viento", "fuego", "piedra", "arena", "bosque", "flor", "hoja",
-  "raíz", "semilla", "fruta", "manzana", "plátano", "naranja", "uva", "limón", "sandía", "melón",
-  "pan", "queso", "leche", "huevo", "carne", "pescado", "arroz", "pasta", "sopa", "ensalada",
-  "azúcar", "sal", "aceite", "vinagre", "café", "té", "agua", "vino", "cerveza", "jugo",
-  "cuchara", "tenedor", "cuchillo", "plato", "vaso", "taza", "olla", "sartén", "horno", "nevera",
-  "cama", "sofá", "armario", "espejo", "lámpara", "alfombra", "cortina", "reloj", "teléfono", "televisor",
-  "ordenador", "ratón", "teclado", "pantalla", "cámara", "radio", "batería", "cable", "enchufe", "bombilla",
-  "camisa", "pantalón", "vestido", "falda", "zapato", "bota", "sombrero", "guante", "bufanda", "cinturón",
-  "abrigo", "chaqueta", "calcetín", "pijama", "traje", "corbata", "mochila", "bolso", "maleta", "paraguas",
-  "bicicleta", "moto", "autobús", "tren", "avión", "barco", "camión", "taxi", "metro", "carretera",
-  "puente", "túnel", "semáforo", "estación", "aeropuerto", "puerto", "garaje", "rueda", "motor", "ancla",
-  "casa", "edificio", "escuela", "hospital", "iglesia", "castillo", "torre", "muro", "tejado", "jardín",
-  "ciudad", "pueblo", "calle", "plaza", "parque", "museo", "biblioteca", "mercado", "tienda", "fábrica",
-  "granja", "establo", "corral", "cueva", "isla", "valle", "desierto", "selva", "volcán", "glaciar",
-  "caballo", "vaca", "oveja", "cerdo", "gallina", "pato", "conejo", "ardilla", "murciélago", "topo",
-  "león", "tigre", "oso", "lobo", "zorro", "ciervo", "elefante", "jirafa", "mono", "cebra",
-  "águila", "búho", "loro", "paloma", "cuervo", "pingüino", "delfín", "ballena", "tiburón", "pulpo",
-  "abeja", "hormiga", "araña", "mariposa", "mosquito", "escarabajo", "serpiente", "lagarto", "rana", "tortuga",
-  "cabeza", "cara", "ojo", "nariz", "boca", "oreja", "diente", "lengua", "cuello", "hombro",
-  "brazo", "mano", "dedo", "pierna", "pie", "rodilla", "espalda", "pecho", "corazón", "estómago",
-  "médico", "profesor", "bombero", "policía", "cocinero", "camarero", "abogado", "ingeniero", "piloto", "granjero",
-  "pintor", "músico", "actor", "cantante", "escritor", "periodista", "electricista", "carpintero", "panadero", "jardinero",
-  "guitarra", "piano", "violín", "tambor", "flauta", "trompeta", "arpa", "acordeón", "micrófono", "altavoz",
-  "pelota", "balón", "raqueta", "patín", "casco", "red", "portería", "cancha", "estadio", "medalla",
-  "moneda", "billete", "banco", "tarjeta", "cartera", "regalo", "caja", "sobre", "sello", "carta",
-  "lápiz", "goma", "tijeras", "papel", "cuaderno", "mapa", "bandera", "llave", "candado", "escalera",
-  "vela", "linterna", "martillo", "clavo", "tornillo", "sierra", "hacha", "pala", "manguera", "escoba",
-  "jabón", "toalla", "cepillo", "peine", "champú", "perfume", "bañera", "ducha", "grifo", "cubo",
-  "planeta", "cometa", "cohete", "satélite", "telescopio", "brújula", "calendario", "termómetro", "imán", "engranaje",
-  "trueno", "relámpago", "arcoíris", "niebla", "hielo", "roca", "cascada", "lago", "laguna", "acantilado"
-]
+{
+  "food": [
+    "bolígrafo", "fresa", "pizza", "pan", "queso", "leche", "huevo", "carne", "pescado", "arroz",
+    "pasta", "sopa", "ensalada", "azúcar", "sal", "aceite", "vinagre", "café", "té", "agua",
+    "vino", "cerveza", "jugo", "fruta", "manzana", "plátano", "naranja", "uva", "limón", "sandía", "melón"
+  ],
+  "nature": [
+    "planta", "árbol", "montaña", "río", "mar", "playa", "sol", "luna", "estrella", "nube",
+    "lluvia", "nieve", "viento", "fuego", "piedra", "arena", "bosque", "flor", "hoja", "raíz",
+    "semilla", "planeta", "cometa", "trueno", "relámpago", "arcoíris", "niebla", "hielo", "roca",
+    "cascada", "lago", "laguna", "acantilado", "valle", "desierto", "selva", "volcán", "glaciar", "isla", "cueva"
+  ],
+  "animals": [
+    "gato", "perro", "caballo", "vaca", "oveja", "cerdo", "gallina", "pato", "conejo", "ardilla",
+    "murciélago", "topo", "león", "tigre", "oso", "lobo", "zorro", "ciervo", "elefante", "jirafa",
+    "mono", "cebra", "águila", "búho", "loro", "paloma", "cuervo", "pingüino", "delfín",
+    "ballena", "tiburón", "pulpo", "abeja", "hormiga", "araña", "mariposa", "mosquito", "escarabajo",
+    "serpiente", "lagarto", "rana", "tortuga"
+  ],
+  "home": [
+    "libro", "mesa", "silla", "ventana", "puerta", "cama", "sofá", "armario", "espejo", "lámpara",
+    "alfombra", "cortina", "reloj", "cuchara", "tenedor", "cuchillo", "plato", "vaso", "taza", "olla",
+    "sartén", "horno", "nevera", "vela", "linterna", "escoba", "cubo"
+  ],
+  "electronics": [
+    "teléfono", "televisor", "ordenador", "ratón", "teclado", "pantalla", "cámara", "radio",
+    "batería", "cable", "enchufe", "bombilla", "micrófono", "altavoz"
+  ],
+  "clothing": [
+    "camisa", "pantalón", "vestido", "falda", "zapato", "bota", "sombrero", "guante", "bufanda", "cinturón",
+    "abrigo", "chaqueta", "calcetín", "pijama", "traje", "corbata", "mochila", "bolso", "maleta", "paraguas"
+  ],
+  "transport": [
+    "coche", "bicicleta", "moto", "autobús", "tren", "avión", "barco", "camión", "taxi",
+    "metro", "carretera", "puente", "túnel", "semáforo", "estación", "aeropuerto", "puerto",
+    "garaje", "rueda", "motor", "ancla", "cohete", "satélite"
+  ],
+  "buildings": [
+    "casa", "edificio", "escuela", "hospital", "iglesia", "castillo", "torre", "muro", "tejado",
+    "jardín", "ciudad", "pueblo", "calle", "plaza", "parque", "museo", "biblioteca", "mercado",
+    "tienda", "fábrica", "granja", "establo", "corral"
+  ],
+  "body": [
+    "cabeza", "cara", "ojo", "nariz", "boca", "oreja", "diente", "lengua", "cuello", "hombro",
+    "brazo", "mano", "dedo", "pierna", "pie", "rodilla", "espalda", "pecho", "corazón", "estómago"
+  ],
+  "professions": [
+    "médico", "profesor", "bombero", "policía", "cocinero", "camarero", "abogado",
+    "ingeniero", "piloto", "granjero", "pintor", "músico", "actor", "cantante", "escritor",
+    "periodista", "electricista", "carpintero", "panadero", "jardinero"
+  ],
+  "music": [
+    "guitarra", "piano", "violín", "tambor", "flauta", "trompeta", "arpa", "acordeón"
+  ],
+  "sports": [
+    "pelota", "balón", "raqueta", "patín", "casco", "red", "portería", "cancha", "estadio", "medalla"
+  ],
+  "objects": [
+    "moneda", "billete", "banco", "tarjeta", "cartera", "regalo", "caja", "sobre", "sello",
+    "carta", "lápiz", "goma", "tijeras", "papel", "cuaderno", "mapa", "bandera", "llave",
+    "candado", "escalera", "martillo", "clavo", "tornillo", "sierra", "hacha", "pala", "manguera",
+    "jabón", "toalla", "cepillo", "peine", "champú", "perfume", "bañera", "ducha", "grifo",
+    "brújula", "calendario", "termómetro", "imán", "engranaje", "telescopio"
+  ]
+}

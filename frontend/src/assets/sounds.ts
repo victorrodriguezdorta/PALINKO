@@ -67,6 +67,7 @@ export const SOUND_EFFECTS = {
   targetReached: confirmation004,
   rewindUsed: minimize003,
   timeRunningOutTick: glass005,
+  phaseAdvanced: maximize006,
 
   // Voting phase
   votingStart: question002,

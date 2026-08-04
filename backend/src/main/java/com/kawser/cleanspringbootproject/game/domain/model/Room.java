@@ -217,10 +217,13 @@ public class Room {
     }
 
     /**
-     * Tears the room down because its host left. Idempotent: a room that
-     * already finished normally, or was already closed, is left untouched
-     * so a late/duplicate disconnect event can never downgrade a completed
-     * game's final results back into a "host left" screen.
+     * Tears the room down because its host failed to reconnect within the
+     * grace window (see RoomCleanupTask.closeIfHostGraceExpired) — the
+     * host leaving alone no longer closes the room immediately, only a
+     * sustained absence does. Idempotent: a room that already finished
+     * normally, or was already closed, is left untouched so a late/
+     * duplicate call can never downgrade a completed game's final results
+     * back into a "host left" screen.
      */
     public void close(Instant now) {
         if (status == RoomStatus.FINISHED || status == RoomStatus.CLOSED) {
@@ -335,6 +338,20 @@ public class Room {
 
     public int connectedHumanPlayerCount() {
         return (int) players.values().stream().filter(Player::isConnected).count();
+    }
+
+    /**
+     * Whether the host has been disconnected for longer than the given
+     * grace window — used by the cleanup sweep to decide when a host who
+     * hasn't come back finally forfeits the room, rather than closing it
+     * the instant their connection drops (see
+     * GameApplicationService.handleDisconnect, RoomCleanupTask). A host
+     * who is still connected, or who reconnected before the window
+     * elapsed, never trips this.
+     */
+    public boolean isHostReconnectWindowExpired(Instant now, Duration reconnectWindow) {
+        Player host = players.get(hostPlayerId);
+        return host != null && host.isReconnectWindowExpired(now, reconnectWindow);
     }
 
     private void requireInProgress() {

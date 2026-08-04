@@ -77,6 +77,49 @@ class RoomTest {
     }
 
     @Test
+    void hostReconnectWindowIsNotExpiredWhileTheHostIsStillConnected() {
+        Room room = newRoomWithHostAndTwoGuests();
+
+        assertThat(room.isHostReconnectWindowExpired(Instant.now(), Duration.ofSeconds(120))).isFalse();
+    }
+
+    @Test
+    void hostReconnectWindowExpiresOnlyAfterTheGracePeriodElapses() {
+        Room room = newRoomWithHostAndTwoGuests();
+        Instant disconnectedAt = Instant.now();
+        room.markDisconnected("host", disconnectedAt);
+
+        assertThat(room.isHostReconnectWindowExpired(disconnectedAt.plusSeconds(60), Duration.ofSeconds(120)))
+                .isFalse();
+        assertThat(room.isHostReconnectWindowExpired(disconnectedAt.plusSeconds(121), Duration.ofSeconds(120)))
+                .isTrue();
+    }
+
+    @Test
+    void hostReconnectingClearsTheHostReconnectWindowClock() {
+        Room room = newRoomWithHostAndTwoGuests();
+        room.markDisconnected("host", Instant.now().minusSeconds(400));
+        room.markReconnected("host", Instant.now());
+
+        assertThat(room.isHostReconnectWindowExpired(Instant.now(), Duration.ofSeconds(120))).isFalse();
+    }
+
+    @Test
+    void closeIsIdempotentOnceTheRoomHasFinishedNormally() {
+        Room room = newRoomWithHostAndTwoGuests();
+        room.start(DEFAULT_PHASE_WORD_SETS, Instant.now());
+        Instant finishedAt = Instant.now();
+        // Drive straight to FINISHED via the no-infiltrator path rather than
+        // pulling in ScoringPolicy/Round machinery this test doesn't
+        // otherwise need.
+        room.finishCooperatively(finishedAt);
+
+        room.close(finishedAt.plusSeconds(10));
+
+        assertThat(room.status()).isEqualTo(RoomStatus.FINISHED);
+    }
+
+    @Test
     void aSoloPlayerCanStartAPracticeGameAlone() {
         Room room = Room.create(
                 "CODE2", RoomSettings.defaults(GameLanguage.SPANISH), Player.host("host", "t0", "Host", "seed-host"), Instant.now());

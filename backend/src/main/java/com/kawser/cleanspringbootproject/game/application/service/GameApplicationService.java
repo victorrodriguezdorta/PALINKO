@@ -185,39 +185,26 @@ public class GameApplicationService implements
 
     @Override
     public void handleDisconnect(DisconnectCommand command) {
+        // The host disconnecting no longer tears the room down immediately —
+        // a momentary network blip shouldn't evict every other player. The
+        // host is marked disconnected exactly like any other player, and the
+        // room is only closed if they fail to reconnect within the cleanup
+        // sweep's host grace window (see RoomCleanupTask).
         Room room = roomRepository.mutate(command.roomCode(), r -> {
-            if (r.isHost(command.playerId())) {
-                // The host leaving ends the game for everyone rather than
-                // just marking one more player disconnected: there is no
-                // one left who could start the game or otherwise keep it
-                // moving.
-                r.close(Instant.now());
+            r.markDisconnected(command.playerId(), Instant.now());
+            // If it was this player's turn, don't make everyone wait out
+            // the full word-time timeout for someone who just left —
+            // cancel it and immediately re-derive whose turn it is (or
+            // end the chain), the same way the timeout itself would.
+            if (r.status() == RoomStatus.IN_PROGRESS && r.hasRound()
+                    && r.round().phase() == RoundPhase.WORD_CHAIN
+                    && r.round().currentTurnPlayerId().equals(command.playerId())) {
                 phaseScheduler.cancel(r.code());
-            } else {
-                r.markDisconnected(command.playerId(), Instant.now());
-                // If it was this player's turn, don't make everyone wait out
-                // the full word-time timeout for someone who just left —
-                // cancel it and immediately re-derive whose turn it is (or
-                // end the chain), the same way the timeout itself would.
-                if (r.status() == RoomStatus.IN_PROGRESS && r.hasRound()
-                        && r.round().phase() == RoundPhase.WORD_CHAIN
-                        && r.round().currentTurnPlayerId().equals(command.playerId())) {
-                    phaseScheduler.cancel(r.code());
-                    endWordChainOrScheduleNextTurn(r);
-                }
+                endWordChainOrScheduleNextTurn(r);
             }
             return r;
         });
         roomNotifier.notifyRoomUpdated(room);
-        if (room.isHost(command.playerId())) {
-            // Deleted only after the CLOSED snapshot above has already been
-            // built from this in-memory Room and pushed to whoever is still
-            // connected — removing it from the repository here doesn't
-            // affect that already-sent payload, it just stops the room from
-            // being findable (by reconnect, join, or the cleanup sweep)
-            // ever again, instead of lingering until the sweep's TTL.
-            roomRepository.deleteByCode(room.code());
-        }
     }
 
     @Override

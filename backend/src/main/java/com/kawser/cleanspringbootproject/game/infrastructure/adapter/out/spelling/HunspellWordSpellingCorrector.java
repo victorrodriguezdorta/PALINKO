@@ -20,9 +20,8 @@ import org.springframework.stereotype.Component;
  * a few MB, not hundreds.
  *
  * <p>One {@link Hunspell} instance per {@link GameLanguage} is created
- * lazily on first use and kept for the lifetime of the JVM (mirrors {@code
- * SentenceEmbeddingModel}'s load-once approach) — construction parses the
- * whole dictionary, so it isn't cheap enough to redo per word.
+ * lazily on first use and kept for the lifetime of the JVM — construction
+ * parses the whole dictionary, so it isn't cheap enough to redo per word.
  *
  * <p>If the submitted word is already correctly spelled, or Hunspell has no
  * suggestion for it, it's returned unchanged: this only ever fixes clear
