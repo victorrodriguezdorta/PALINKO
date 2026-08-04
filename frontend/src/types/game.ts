@@ -62,6 +62,10 @@ export interface ChainView {
   canRewind: boolean
 }
 
+export interface RevealedChainView extends ChainView {
+  reveal: RevealView
+}
+
 export interface RoomSettingsView {
   wordTimeSeconds: number
   voteTimeSeconds: number

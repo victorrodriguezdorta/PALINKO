@@ -231,7 +231,7 @@
 
           <GameResultsCard
             class="mb-4"
-            :chain="chain as ChainView & { reveal: NonNullable<ChainView['reveal']> }"
+            :chain="chain as RevealedChainView"
             :sorted-by-score="sortedByScore"
             :average-accuracy-percent="averageAccuracyPercent"
           />
@@ -286,7 +286,7 @@ import GameResultsCard from '@/components/GameResultsCard.vue'
 import { loadOrCreateAvatarSeed, persistAvatarSeed, randomAvatarSeed } from '@/utils/avatar'
 import { THEME_COLORS } from '@/assets/theme'
 import { useSound } from '@/composables/useSound'
-import type { ApiError, AttemptView, ChainView, GameLanguage } from '@/types/game'
+import type { ApiError, AttemptView, GameLanguage, RevealedChainView } from '@/types/game'
 
 // Mirrors the backend's own Room.MAXIMUM_PLAYERS — manual mirror, same
 // convention already used for the GameLanguage enum.
