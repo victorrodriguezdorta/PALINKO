@@ -6,6 +6,7 @@
     :style="cssVars"
     :disabled="disabled || loading"
     @click="onClick"
+    @mouseenter="onHover"
   >
     <span class="cartoon-btn__label">
       <slot />
@@ -59,6 +60,10 @@ const cssVars = computed(() => ({
 const { play } = useSound()
 function onClick() {
   play('buttonClick')
+}
+function onHover() {
+  if (props.disabled || props.loading) return
+  play('buttonHover')
 }
 </script>
 

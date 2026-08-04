@@ -28,6 +28,7 @@ import pluck001 from './sounds/Audio/pluck_001.ogg'
 import pluck002 from './sounds/Audio/pluck_002.ogg'
 import question002 from './sounds/Audio/question_002.ogg'
 import scratch003 from './sounds/Audio/scratch_003.ogg'
+import select002 from './sounds/Audio/select_002.ogg'
 import select004 from './sounds/Audio/select_004.ogg'
 import switch003 from './sounds/Audio/switch_003.ogg'
 import tick001 from './sounds/Audio/tick_001.ogg'
@@ -45,6 +46,7 @@ export const SOUND_EFFECTS = {
   cardClose: back001,
   navigateBack: back001,
   menuSelect: select004,
+  buttonHover: select002,
 
   // Lobby / room lifecycle
   roomEnter: maximize006,

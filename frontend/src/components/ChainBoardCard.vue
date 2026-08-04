@@ -16,6 +16,7 @@
             <div class="chain-board__word-pill-body">
               <p class="chain-board__word-text">{{ flash.text }}</p>
               <p class="chain-board__word-meta">{{ t('room.chain.rejected') }}</p>
+              <p v-if="flash.justification" class="chain-board__justification">{{ flash.justification }}</p>
             </div>
           </div>
 
@@ -358,11 +359,15 @@ watch(
 
 defineExpose({ submitPending })
 
-// Rejected attempts flash for ~1s then disappear — never persisted in the
+// Rejected attempts flash then disappear — never persisted in the
 // permanent column above. Tracked by attempt id so the same rejection
-// never gets re-queued if the snapshot re-renders before it clears.
-const rejectedFlashes = ref<{ id: string; text: string; authorPlayerId: string }[]>([])
+// never gets re-queued if the snapshot re-renders before it clears. Plain
+// rejections flash briefly, but ones carrying the AI's justification stay
+// up long enough to actually read the sentence.
+const rejectedFlashes = ref<{ id: string; text: string; authorPlayerId: string; justification: string | null }[]>([])
 const seenRejectedIds = new Set<string>()
+const REJECTED_FLASH_MS = 1000
+const REJECTED_FLASH_WITH_JUSTIFICATION_MS = 4000
 
 watch(
   () => props.attempts,
@@ -370,10 +375,16 @@ watch(
     for (const attempt of attempts) {
       if (attempt.outcome !== 'REJECTED' || seenRejectedIds.has(attempt.id)) continue
       seenRejectedIds.add(attempt.id)
-      rejectedFlashes.value = [...rejectedFlashes.value, { id: attempt.id, text: attempt.text, authorPlayerId: attempt.authorPlayerId }]
-      setTimeout(() => {
-        rejectedFlashes.value = rejectedFlashes.value.filter((f) => f.id !== attempt.id)
-      }, 1000)
+      rejectedFlashes.value = [
+        ...rejectedFlashes.value,
+        { id: attempt.id, text: attempt.text, authorPlayerId: attempt.authorPlayerId, justification: attempt.justification },
+      ]
+      setTimeout(
+        () => {
+          rejectedFlashes.value = rejectedFlashes.value.filter((f) => f.id !== attempt.id)
+        },
+        attempt.justification ? REJECTED_FLASH_WITH_JUSTIFICATION_MS : REJECTED_FLASH_MS,
+      )
     }
   },
   { immediate: true, deep: true },
