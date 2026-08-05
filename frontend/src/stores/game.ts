@@ -6,6 +6,11 @@ import {
   joinRoom as joinRoomRequest,
 } from '@/services/roomService'
 import { gameSocket } from '@/services/gameSocket'
+import {
+  trackDailyRoomCreated,
+  trackGroupRoomCreated,
+  trackGroupRoomPlayerJoined,
+} from '@/services/analyticsService'
 import { i18n } from '@/i18n'
 import { localeForGameLanguage } from '@/i18n/languages'
 import { useLocaleStore } from '@/stores/locale'
@@ -120,6 +125,8 @@ export const useGameStore = defineStore('game', () => {
     reconnectToken.value = result.reconnectToken
     snapshot.value = result.snapshot
     persistIdentity()
+    trackGroupRoomCreated()
+    trackGroupRoomPlayerJoined(result.snapshot.players.length)
   }
 
   // Today's daily challenge: a solo, anonymous room that's already
@@ -133,6 +140,7 @@ export const useGameStore = defineStore('game', () => {
     reconnectToken.value = result.reconnectToken
     snapshot.value = result.snapshot
     persistIdentity()
+    trackDailyRoomCreated()
   }
 
   async function joinRoom(code: string, playerName: string, avatarSeed: string) {
@@ -142,6 +150,7 @@ export const useGameStore = defineStore('game', () => {
     reconnectToken.value = result.reconnectToken
     snapshot.value = result.snapshot
     persistIdentity()
+    trackGroupRoomPlayerJoined(result.snapshot.players.length)
   }
 
   function start() {

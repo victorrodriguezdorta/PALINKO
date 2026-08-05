@@ -2,64 +2,110 @@
   "food": [
     "bolígrafo", "fresa", "pizza", "pan", "queso", "leche", "huevo", "carne", "pescado", "arroz",
     "pasta", "sopa", "ensalada", "azúcar", "sal", "aceite", "vinagre", "café", "té", "agua",
-    "vino", "cerveza", "jugo", "fruta", "manzana", "plátano", "naranja", "uva", "limón", "sandía", "melón"
+    "vino", "cerveza", "jugo", "fruta", "manzana", "plátano", "naranja", "uva", "limón", "sandía", "melón",
+    "melocotón", "pera", "cereza", "piña", "mango", "aguacate", "patata", "tomate", "cebolla", "ajo",
+    "zanahoria", "pepino", "pimiento", "champiñón", "maíz", "calabaza", "col", "espinaca", "brócoli", "aceituna",
+    "miel", "mermelada", "mantequilla", "yogur", "nata", "harina", "masa", "tarta", "galleta", "chocolate",
+    "caramelo", "helado", "tortita", "gofre", "sándwich", "hamburguesa", "perrito caliente", "taco", "sushi", "fideo",
+    "salchicha", "beicon", "jamón", "gamba", "langosta", "cangrejo", "ostra", "nuez", "almendra", "nuez de nogal",
+    "cacahuete", "pasa", "cereal", "avena", "bizcocho", "pretzel", "palomitas", "sirope", "mostaza", "ketchup"
   ],
   "nature": [
     "planta", "árbol", "montaña", "río", "mar", "playa", "sol", "luna", "estrella", "nube",
     "lluvia", "nieve", "viento", "fuego", "piedra", "arena", "bosque", "flor", "hoja", "raíz",
     "semilla", "planeta", "cometa", "trueno", "relámpago", "arcoíris", "niebla", "hielo", "roca",
-    "cascada", "lago", "laguna", "acantilado", "valle", "desierto", "selva", "volcán", "glaciar", "isla", "cueva"
+    "cascada", "lago", "laguna", "acantilado", "valle", "desierto", "selva", "volcán", "glaciar", "isla", "cueva",
+    "océano", "colina", "prado", "pantano", "cañón", "arrecife", "orilla", "arroyo", "pradera", "tundra",
+    "tormenta", "huracán", "tornado", "terremoto", "avalancha", "eclipse", "galaxia", "asteroide", "meteorito", "nebulosa",
+    "rama", "tronco", "corteza", "pétalo", "tallo", "musgo", "helecho", "cactus", "enredadera", "arbusto",
+    "matorral", "hierba", "maleza", "barro", "arcilla", "polvo", "ceniza", "humo", "vapor", "rocío",
+    "escarcha", "granizo", "brisa", "ráfaga", "marea", "ola", "corriente", "manantial", "géiser", "duna"
   ],
   "animals": [
     "gato", "perro", "caballo", "vaca", "oveja", "cerdo", "gallina", "pato", "conejo", "ardilla",
     "murciélago", "topo", "león", "tigre", "oso", "lobo", "zorro", "ciervo", "elefante", "jirafa",
     "mono", "cebra", "águila", "búho", "loro", "paloma", "cuervo", "pingüino", "delfín",
     "ballena", "tiburón", "pulpo", "abeja", "hormiga", "araña", "mariposa", "mosquito", "escarabajo",
-    "serpiente", "lagarto", "rana", "tortuga"
+    "serpiente", "lagarto", "rana", "tortuga",
+    "cabra", "burro", "mula", "camello", "llama", "canguro", "koala", "panda", "hipopótamo", "rinoceronte",
+    "leopardo", "guepardo", "jaguar", "hiena", "mapache", "nutria", "castor", "erizo", "mofeta", "tejón",
+    "ganso", "cisne", "pavo real", "halcón", "gavilán", "gorrión", "pájaro carpintero", "flamenco", "cigüeña", "gaviota",
+    "foca", "morsa", "cangrejo", "langosta", "medusa", "estrella de mar", "almeja", "caracol", "gusano", "escorpión",
+    "grillo", "saltamontes", "polilla", "mariquita", "avispa", "termita", "cucaracha", "camaleón", "iguana", "cocodrilo"
   ],
   "home": [
     "libro", "mesa", "silla", "ventana", "puerta", "cama", "sofá", "armario", "espejo", "lámpara",
     "alfombra", "cortina", "reloj", "cuchara", "tenedor", "cuchillo", "plato", "vaso", "taza", "olla",
-    "sartén", "horno", "nevera", "vela", "linterna", "escoba", "cubo"
+    "sartén", "horno", "nevera", "vela", "linterna", "escoba", "cubo",
+    "almohada", "manta", "sábana", "colchón", "estante", "cajón", "gabinete", "ropero", "cojín", "alfombrilla",
+    "jarrón", "marco", "cuadro", "póster", "reloj de pared", "ventilador", "calefactor", "termostato", "interruptor", "enchufe eléctrico",
+    "fregadero", "inodoro", "grifo", "fregona", "esponja", "detergente", "plancha", "percha", "cesta", "papelera",
+    "servilleta", "mantel", "bandeja", "tarro", "botella", "cuenco", "tetera", "tostadora", "batidora", "microondas",
+    "lavavajillas", "lavadora", "secadora", "aspiradora", "escalera de mano", "taburete", "banco", "gancho", "estantería", "baúl"
   ],
   "electronics": [
     "teléfono", "televisor", "ordenador", "ratón", "teclado", "pantalla", "cámara", "radio",
-    "batería", "cable", "enchufe", "bombilla", "micrófono", "altavoz"
+    "batería", "cable", "enchufe", "bombilla", "micrófono", "altavoz",
+    "portátil", "tableta", "impresora", "router", "módem", "cargador", "auriculares", "auriculares inalámbricos", "mando a distancia", "consola",
+    "joystick", "dron", "proyector", "escáner", "monitor", "webcam", "adaptador", "antena", "circuito", "chip",
+    "procesador", "tarjeta de memoria", "disco duro", "memoria USB", "reloj inteligente", "calculadora", "despertador", "salpicadero", "sensor", "transformador"
   ],
   "clothing": [
     "camisa", "pantalón", "vestido", "falda", "zapato", "bota", "sombrero", "guante", "bufanda", "cinturón",
-    "abrigo", "chaqueta", "calcetín", "pijama", "traje", "corbata", "mochila", "bolso", "maleta", "paraguas"
+    "abrigo", "chaqueta", "calcetín", "pijama", "traje", "corbata", "mochila", "bolso", "maleta", "paraguas",
+    "suéter", "sudadera", "chaleco", "pantalón corto", "vaqueros", "gorra", "gorro", "sandalia", "zapatilla de casa", "zapatilla deportiva",
+    "blusa", "cárdigan", "impermeable", "traje de baño", "biquini", "delantal", "uniforme", "velo", "pulsera", "collar",
+    "anillo", "pendiente", "reloj de pulsera", "broche", "botón", "cremallera", "bolsillo", "cuello de camisa", "manga", "dobladillo"
   ],
   "transport": [
     "coche", "bicicleta", "moto", "autobús", "tren", "avión", "barco", "camión", "taxi",
     "metro", "carretera", "puente", "túnel", "semáforo", "estación", "aeropuerto", "puerto",
-    "garaje", "rueda", "motor", "ancla", "cohete", "satélite"
+    "garaje", "rueda", "motor", "ancla", "cohete", "satélite",
+    "bote", "canoa", "kayak", "ferry", "yate", "submarino", "helicóptero", "planeador", "patinete", "monopatín",
+    "tranvía", "remolque", "furgoneta", "ambulancia", "camión de bomberos", "tractor", "grúa", "carretilla elevadora", "trineo", "carruaje",
+    "autopista", "acera", "paso de peatones", "rotonda", "aparcamiento", "peaje", "pista de aterrizaje", "muelle", "embarcadero", "faro"
   ],
   "buildings": [
     "casa", "edificio", "escuela", "hospital", "iglesia", "castillo", "torre", "muro", "tejado",
     "jardín", "ciudad", "pueblo", "calle", "plaza", "parque", "museo", "biblioteca", "mercado",
-    "tienda", "fábrica", "granja", "establo", "corral"
+    "tienda", "fábrica", "granja", "establo", "corral",
+    "apartamento", "casita", "cabaña", "mansión", "palacio", "templo", "mezquita", "sinagoga", "catedral", "monasterio",
+    "rascacielos", "almacén", "panadería", "farmacia", "banco edificio", "juzgado", "prisión", "estadio deportivo", "gimnasio", "teatro",
+    "cine", "hotel", "restaurante", "cafetería", "bar", "oficina", "embajada", "casa del farero", "molino de viento", "invernadero"
   ],
   "body": [
     "cabeza", "cara", "ojo", "nariz", "boca", "oreja", "diente", "lengua", "cuello", "hombro",
-    "brazo", "mano", "dedo", "pierna", "pie", "rodilla", "espalda", "pecho", "corazón", "estómago"
+    "brazo", "mano", "dedo", "pierna", "pie", "rodilla", "espalda", "pecho", "corazón", "estómago",
+    "cerebro", "cráneo", "columna vertebral", "costilla", "pulmón", "hígado", "riñón", "músculo", "piel", "vena",
+    "arteria", "nervio", "ceja", "pestaña", "mejilla", "barbilla", "mandíbula", "labio", "codo", "muñeca",
+    "tobillo", "cadera", "muslo", "pantorrilla", "talón", "dedo del pie", "uña", "cabello", "garganta", "bazo"
   ],
   "professions": [
     "médico", "profesor", "bombero", "policía", "cocinero", "camarero", "abogado",
     "ingeniero", "piloto", "granjero", "pintor", "músico", "actor", "cantante", "escritor",
-    "periodista", "electricista", "carpintero", "panadero", "jardinero"
+    "periodista", "electricista", "carpintero", "panadero", "jardinero",
+    "enfermero", "dentista", "cirujano", "farmacéutico", "veterinario", "arquitecto", "fontanero", "mecánico", "sastre", "carnicero",
+    "pescador", "marinero", "soldado", "juez", "banquero", "contable", "científico", "catedrático", "bibliotecario", "fotógrafo",
+    "bailarín", "escultor", "traductor", "programador", "diseñador", "astronauta", "detective", "guardia", "cajero", "barbero"
   ],
   "music": [
-    "guitarra", "piano", "violín", "tambor", "flauta", "trompeta", "arpa", "acordeón"
+    "guitarra", "piano", "violín", "tambor", "flauta", "trompeta", "arpa", "acordeón",
+    "saxofón", "violonchelo", "clarinete", "trombón", "banjo", "ukelele", "armónica", "pandereta",
+    "xilófono", "gaita", "órgano", "platillos", "pie de micrófono", "partitura", "melodía", "ritmo", "acorde", "orquesta"
   ],
   "sports": [
-    "pelota", "balón", "raqueta", "patín", "casco", "red", "portería", "cancha", "estadio", "medalla"
+    "pelota", "balón", "raqueta", "patín", "casco", "red", "portería", "cancha", "estadio", "medalla",
+    "trofeo", "camiseta deportiva", "silbato", "árbitro", "cronómetro", "cinta de correr", "mancuerna", "barra de pesas", "colchoneta", "aro",
+    "bate", "guante de béisbol", "arco", "flecha", "tabla de surf", "tabla de snowboard", "esquí", "remo", "jabalina", "disco atlético"
   ],
   "objects": [
     "moneda", "billete", "banco", "tarjeta", "cartera", "regalo", "caja", "sobre", "sello",
     "carta", "lápiz", "goma", "tijeras", "papel", "cuaderno", "mapa", "bandera", "llave",
     "candado", "escalera", "martillo", "clavo", "tornillo", "sierra", "hacha", "pala", "manguera",
     "jabón", "toalla", "cepillo", "peine", "champú", "perfume", "bañera", "ducha", "grifo",
-    "brújula", "calendario", "termómetro", "imán", "engranaje", "telescopio"
+    "brújula", "calendario", "termómetro", "imán", "engranaje", "telescopio",
+    "regla", "pegamento", "cinta adhesiva", "rotulador", "lápiz de cera", "carpeta", "carpeta de anillas", "grapadora", "tiza", "pizarra blanca",
+    "llave inglesa", "alicates", "taladro", "destornillador", "cincel", "lima", "abrazadera", "perno", "cable eléctrico", "cuerda",
+    "cadena", "bisagra", "cerradura", "campana", "silbato objeto", "candelabro", "farol", "antorcha", "barril", "cajón de madera"
   ]
 }

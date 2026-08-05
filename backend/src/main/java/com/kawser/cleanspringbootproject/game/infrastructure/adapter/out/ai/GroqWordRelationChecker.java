@@ -16,11 +16,11 @@ import org.springframework.stereotype.Component;
  * score) because the LLM can actually reason about the pair rather than
  * just compare vector geometry.
  *
- * <p>Uses Groq's {@code llama-3.1-8b-instant} chat model with a terse
- * prompt and a small output budget, since round-trip latency directly
- * delays every word submission in a live game. This 8B model trades some
- * reasoning quality for materially lower latency than the 70B model,
- * which matters more here given how often this call is made per game.
+ * <p>Uses Groq's {@code llama-3.3-70b-versatile} chat model with a terse
+ * prompt and a small output budget. The 70B model reasons about word
+ * relatedness noticeably better than the 8B instant model, at some cost
+ * to latency; that trade favors correctness here since a live game turn
+ * on this call.
  * The prompt asks for strict JSON so the response can be parsed without
  * a second round-trip; on any failure (missing API key, network error,
  * non-200 response, malformed JSON) this adapter throws
@@ -40,7 +40,7 @@ public class GroqWordRelationChecker extends OpenAiCompatibleWordRelationChecker
 
     private static final Logger log = LoggerFactory.getLogger(GroqWordRelationChecker.class);
     private static final URI GROQ_ENDPOINT = URI.create("https://api.groq.com/openai/v1/chat/completions");
-    private static final String MODEL = "llama-3.1-8b-instant";
+    private static final String MODEL = "llama-3.3-70b-versatile";
 
     public GroqWordRelationChecker(@Value("${groq.api-key:}") String apiKey) {
         super(GROQ_ENDPOINT, MODEL, apiKey);

@@ -21,18 +21,94 @@
           </div>
         </template>
       </div>
+
+      <div class="how-to-play__ai">
+        <h3 class="how-to-play__ai-title">{{ t('home.aiValidation.heading') }}</h3>
+        <p class="how-to-play__ai-hint">{{ t('home.aiValidation.hint') }}</p>
+
+        <div class="how-to-play__ai-stage">
+          <TransitionGroup name="how-to-play-ai-fade">
+            <div class="how-to-play__ai-row" :key="pair.left + pair.right">
+              <span class="how-to-play__ai-col how-to-play__ai-col--left">
+                <span class="how-to-play__ai-word">{{ pair.left }}</span>
+              </span>
+
+              <span class="how-to-play__ai-col how-to-play__ai-col--center">
+                <span class="how-to-play__ai-brain" aria-hidden="true">
+                  <img class="how-to-play__ai-brain-icon" :src="aiIcon" alt="" />
+                </span>
+                <span
+                  class="how-to-play__ai-badge"
+                  :class="pair.related ? 'how-to-play__ai-badge--yes' : 'how-to-play__ai-badge--no'"
+                >
+                  <Check v-if="pair.related" :size="16" />
+                  <X v-else :size="16" />
+                  {{
+                    pair.related
+                      ? t('home.aiValidation.correctLabel')
+                      : t('home.aiValidation.incorrectLabel')
+                  }}
+                </span>
+              </span>
+
+              <span class="how-to-play__ai-col how-to-play__ai-col--right">
+                <span class="how-to-play__ai-word">{{ pair.right }}</span>
+              </span>
+            </div>
+          </TransitionGroup>
+        </div>
+      </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowDown, ArrowRight } from 'lucide-vue-next'
+import { ArrowDown, ArrowRight, Check, X } from 'lucide-vue-next'
 import { THEME_COLORS } from '@/assets/theme'
+import aiIcon from '@/assets/images/ai.svg'
+
+interface WordPair {
+  left: string
+  right: string
+  related: boolean
+}
 
 const { t, tm } = useI18n()
 
 const steps = tm('home.howToPlay.steps') as { emoji: string; word: string }[]
+
+const rawPairs = computed(() => tm('home.aiValidation.pairs') as WordPair[])
+
+// Alternate related/unrelated pairs regardless of their order in the locale file,
+// so the demo always shows one, then the other, then one, etc.
+const pairs = computed(() => {
+  const related = rawPairs.value.filter((p) => p.related)
+  const unrelated = rawPairs.value.filter((p) => !p.related)
+  const alternated: WordPair[] = []
+  const max = Math.max(related.length, unrelated.length)
+  for (let i = 0; i < max; i += 1) {
+    if (i < related.length) alternated.push(related[i])
+    if (i < unrelated.length) alternated.push(unrelated[i])
+  }
+  return alternated
+})
+
+const pairIndex = ref(0)
+const pair = computed(() => pairs.value[pairIndex.value % pairs.value.length])
+
+let pairTimer: ReturnType<typeof setInterval> | undefined
+
+onMounted(() => {
+  pairTimer = setInterval(() => {
+    pairIndex.value += 1
+  }, 2600)
+})
+
+onUnmounted(() => {
+  if (pairTimer) clearInterval(pairTimer)
+})
 
 const waveStyle = {
   '--how-to-play-wave-bottom': `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 20' preserveAspectRatio='none'%3E%3Cpath d='M0 10 C 25 20, 75 0, 100 10 C 125 20, 175 0, 200 10 L200 0 L0 0 Z' fill='%23${THEME_COLORS.secondary700.slice(1)}'/%3E%3C/svg%3E")`,
@@ -233,6 +309,192 @@ const waveStyle = {
   .how-to-play__arrow {
     animation: none;
     opacity: 1;
+  }
+}
+
+.how-to-play__ai {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 2px dashed color-mix(in srgb, var(--color-white) 30%, transparent);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.how-to-play__ai-title {
+  font-family: 'Fredoka', 'Outfit', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--color-white);
+  text-shadow: 2px 2px 0 color-mix(in srgb, var(--color-secondary-900, #0b1f4d) 55%, transparent);
+}
+
+.how-to-play__ai-hint {
+  margin-top: 0.4rem;
+  margin-bottom: 1.75rem;
+  max-width: 34rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.85rem;
+  color: color-mix(in srgb, var(--color-white) 80%, transparent);
+}
+
+.how-to-play__ai-stage {
+  position: relative;
+  width: 100%;
+  min-height: 16rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .how-to-play__ai-stage {
+    min-height: 9.5rem;
+  }
+}
+
+.how-to-play__ai-row {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  justify-items: center;
+  column-gap: 1rem;
+  row-gap: 0.5rem;
+}
+
+.how-to-play__ai-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.how-to-play__ai-col--left {
+  justify-self: end;
+}
+
+.how-to-play__ai-col--right {
+  justify-self: start;
+}
+
+.how-to-play__ai-col--center {
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.how-to-play__ai-word {
+  font-family: 'Fredoka', 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--color-gray-800);
+  background: var(--color-white);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  border: 3px solid var(--color-accent-500);
+  padding: 0.6rem 1.35rem;
+  min-width: 7.5rem;
+  text-align: center;
+  box-shadow: 0 5px 0 color-mix(in srgb, var(--color-accent-500) 55%, var(--color-black) 20%);
+}
+
+.how-to-play__ai-brain {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.how-to-play__ai-brain-icon {
+  width: 5rem;
+  height: 5rem;
+  filter: drop-shadow(0 6px 10px color-mix(in srgb, var(--color-black) 35%, transparent));
+}
+
+.how-to-play__ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.how-to-play__ai-badge--yes {
+  background: color-mix(in srgb, var(--color-success-500, #12b76a) 20%, var(--color-white));
+  color: var(--color-success-500, #12b76a);
+  border: 2px solid var(--color-success-500, #12b76a);
+}
+
+.how-to-play__ai-badge--no {
+  background: color-mix(in srgb, var(--color-error-500, #f04438) 20%, var(--color-white));
+  color: var(--color-error-500, #f04438);
+  border: 2px solid var(--color-error-500, #f04438);
+}
+
+.how-to-play-ai-fade-enter-active,
+.how-to-play-ai-fade-leave-active {
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+
+.how-to-play-ai-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+}
+
+.how-to-play-ai-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.96);
+}
+
+@media (max-width: 639px) {
+  .how-to-play__ai-row {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'left'
+      'center'
+      'right';
+    row-gap: 0.75rem;
+  }
+
+  .how-to-play__ai-col--left {
+    grid-area: left;
+    justify-self: center;
+  }
+
+  .how-to-play__ai-col--center {
+    grid-area: center;
+    justify-self: center;
+  }
+
+  .how-to-play__ai-col--right {
+    grid-area: right;
+    justify-self: center;
+  }
+}
+
+@media (min-width: 640px) {
+  .how-to-play__ai-word {
+    font-size: 1.35rem;
+  }
+
+  .how-to-play__ai-brain-icon {
+    width: 6rem;
+    height: 6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .how-to-play-ai-fade-enter-active,
+  .how-to-play-ai-fade-leave-active {
+    transition: none;
   }
 }
 </style>

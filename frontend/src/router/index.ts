@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { i18n } from '@/i18n'
+import { trackVisit } from '@/services/analyticsService'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,10 +35,17 @@ const router = createRouter({
   ],
 })
 
+let hasTrackedFirstVisit = false
+
 router.beforeEach((to) => {
   const appTitle = i18n.global.t('common.appTitle')
   const pageTitle = to.meta.titleKey ? i18n.global.t(to.meta.titleKey as string) : appTitle
   document.title = `${pageTitle} | ${appTitle}`
+
+  if (!hasTrackedFirstVisit) {
+    hasTrackedFirstVisit = true
+    trackVisit()
+  }
 })
 
 export default router
