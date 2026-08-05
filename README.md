@@ -1,8 +1,9 @@
 <p align="center">
   <img src="frontend/src/assets/images/logo.svg" alt="Palinko logo" width="300" />
 </p>
-# https://palinko.onrender.com/ 
+/ 
 <p align="center">
+  # https://palinko.onrender.com
   <b>Conecta dos palabras. Encuentra el camino más corto. Que la IA sea juez.</b>
   
 </p>
