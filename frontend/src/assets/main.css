@@ -96,3 +96,11 @@ layer(base);
     flex-direction: column;
   }
 }
+
+/* Desktop viewports render visually small at 100% browser zoom, so bump the
+   effective zoom to 135% by default; mobile already looks right untouched. */
+@media (min-width: 768px) {
+  html {
+    zoom: 1.35;
+  }
+}

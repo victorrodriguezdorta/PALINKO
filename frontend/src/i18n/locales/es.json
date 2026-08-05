@@ -21,7 +21,8 @@
       "heading": "Reto diario",
       "hint": "Una cadena al día, igual para todos. Sin límite de tiempo por turno.",
       "countdown": "Próximo reto en {value}",
-      "submit": "Jugar el reto de hoy"
+      "submit": "Jugar el reto de hoy",
+      "loading": "Cargando..."
     },
     "createRoom": {
       "heading": "Crear sala",
@@ -63,7 +64,9 @@
     "createHeading": "Elige tu nombre e icono",
     "joinHeading": "Unirte a la sala {code}",
     "createSubmit": "Crear sala",
-    "joinSubmit": "Entrar"
+    "createSubmitLoading": "Creando sala...",
+    "joinSubmit": "Entrar",
+    "joinSubmitLoading": "Entrando..."
   },
   "room": {
     "pageTitle": "Sala",
@@ -208,7 +211,9 @@
     "CANNOT_KICK_HOST": "No se puede expulsar al host de la sala.",
     "ROOM_NOT_KICKABLE": "Ya no se puede expulsar a jugadores en esta partida.",
     "KICKED": "El host te ha expulsado de la sala.",
-    "NO_REWIND_AVAILABLE": "Ya no puedes usar el rebobinado."
+    "NO_REWIND_AVAILABLE": "Ya no puedes usar el rebobinado.",
+    "WORD_COMPARISON_FAILED": "Error al comparar las palabras. Inténtalo de nuevo.",
+    "WORD_SUBMISSION_RATE_LIMITED": "Estás enviando palabras demasiado rápido. Espera unos segundos."
   },
   "languages": {
     "ENGLISH": "Inglés",

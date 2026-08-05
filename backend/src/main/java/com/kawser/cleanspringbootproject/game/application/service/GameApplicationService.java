@@ -35,9 +35,13 @@ import com.kawser.cleanspringbootproject.game.application.port.out.RoomCodeGener
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomNotifier;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomRepository;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelation;
+import com.kawser.cleanspringbootproject.game.application.port.out.WordRelationCheckException;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelationChecker;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordSpellingCorrector;
+import com.kawser.cleanspringbootproject.game.application.port.out.WordSubmissionRateLimiter;
 import com.kawser.cleanspringbootproject.game.domain.exception.PlayerNotFoundException;
+import com.kawser.cleanspringbootproject.game.domain.exception.WordComparisonFailedException;
+import com.kawser.cleanspringbootproject.game.domain.exception.WordSubmissionRateLimitedException;
 import com.kawser.cleanspringbootproject.game.domain.model.ChainAttempt;
 import com.kawser.cleanspringbootproject.game.domain.model.GameLanguage;
 import com.kawser.cleanspringbootproject.game.domain.model.Player;
@@ -89,6 +93,7 @@ public class GameApplicationService implements
     private final RoomCodeGenerator roomCodeGenerator;
     private final PhaseScheduler phaseScheduler;
     private final ScoringPolicy scoringPolicy;
+    private final WordSubmissionRateLimiter wordSubmissionRateLimiter;
 
     public GameApplicationService(
             RoomRepository roomRepository,
@@ -98,7 +103,8 @@ public class GameApplicationService implements
             ChainWordBank chainWordBank,
             RoomCodeGenerator roomCodeGenerator,
             PhaseScheduler phaseScheduler,
-            ScoringPolicy scoringPolicy) {
+            ScoringPolicy scoringPolicy,
+            WordSubmissionRateLimiter wordSubmissionRateLimiter) {
         this.roomRepository = roomRepository;
         this.roomNotifier = roomNotifier;
         this.wordRelationChecker = wordRelationChecker;
@@ -107,6 +113,7 @@ public class GameApplicationService implements
         this.roomCodeGenerator = roomCodeGenerator;
         this.phaseScheduler = phaseScheduler;
         this.scoringPolicy = scoringPolicy;
+        this.wordSubmissionRateLimiter = wordSubmissionRateLimiter;
     }
 
     @Override
@@ -227,6 +234,13 @@ public class GameApplicationService implements
         if (command.wordText() == null || command.wordText().isBlank()) {
             throw new IllegalArgumentException("wordText must not be blank");
         }
+        // Checked before touching the room lock or spending any AI call:
+        // Round already allows only one submission per turn, but nothing
+        // else stops a player from immediately re-triggering a fresh turn
+        // in a single-player room (see daily challenges).
+        if (!wordSubmissionRateLimiter.tryAcquire(command.playerId())) {
+            throw new WordSubmissionRateLimitedException();
+        }
         Room room = roomRepository.mutate(command.roomCode(), r -> {
             requireValidToken(r, command.playerId(), command.reconnectToken());
             Round round = r.round();
@@ -240,7 +254,12 @@ public class GameApplicationService implements
             String wordText = wordSpellingCorrector.correct(command.wordText(), language);
             String previousWord = round.latestChainWord();
             String targetWord = round.targetWordFor(command.playerId());
-            WordRelation relationToPrevious = wordRelationChecker.relatedness(wordText, previousWord, language);
+            WordRelation relationToPrevious;
+            try {
+                relationToPrevious = wordRelationChecker.relatedness(wordText, previousWord, language);
+            } catch (WordRelationCheckException e) {
+                throw new WordComparisonFailedException();
+            }
             int relatednessToPrevious = relationToPrevious.percentage();
             boolean accepted = relatednessToPrevious >= scoringPolicy.relatednessThreshold();
 
@@ -251,9 +270,13 @@ public class GameApplicationService implements
             boolean reachedInfiltratorTarget = false;
             if (accepted) {
                 boolean matchesOwnTarget = wordText.trim().equalsIgnoreCase(targetWord.trim());
-                relatednessToTarget = matchesOwnTarget
-                        ? 100
-                        : wordRelationChecker.relatedness(wordText, targetWord, language).percentage();
+                try {
+                    relatednessToTarget = matchesOwnTarget
+                            ? 100
+                            : wordRelationChecker.relatedness(wordText, targetWord, language).percentage();
+                } catch (WordRelationCheckException e) {
+                    throw new WordComparisonFailedException();
+                }
                 metTargetBonus = relatednessToTarget >= scoringPolicy.relatednessThreshold();
                 // Whether this word actually completes a mission is a
                 // separate question from "does it match your own target":

@@ -18,8 +18,14 @@
         </span>
       </template>
       <p class="mb-3 text-xs text-gray-500">{{ t('home.daily.hint') }}</p>
-      <CartoonButton block :color="THEME_COLORS.accent500" :disabled="loading" @click="onPlayDaily">
-        {{ t('home.daily.submit') }}
+      <CartoonButton
+        block
+        :color="THEME_COLORS.accent500"
+        :disabled="loading"
+        :loading="loading"
+        @click="onPlayDaily"
+      >
+        {{ loading ? t('home.daily.loading') : t('home.daily.submit') }}
       </CartoonButton>
     </CartoonCard>
 

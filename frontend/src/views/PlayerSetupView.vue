@@ -35,8 +35,17 @@
           :color="mode === 'join' ? THEME_COLORS.success500 : THEME_COLORS.secondary500"
           class="mt-2"
           :disabled="loading"
+          :loading="loading"
         >
-          {{ mode === 'join' ? t('playerSetup.joinSubmit') : t('playerSetup.createSubmit') }}
+          {{
+            loading
+              ? mode === 'join'
+                ? t('playerSetup.joinSubmitLoading')
+                : t('playerSetup.createSubmitLoading')
+              : mode === 'join'
+                ? t('playerSetup.joinSubmit')
+                : t('playerSetup.createSubmit')
+          }}
         </CartoonButton>
       </form>
 

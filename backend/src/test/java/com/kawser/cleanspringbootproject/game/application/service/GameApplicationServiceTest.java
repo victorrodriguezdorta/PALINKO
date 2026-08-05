@@ -22,6 +22,7 @@ import com.kawser.cleanspringbootproject.game.application.port.out.RoomRepositor
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelation;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelationChecker;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordSpellingCorrector;
+import com.kawser.cleanspringbootproject.game.application.port.out.WordSubmissionRateLimiter;
 import com.kawser.cleanspringbootproject.game.domain.exception.NoRewindAvailableException;
 import com.kawser.cleanspringbootproject.game.domain.exception.NotHostException;
 import com.kawser.cleanspringbootproject.game.domain.exception.NotYourTurnException;
@@ -85,9 +86,11 @@ class GameApplicationServiceTest {
         chainWordBank = new FakeChainWordBank();
         RoomCodeGenerator roomCodeGenerator = () -> "ABC123";
 
+        WordSubmissionRateLimiter wordSubmissionRateLimiter = playerId -> true;
+
         service = new GameApplicationService(
                 roomRepository, roomNotifier, wordRelationChecker, wordSpellingCorrector, chainWordBank,
-                roomCodeGenerator, phaseScheduler, new DefaultScoringPolicy());
+                roomCodeGenerator, phaseScheduler, new DefaultScoringPolicy(), wordSubmissionRateLimiter);
 
         CreateRoomResult created = service.createRoom(new CreateRoomCommand("Host", "seed-host", GameLanguage.SPANISH));
         roomCode = created.roomCode();

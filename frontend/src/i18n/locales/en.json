@@ -21,7 +21,8 @@
       "heading": "Daily challenge",
       "hint": "One chain a day, the same for everyone. No time limit per turn.",
       "countdown": "Next challenge in {value}",
-      "submit": "Play today's challenge"
+      "submit": "Play today's challenge",
+      "loading": "Loading..."
     },
     "createRoom": {
       "heading": "Create room",
@@ -63,7 +64,9 @@
     "createHeading": "Choose your name and avatar",
     "joinHeading": "Join room {code}",
     "createSubmit": "Create room",
-    "joinSubmit": "Join"
+    "createSubmitLoading": "Creating room...",
+    "joinSubmit": "Join",
+    "joinSubmitLoading": "Joining..."
   },
   "room": {
     "pageTitle": "Room",
@@ -208,7 +211,9 @@
     "CANNOT_KICK_HOST": "The host can't be removed from the room.",
     "ROOM_NOT_KICKABLE": "Players can no longer be removed from this game.",
     "KICKED": "You were removed from the room by the host.",
-    "NO_REWIND_AVAILABLE": "You can't use rewind anymore."
+    "NO_REWIND_AVAILABLE": "You can't use rewind anymore.",
+    "WORD_COMPARISON_FAILED": "Error comparing words. Please try again.",
+    "WORD_SUBMISSION_RATE_LIMITED": "You're submitting words too fast. Wait a few seconds."
   },
   "languages": {
     "ENGLISH": "English",

@@ -9,6 +9,7 @@
     @mouseenter="onHover"
   >
     <span class="cartoon-btn__label">
+      <span v-if="loading" class="cartoon-btn__spinner" aria-hidden="true"></span>
       <slot />
     </span>
   </button>
@@ -138,5 +139,27 @@ function onHover() {
   display: inline-flex;
   align-items: center;
   gap: 0.4em;
+}
+
+.cartoon-btn__spinner {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  border: 2px solid color-mix(in srgb, var(--cartoon-text) 35%, transparent);
+  border-top-color: var(--cartoon-text);
+  border-radius: 9999px;
+  animation: cartoon-btn-spin 0.7s linear infinite;
+}
+
+@keyframes cartoon-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cartoon-btn__spinner {
+    animation: none;
+  }
 }
 </style>
