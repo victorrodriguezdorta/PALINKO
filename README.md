@@ -1,7 +1,11 @@
 <p align="center">
   <img src="frontend/src/assets/images/logo.svg" alt="Palinko logo" width="300" />
 </p>
-
+<p align="center">
+  <a href="https://palinko.onrender.com/" target="_blank">
+    <img src="https://img.shields.io/badge/🎮%20VISITA%20LA%20WEB-PALINKO-6A5ACD?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Visita la web">
+  </a>
+</p>
 <p align="center">
   <b>Conecta dos palabras. Encuentra el camino más corto. Que la IA sea juez.</b>
 </p>
