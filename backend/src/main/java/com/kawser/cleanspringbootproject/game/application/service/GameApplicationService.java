@@ -39,6 +39,7 @@ import com.kawser.cleanspringbootproject.game.application.port.out.WordRelationC
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelationChecker;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordSpellingCorrector;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordSubmissionRateLimiter;
+import com.kawser.cleanspringbootproject.game.domain.exception.InvalidWordCharactersException;
 import com.kawser.cleanspringbootproject.game.domain.exception.PlayerNotFoundException;
 import com.kawser.cleanspringbootproject.game.domain.exception.WordComparisonFailedException;
 import com.kawser.cleanspringbootproject.game.domain.exception.WordSubmissionRateLimitedException;
@@ -84,6 +85,15 @@ public class GameApplicationService implements
     private static final int DAILY_PHASE_COUNT = 3;
     private static final String DAILY_PLAYER_NAME = "#";
     private static final String DAILY_PLAYER_AVATAR_SEED = "daily-challenge";
+    // Letters only (any script, incl. accented/tilded), with at most one
+    // interior space so legitimate two-word answers (e.g. "buenos dias")
+    // still work — everything else (digits, punctuation, hyphens) is
+    // rejected. Blocks the "uva-coche" trick of hyphen-joining a second
+    // word into one submission before it ever reaches the AI relatedness
+    // judge; the AI prompt itself is responsible for catching the sneakier
+    // "uvacoche"/"uva coche" compounds that still pass this shape check.
+    private static final java.util.regex.Pattern VALID_WORD_PATTERN =
+            java.util.regex.Pattern.compile("^\\p{L}+( \\p{L}+)?$");
 
     private final RoomRepository roomRepository;
     private final RoomNotifier roomNotifier;
@@ -236,6 +246,13 @@ public class GameApplicationService implements
     public void submitWord(SubmitWordCommand command) {
         if (command.wordText() == null || command.wordText().isBlank()) {
             throw new IllegalArgumentException("wordText must not be blank");
+        }
+        // Letters-only check, before touching the room lock or spending any
+        // AI call: rejects symbols/digits/spaces/hyphens outright, which is
+        // both cheaper and more reliable than hoping the AI judge notices a
+        // smuggled second word (see VALID_WORD_PATTERN).
+        if (!VALID_WORD_PATTERN.matcher(command.wordText().trim()).matches()) {
+            throw new InvalidWordCharactersException(command.wordText());
         }
         // Checked before touching the room lock or spending any AI call:
         // Round already allows only one submission per turn, but nothing

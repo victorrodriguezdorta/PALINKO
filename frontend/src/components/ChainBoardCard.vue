@@ -298,9 +298,18 @@ function limitToMaxWords(value: string): string {
   return trailingSpace ? limited + ' ' : limited
 }
 
+// Strips anything that isn't a letter (any script, incl. accented/tilded)
+// or a space as the player types, so symbols/digits/hyphens never make it
+// into the field in the first place — mirrors the backend's
+// VALID_WORD_PATTERN check, which still rejects the final submission
+// server-side regardless of this client-side filtering.
+function stripInvalidCharacters(value: string): string {
+  return value.replace(/[^\p{L} ]/gu, '')
+}
+
 function onInput(event: Event) {
   const input = event.target as HTMLInputElement
-  const limited = limitToMaxWords(input.value)
+  const limited = limitToMaxWords(stripInvalidCharacters(input.value))
   if (limited !== input.value) {
     input.value = limited
   }

@@ -166,11 +166,12 @@ public class Room {
     }
 
     /**
-     * The most infiltrators a room its current size can support: never
-     * more than a third of the players, so a majority is always crew.
+     * The most infiltrators a room its current size can support. Hard-
+     * capped at 0 for now: the game isn't focused on the infiltrator mode
+     * yet, so rooms stay fully cooperative regardless of headcount.
      */
     private int maxInfiltratorCount() {
-        return players.size() / 3;
+        return 0;
     }
 
     /**

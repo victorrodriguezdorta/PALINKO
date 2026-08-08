@@ -251,7 +251,8 @@
     "KICKED": "You were removed from the room by the host.",
     "NO_REWIND_AVAILABLE": "You can't use rewind anymore.",
     "WORD_COMPARISON_FAILED": "Error comparing words. Please try again.",
-    "WORD_SUBMISSION_RATE_LIMITED": "You're submitting words too fast. Wait a few seconds."
+    "WORD_SUBMISSION_RATE_LIMITED": "You're submitting words too fast. Wait a few seconds.",
+    "WORD_INVALID_CHARACTERS": "Words can only contain letters."
   },
   "languages": {
     "ENGLISH": "English",

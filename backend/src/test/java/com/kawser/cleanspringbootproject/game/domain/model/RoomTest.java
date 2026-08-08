@@ -154,7 +154,7 @@ class RoomTest {
     }
 
     @Test
-    void infiltratorCountAutomaticallyBecomesOneThirdOfPlayersAsTheyJoin() {
+    void infiltratorCountStaysZeroAsPlayersJoinSinceInfiltratorModeIsDisabled() {
         Room room = Room.create(
                 "CODE4", RoomSettings.defaults(GameLanguage.SPANISH), Player.host("host", "t0", "Host", "seed-host"), Instant.now());
 
@@ -162,15 +162,14 @@ class RoomTest {
         assertThat(room.settings().infiltratorCount()).isZero();
 
         room.addPlayer(Player.guest("guestB", "t2", "GuestB", "seed-guestB"), Instant.now());
-        // 3 players: floor(3/3) = 1 infiltrator, applied automatically
-        // without the host ever calling updateSettings.
-        assertThat(room.settings().infiltratorCount()).isEqualTo(1);
+        // Infiltrator mode is disabled for now, so even rooms of 3+ players
+        // stay purely cooperative.
+        assertThat(room.settings().infiltratorCount()).isZero();
 
         room.addPlayer(Player.guest("guestC", "t3", "GuestC", "seed-guestC"), Instant.now());
         room.addPlayer(Player.guest("guestD", "t4", "GuestD", "seed-guestD"), Instant.now());
         room.addPlayer(Player.guest("guestE", "t5", "GuestE", "seed-guestE"), Instant.now());
-        // 6 players: floor(6/3) = 2
-        assertThat(room.settings().infiltratorCount()).isEqualTo(2);
+        assertThat(room.settings().infiltratorCount()).isZero();
     }
 
     @Test
@@ -203,12 +202,11 @@ class RoomTest {
     @Test
     void kickingAPlayerReappliesTheAutomaticInfiltratorCount() {
         Room room = newRoomWithHostAndTwoGuests();
-        // 3 players auto-defaulted to floor(3/3) = 1.
-        assertThat(room.settings().infiltratorCount()).isEqualTo(1);
+        // Infiltrator mode is disabled: 3 players still auto-default to 0.
+        assertThat(room.settings().infiltratorCount()).isZero();
 
         room.kickPlayer("guestA", Instant.now());
 
-        // 2 players left: floor(2/3) = 0.
         assertThat(room.settings().infiltratorCount()).isZero();
     }
 

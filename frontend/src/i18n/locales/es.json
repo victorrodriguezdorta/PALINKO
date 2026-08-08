@@ -251,7 +251,8 @@
     "KICKED": "El host te ha expulsado de la sala.",
     "NO_REWIND_AVAILABLE": "Ya no puedes usar el rebobinado.",
     "WORD_COMPARISON_FAILED": "Error al comparar las palabras. Inténtalo de nuevo.",
-    "WORD_SUBMISSION_RATE_LIMITED": "Estás enviando palabras demasiado rápido. Espera unos segundos."
+    "WORD_SUBMISSION_RATE_LIMITED": "Estás enviando palabras demasiado rápido. Espera unos segundos.",
+    "WORD_INVALID_CHARACTERS": "Las palabras solo pueden contener letras."
   },
   "languages": {
     "ENGLISH": "Inglés",
