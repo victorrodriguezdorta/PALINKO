@@ -5,9 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kawser.cleanspringbootproject.game.application.port.out.ChainWordBank;
 import com.kawser.cleanspringbootproject.game.domain.model.GameLanguage;
 import com.kawser.cleanspringbootproject.game.domain.model.WordSet;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +30,6 @@ import java.util.stream.Collectors;
  * disjoint categories is enough to keep chains hard to bridge without
  * needing an actual distance metric.
  */
-@Component
 public class GroupedChainWordBank implements ChainWordBank {
 
     private static final Map<GameLanguage, String> RESOURCE_BY_LANGUAGE = Map.of(
@@ -42,7 +39,6 @@ public class GroupedChainWordBank implements ChainWordBank {
     private final Map<GameLanguage, Map<String, List<String>>> groupsByLanguage;
     private final Random random;
 
-    @Autowired
     public GroupedChainWordBank(ObjectMapper objectMapper) {
         this(RESOURCE_BY_LANGUAGE.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> loadGroups(objectMapper, entry.getValue()))),

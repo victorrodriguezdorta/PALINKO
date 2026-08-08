@@ -90,6 +90,7 @@ public class GameApplicationService implements
     private final WordRelationChecker wordRelationChecker;
     private final WordSpellingCorrector wordSpellingCorrector;
     private final ChainWordBank chainWordBank;
+    private final ChainWordBank dailyChainWordBank;
     private final RoomCodeGenerator roomCodeGenerator;
     private final PhaseScheduler phaseScheduler;
     private final ScoringPolicy scoringPolicy;
@@ -101,6 +102,7 @@ public class GameApplicationService implements
             WordRelationChecker wordRelationChecker,
             WordSpellingCorrector wordSpellingCorrector,
             ChainWordBank chainWordBank,
+            ChainWordBank dailyChainWordBank,
             RoomCodeGenerator roomCodeGenerator,
             PhaseScheduler phaseScheduler,
             ScoringPolicy scoringPolicy,
@@ -110,6 +112,7 @@ public class GameApplicationService implements
         this.wordRelationChecker = wordRelationChecker;
         this.wordSpellingCorrector = wordSpellingCorrector;
         this.chainWordBank = chainWordBank;
+        this.dailyChainWordBank = dailyChainWordBank;
         this.roomCodeGenerator = roomCodeGenerator;
         this.phaseScheduler = phaseScheduler;
         this.scoringPolicy = scoringPolicy;
@@ -152,7 +155,7 @@ public class GameApplicationService implements
 
         long seed = DailySeed.seedFor(DailySeed.today(), command.language());
         List<WordSet> phaseWordSets =
-                chainWordBank.fullChain(command.language(), DAILY_PHASE_COUNT, seed);
+                dailyChainWordBank.fullChain(command.language(), DAILY_PHASE_COUNT, seed);
 
         Instant now = Instant.now();
         Room room = Room.create(code, RoomSettings.daily(command.language(), DAILY_PHASE_COUNT), host, now);

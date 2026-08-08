@@ -90,7 +90,8 @@ class GameApplicationServiceTest {
 
         service = new GameApplicationService(
                 roomRepository, roomNotifier, wordRelationChecker, wordSpellingCorrector, chainWordBank,
-                roomCodeGenerator, phaseScheduler, new DefaultScoringPolicy(), wordSubmissionRateLimiter);
+                chainWordBank, roomCodeGenerator, phaseScheduler, new DefaultScoringPolicy(),
+                wordSubmissionRateLimiter);
 
         CreateRoomResult created = service.createRoom(new CreateRoomCommand("Host", "seed-host", GameLanguage.SPANISH));
         roomCode = created.roomCode();
