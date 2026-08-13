@@ -26,12 +26,28 @@ import org.springframework.stereotype.Component;
  * <p>If the submitted word is already correctly spelled, or Hunspell has no
  * suggestion for it, it's returned unchanged: this only ever fixes clear
  * typos, it never invents a word the player didn't mean.
+ *
+ * <p>Hunspell's top suggestion is only trusted when it is a close edit of
+ * the original word (see {@link #isCloseEnough}). Words that Hunspell's
+ * dictionary simply doesn't contain (e.g. valid but uncommon nouns like
+ * "koala") would otherwise get "corrected" to an unrelated dictionary word
+ * that merely scores well on Hunspell's phonetic/keyboard-distance ranking
+ * (e.g. "toalla") — an edit-distance gate keeps corrections to genuine
+ * typos of an intended word instead.
  */
 @Component
 public class HunspellWordSpellingCorrector implements WordSpellingCorrector {
 
     private static final Logger log = LoggerFactory.getLogger(HunspellWordSpellingCorrector.class);
     private static final String DICTIONARY_RESOURCE_PATH = "dictionaries/";
+
+    /**
+     * Maximum Levenshtein distance, as a fraction of the original word's
+     * length, for a Hunspell suggestion to be trusted. 1 letter can be
+     * wrong/missing/extra in a 4-letter word, but a 5-6 letter word needing
+     * 3+ edits is almost certainly a different word entirely, not a typo.
+     */
+    private static final double MAX_EDIT_DISTANCE_RATIO = 0.34;
 
     private final Map<GameLanguage, Hunspell> instances = new EnumMap<>(GameLanguage.class);
     private final Object loadLock = new Object();
@@ -82,11 +98,64 @@ public class HunspellWordSpellingCorrector implements WordSpellingCorrector {
             if (bestSuggestion.indexOf(' ') >= 0) {
                 return token;
             }
+            if (!isCloseEnough(token, bestSuggestion)) {
+                return token;
+            }
             return bestSuggestion;
         } catch (RuntimeException e) {
             log.warn("Hunspell suggestion lookup failed for '{}' ({}); leaving word uncorrected", token, language, e);
             return token;
         }
+    }
+
+    /**
+     * True when {@code suggestion} is within {@link #MAX_EDIT_DISTANCE_RATIO}
+     * of {@code original}'s length in Levenshtein distance, and at least 1
+     * edit is allowed even for very short words.
+     */
+    private boolean isCloseEnough(String original, String suggestion) {
+        int maxDistance = Math.max(1, (int) Math.floor(original.length() * MAX_EDIT_DISTANCE_RATIO));
+        return levenshteinDistance(original.toLowerCase(), suggestion.toLowerCase(), maxDistance) <= maxDistance;
+    }
+
+    /**
+     * Levenshtein distance capped at {@code maxDistance}: once every entry
+     * in the current row exceeds the cap, the words are already too far
+     * apart, so the row-scan bails out early rather than filling the whole
+     * (potentially large) DP table for a suggestion that will be rejected
+     * anyway.
+     */
+    private int levenshteinDistance(String a, String b, int maxDistance) {
+        int m = a.length();
+        int n = b.length();
+        if (Math.abs(m - n) > maxDistance) {
+            return maxDistance + 1;
+        }
+
+        int[] previousRow = new int[n + 1];
+        int[] currentRow = new int[n + 1];
+        for (int j = 0; j <= n; j++) {
+            previousRow[j] = j;
+        }
+
+        for (int i = 1; i <= m; i++) {
+            currentRow[0] = i;
+            int rowMin = currentRow[0];
+            for (int j = 1; j <= n; j++) {
+                int cost = a.charAt(i - 1) == b.charAt(j - 1) ? 0 : 1;
+                currentRow[j] = Math.min(
+                        Math.min(currentRow[j - 1] + 1, previousRow[j] + 1),
+                        previousRow[j - 1] + cost);
+                rowMin = Math.min(rowMin, currentRow[j]);
+            }
+            if (rowMin > maxDistance) {
+                return maxDistance + 1;
+            }
+            int[] swap = previousRow;
+            previousRow = currentRow;
+            currentRow = swap;
+        }
+        return previousRow[n];
     }
 
     private Hunspell instanceFor(GameLanguage language) {
