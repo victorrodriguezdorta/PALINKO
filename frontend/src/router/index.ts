@@ -32,6 +32,11 @@ const router = createRouter({
       component: () => import('../views/DebugWordRelationView.vue'),
       meta: { titleKey: 'debug.wordRelation.heading' },
     },
+    {
+      path: '/secret',
+      name: 'Secret',
+      component: () => import('../views/secret/SecretRoomView.vue'),
+    },
   ],
 })
 

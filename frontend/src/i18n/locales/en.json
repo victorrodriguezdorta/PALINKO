@@ -34,6 +34,12 @@
       "codeLabel": "Room code",
       "submit": "Join"
     },
+    "hiddenMode": {
+      "badge": "New game mode",
+      "heading": "PALINKO HIDDEN",
+      "hint": "Discover today's secret quality by proposing words and declaring your answer.",
+      "submit": "Try PALINKO HIDDEN"
+    },
     "howToPlay": {
       "heading": "How to play?",
       "hint": "Each player says a word related to the previous one, getting closer to the target word.",

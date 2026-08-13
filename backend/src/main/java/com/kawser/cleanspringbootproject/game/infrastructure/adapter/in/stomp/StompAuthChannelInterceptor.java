@@ -2,6 +2,7 @@ package com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.stomp;
 
 import com.kawser.cleanspringbootproject.game.application.dto.ReconnectCommand;
 import com.kawser.cleanspringbootproject.game.application.port.in.ReconnectPlayerUseCase;
+import com.kawser.cleanspringbootproject.secretmode.infrastructure.adapter.out.persistence.RandomSecretRoomCodeGenerator;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -28,6 +29,14 @@ import org.springframework.stereotype.Component;
  * so a direct constructor dependency here closes that cycle. Neither side
  * needs the other before a real STOMP CONNECT happens, so deferring the
  * lookup to call time breaks the cycle without changing behavior.
+ *
+ * <p>Ignores any room-code carrying secretmode's "SC-" prefix (see
+ * RandomSecretRoomCodeGenerator/SecretStompAuthChannelInterceptor, its
+ * mirror image on that side): both interceptors sit on the same inbound
+ * channel (see WebSocketConfig), so without this guard a secretmode
+ * CONNECT would make this interceptor try to reconnect against the
+ * original game's RoomRepository and throw RoomNotFoundException for a
+ * code that simply belongs to the other mode.
  */
 @Component
 public class StompAuthChannelInterceptor implements ChannelInterceptor {
@@ -53,7 +62,8 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
             String roomCode = accessor.getFirstNativeHeader(ROOM_CODE_HEADER);
             String playerId = accessor.getFirstNativeHeader(PLAYER_ID_HEADER);
             String reconnectToken = accessor.getFirstNativeHeader(RECONNECT_TOKEN_HEADER);
-            if (roomCode != null && playerId != null && reconnectToken != null) {
+            if (roomCode != null && !roomCode.startsWith(RandomSecretRoomCodeGenerator.PREFIX)
+                    && playerId != null && reconnectToken != null) {
                 reconnectPlayerUseCaseProvider.getObject()
                         .reconnect(new ReconnectCommand(roomCode, playerId, reconnectToken));
                 sessionRegistry.register(accessor.getSessionId(), roomCode, playerId, reconnectToken);

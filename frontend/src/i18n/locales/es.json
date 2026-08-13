@@ -34,6 +34,12 @@
       "codeLabel": "Código de sala",
       "submit": "Unirse"
     },
+    "hiddenMode": {
+      "badge": "Nuevo modo de juego",
+      "heading": "PALINKO HIDDEN",
+      "hint": "Descubre la cualidad secreta del día proponiendo palabras y declarando tu respuesta.",
+      "submit": "Probar PALINKO HIDDEN"
+    },
     "howToPlay": {
       "heading": "¿Cómo jugar?",
       "hint": "Cada jugador dice una palabra relacionada con la anterior, acercándose a la palabra objetivo.",

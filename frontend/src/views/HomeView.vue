@@ -58,6 +58,21 @@
 
     <p v-if="error" class="mt-4 rounded bg-error-100 p-2 text-sm text-error-700">{{ error }}</p>
 
+    <CartoonCard :accent="THEME_COLORS.warning500" class="mt-6">
+      <div class="flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
+        <div>
+          <p class="mb-1 text-xs font-bold tracking-wide text-warning-500 uppercase">
+            {{ t('home.hiddenMode.badge') }}
+          </p>
+          <h2 class="cartoon-promo-title">{{ t('home.hiddenMode.heading') }}</h2>
+          <p class="mt-1 text-sm text-gray-500">{{ t('home.hiddenMode.hint') }}</p>
+        </div>
+        <CartoonButton :color="THEME_COLORS.warning500" size="lg" class="shrink-0" @click="onGoToHiddenMode">
+          {{ t('home.hiddenMode.submit') }}
+        </CartoonButton>
+      </div>
+    </CartoonCard>
+
     <HowToPlayCard />
 
     <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 md:items-start">
@@ -66,6 +81,16 @@
     </div>
   </div>
 </template>
+
+<style scoped>
+.cartoon-promo-title {
+  font-family: 'Fredoka', 'Outfit', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--color-gray-800);
+}
+</style>
 
 <script setup lang="ts">
 import { ref } from 'vue'
@@ -114,6 +139,10 @@ async function onPlayDaily() {
 
 function onGoToCreateRoom() {
   router.push({ path: '/play', query: { mode: 'create' } })
+}
+
+function onGoToHiddenMode() {
+  router.push('/secret')
 }
 
 function onGoToJoinRoom() {

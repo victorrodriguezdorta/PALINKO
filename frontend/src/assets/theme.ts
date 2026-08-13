@@ -10,6 +10,7 @@ export const THEME_COLORS = {
   secondary500: '#3b82f6',
   secondary700: '#1d4ed8',
   success500: '#12b76a',
+  warning500: '#f79009',
   error500: '#f04438',
   gray400: '#98a2b3',
   gray500: '#667085',

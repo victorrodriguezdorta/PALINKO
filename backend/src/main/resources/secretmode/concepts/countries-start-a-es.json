@@ -1,0 +1,15 @@
+{
+  "id": "countries-start-a-es",
+  "language": "SPANISH",
+  "hiddenQuality": "Países cuyo nombre empieza por la letra A",
+  "acceptedWords": [
+    "alemania", "australia", "austria", "angola", "argelia",
+    "afganistán", "albania", "andorra", "armenia", "azerbaiyán",
+    "arabia saudita", "antigua y barbuda"
+  ],
+  "rejectedWords": [
+    "brasil", "francia", "perú", "españa", "italia", "portugal", "chile",
+    "colombia", "méxico", "canadá", "japón", "egipto", "marruecos",
+    "bolivia", "ecuador", "uruguay", "paraguay", "cuba", "grecia"
+  ]
+}
