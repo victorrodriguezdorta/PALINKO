@@ -34,8 +34,15 @@ const router = createRouter({
     },
     {
       path: '/secret',
-      name: 'Secret',
+      name: 'SecretHome',
+      component: () => import('../views/secret/SecretHomeView.vue'),
+      meta: { titleKey: 'secret.home.pageTitle' },
+    },
+    {
+      path: '/secret/room/:code',
+      name: 'SecretRoom',
       component: () => import('../views/secret/SecretRoomView.vue'),
+      meta: { titleKey: 'secret.room.pageTitle' },
     },
   ],
 })

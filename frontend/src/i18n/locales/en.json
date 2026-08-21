@@ -221,6 +221,59 @@
       "backNow": "Back to home now"
     }
   },
+  "secret": {
+    "home": {
+      "pageTitle": "PALINKO HIDDEN",
+      "heading": "PALINKO HIDDEN",
+      "subtitle": "Every day a secret quality is hidden. Try words, find out which ones match it, and guess it before you give up.",
+      "daily": {
+        "hint": "One secret quality a day, the same for everyone. No time limit."
+      },
+      "rules": {
+        "heading": "How to play?",
+        "step1": "Type single words to test whether they match the secret quality.",
+        "step2": "Each word is marked accepted or rejected instantly.",
+        "step3": "Rack up failures to unlock hints if you get stuck.",
+        "step4": "Once you think you know the quality, declare it to win."
+      }
+    },
+    "room": {
+      "pageTitle": "PALINKO HIDDEN",
+      "dailyBadge": "Secret daily challenge",
+      "giveUp": "Give up",
+      "giveUpConfirm": "Are you sure you want to give up? The secret quality will be revealed.",
+      "hiddenQualityLabel": "Secret quality",
+      "solveInputPlaceholder": "E.g.: countries starting with A",
+      "solveSubmit": "Check",
+      "acceptedHeading": "Accepted ({count})",
+      "rejectedHeading": "Rejected ({count})",
+      "noAcceptedYet": "You haven't gotten a word right yet.",
+      "noRejectedYet": "You haven't gotten a word wrong yet.",
+      "aiVerifiedTag": "AI verified",
+      "failuresLabel": "Failures: {count} (every {perHint} unlocks 1 hint)",
+      "wordInputPlaceholder": "Type a word...",
+      "wordSubmit": "Try",
+      "useHint": "Use hint",
+      "matchLevel": {
+        "correct": "Correct!",
+        "partial": "Close",
+        "incorrect": "Not quite"
+      },
+      "result": {
+        "solvedBanner": "You found the secret quality!",
+        "gaveUpBanner": "Game over",
+        "qualityHeading": "The secret quality was",
+        "totalAttempts": "Total attempts",
+        "acceptedAttempts": "Accepted",
+        "rejectedAttempts": "Rejected",
+        "hintsUsed": "Hints used",
+        "scoreHeading": "Final score",
+        "shareHeading": "Share your result",
+        "shareTextSolved": "I found today's secret quality in PALINKO HIDDEN! 🕵️\n🔍 It was: {quality}\n🎯 {attempts} attempts, {hints} hints used\nThink you can figure it out?\n🎮 Play for free: {url}",
+        "shareTextGaveUp": "I gave up on PALINKO HIDDEN 🕵️\n🔍 The secret quality was: {quality}\nCould you figure it out?\n🎮 Play for free: {url}"
+      }
+    }
+  },
   "debug": {
     "back": "Back to home",
     "wordRelation": {

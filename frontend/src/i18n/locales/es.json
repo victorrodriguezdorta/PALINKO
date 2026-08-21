@@ -221,6 +221,59 @@
       "backNow": "Volver al inicio ahora"
     }
   },
+  "secret": {
+    "home": {
+      "pageTitle": "PALINKO HIDDEN",
+      "heading": "PALINKO HIDDEN",
+      "subtitle": "Cada día se esconde una cualidad secreta. Prueba palabras, descubre cuáles la cumplen y adivina cuál es antes de rendirte.",
+      "daily": {
+        "hint": "Una cualidad secreta al día, igual para todos. Sin límite de tiempo."
+      },
+      "rules": {
+        "heading": "¿Cómo se juega?",
+        "step1": "Escribe palabras sueltas para probar si cumplen la cualidad secreta.",
+        "step2": "Cada palabra se marca como acertada o fallida al instante.",
+        "step3": "Acumula fallos para desbloquear pistas si te atascas.",
+        "step4": "Cuando creas saber cuál es la cualidad, decláralo para ganar."
+      }
+    },
+    "room": {
+      "pageTitle": "PALINKO HIDDEN",
+      "dailyBadge": "Reto diario secreto",
+      "giveUp": "Rendirse",
+      "giveUpConfirm": "¿Seguro que quieres rendirte? Se revelará la cualidad secreta.",
+      "hiddenQualityLabel": "Cualidad secreta",
+      "solveInputPlaceholder": "Ej: países que empiezan por A",
+      "solveSubmit": "Comprobar",
+      "acceptedHeading": "Acertadas ({count})",
+      "rejectedHeading": "Rechazadas ({count})",
+      "noAcceptedYet": "Todavía no has acertado ninguna palabra.",
+      "noRejectedYet": "Todavía no has fallado ninguna palabra.",
+      "aiVerifiedTag": "Verificado por IA",
+      "failuresLabel": "Fallos: {count} (cada {perHint} desbloquea 1 pista)",
+      "wordInputPlaceholder": "Escribe una palabra...",
+      "wordSubmit": "Probar",
+      "useHint": "Usar pista",
+      "matchLevel": {
+        "correct": "¡Correcto!",
+        "partial": "Cerca",
+        "incorrect": "No es eso"
+      },
+      "result": {
+        "solvedBanner": "¡Has descubierto la cualidad secreta!",
+        "gaveUpBanner": "Partida terminada",
+        "qualityHeading": "La cualidad secreta era",
+        "totalAttempts": "Intentos totales",
+        "acceptedAttempts": "Aciertos",
+        "rejectedAttempts": "Fallos",
+        "hintsUsed": "Pistas usadas",
+        "scoreHeading": "Puntuación final",
+        "shareHeading": "Comparte tu resultado",
+        "shareTextSolved": "¡He descubierto la cualidad secreta de hoy en PALINKO HIDDEN! 🕵️\n🔍 Era: {quality}\n🎯 {attempts} intentos, {hints} pistas usadas\n¿Te atreves a intentarlo?\n🎮 Juega gratis: {url}",
+        "shareTextGaveUp": "Me he rendido en PALINKO HIDDEN 🕵️\n🔍 La cualidad secreta era: {quality}\n¿Serías capaz de averiguarla tú?\n🎮 Juega gratis: {url}"
+      }
+    }
+  },
   "debug": {
     "back": "Volver al inicio",
     "wordRelation": {

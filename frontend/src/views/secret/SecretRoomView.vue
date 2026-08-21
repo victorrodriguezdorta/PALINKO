@@ -1,76 +1,188 @@
+<template>
+  <div class="mx-auto max-w-4xl p-6">
+    <AppHeader
+      :title="t('secret.room.pageTitle')"
+      show-back
+      center-logo
+      :back-label="t('room.backToHome')"
+      @back="onLeave"
+    />
+
+    <p v-if="store.errorMessage" class="mb-4 flex items-center gap-2 rounded bg-error-100 p-2 text-sm text-error-700">
+      <span>{{ translateError(store.errorMessage) }}</span>
+      <CartoonButton size="sm" :color="THEME_COLORS.error500" @click="store.dismissError">{{ t('common.close') }}</CartoonButton>
+    </p>
+
+    <div v-if="!snapshot" class="text-center text-gray-500">{{ t('room.connecting') }}</div>
+
+    <template v-else>
+      <div class="secret-room-topbar">
+        <span class="secret-room-topbar__badge">
+          <Sparkles :size="14" aria-hidden="true" />
+          {{ t('secret.room.dailyBadge') }}
+        </span>
+        <button type="button" class="secret-room-topbar__giveup" :disabled="isFinished" @click="onGiveUp">
+          <Flag :size="14" aria-hidden="true" />
+          {{ t('secret.room.giveUp') }}
+        </button>
+      </div>
+
+      <div class="relative rounded-2xl border-2 border-white/20 bg-white p-4 shadow-lg">
+        <Transition name="secret-panel-swap" mode="out-in">
+          <SecretBoardCard
+            v-if="!isFinished"
+            key="board"
+            :accepted-attempts="acceptedAttempts"
+            :rejected-attempts="rejectedAttempts"
+            :solution-attempts="snapshot.solutionAttempts"
+            :total-failures="snapshot.totalFailures"
+            :failures-per-hint="snapshot.failuresPerHint"
+            :hint-available-count="hintAvailableCount"
+            v-model:word-draft="wordDraft"
+            v-model:solution-draft="solutionDraft"
+            @submit-word="onSubmitWord"
+            @submit-solution="onSubmitSolution"
+            @use-hint="onUseHint"
+          />
+          <SecretResultsCard
+            v-else-if="snapshot.reveal"
+            key="results"
+            :reveal="snapshot.reveal"
+            :solved="snapshot.status === 'SOLVED'"
+          />
+        </Transition>
+
+        <div v-if="isFinished" class="mt-4 flex justify-center">
+          <CartoonButton :color="THEME_COLORS.secondary500" @click="onLeave">
+            {{ t('room.backToHome') }}
+          </CartoonButton>
+        </div>
+      </div>
+    </template>
+  </div>
+</template>
+
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { Flag, Sparkles } from 'lucide-vue-next'
 import { useSecretGameStore } from '@/stores/secretGame'
-import type { JudgementSource, SolutionMatchLevel } from '@/types/secretGame'
+import { translateError } from '@/i18n'
+import AppHeader from '@/components/AppHeader.vue'
+import CartoonButton from '@/components/CartoonButton.vue'
+import SecretBoardCard from '@/components/SecretBoardCard.vue'
+import SecretResultsCard from '@/components/SecretResultsCard.vue'
+import { THEME_COLORS } from '@/assets/theme'
+import { useSound } from '@/composables/useSound'
 
+const { t } = useI18n()
+const router = useRouter()
 const store = useSecretGameStore()
+const { play } = useSound()
 
-const wordInput = ref('')
-const formulationInput = ref('')
-const loadingDailyRoom = ref(false)
+const wordDraft = ref('')
+const solutionDraft = ref('')
 
 const snapshot = computed(() => store.snapshot)
-const hasIdentity = computed(() => !!store.roomCode)
 const isFinished = computed(() => snapshot.value?.status === 'SOLVED' || snapshot.value?.status === 'GAVE_UP')
 
 const acceptedAttempts = computed(() => snapshot.value?.attempts.filter((a) => a.outcome === 'ACCEPTED') ?? [])
 const rejectedAttempts = computed(() => snapshot.value?.attempts.filter((a) => a.outcome === 'REJECTED') ?? [])
 
-const sourceLabel: Record<JudgementSource, string> = {
-  WORD_BANK: 'banco',
-  AI: 'IA',
-  HINT: 'pista',
-}
+const hintAvailableCount = computed(() => {
+  if (!snapshot.value) return 0
+  return Math.max(0, snapshot.value.hintsAvailable - snapshot.value.hintsUsed)
+})
 
-const matchLevelLabel: Record<SolutionMatchLevel, string> = {
-  CORRECT: 'Correcto',
-  PARTIAL: 'Parcial',
-  INCORRECT: 'Incorrecto',
-}
-
-async function playDaily() {
-  loadingDailyRoom.value = true
-  try {
-    await store.createDailyRoom('SPANISH')
-    store.connectSocket()
-  } catch (e) {
-    console.error(e)
-  } finally {
-    loadingDailyRoom.value = false
-  }
-}
-
-function submitWord() {
-  const text = wordInput.value.trim()
+function onSubmitWord() {
+  const text = wordDraft.value.trim()
   if (!text) return
+  play('wordSubmit')
   store.submitWord(text)
-  wordInput.value = ''
+  wordDraft.value = ''
 }
 
-function useHint() {
+function onUseHint() {
+  play('menuSelect')
   store.useHint()
 }
 
-function submitSolution() {
-  const text = formulationInput.value.trim()
+function onSubmitSolution() {
+  const text = solutionDraft.value.trim()
   if (!text) return
+  play('wordSubmit')
   store.submitSolution(text)
-  formulationInput.value = ''
+  solutionDraft.value = ''
 }
 
-function giveUp() {
-  if (confirm('¿Seguro que quieres rendirte?')) {
+function onGiveUp() {
+  if (confirm(t('secret.room.giveUpConfirm'))) {
     store.giveUp()
   }
 }
 
-function leave() {
+function onLeave() {
   store.leaveRoom()
+  router.push('/secret')
 }
 
+// Every new word attempt (accepted/rejected) gets its own cue, and every
+// new solution guess gets a cue scaled to how close it was — mirrors
+// RoomView's own "watch the shared snapshot, not local actions" pattern so
+// a reconnecting tab still hears the right sound for state it just caught
+// up on.
+const seenWordAttemptIds = new Set<string>()
+watch(
+  () => snapshot.value?.attempts,
+  (attempts) => {
+    if (!attempts) return
+    for (const attempt of attempts) {
+      if (seenWordAttemptIds.has(attempt.id)) continue
+      seenWordAttemptIds.add(attempt.id)
+      play(attempt.outcome === 'ACCEPTED' ? 'wordAccepted' : 'wordRejected')
+    }
+  },
+  { deep: true, immediate: true },
+)
+
+const seenSolutionAttemptIds = new Set<string>()
+watch(
+  () => snapshot.value?.solutionAttempts,
+  (attempts) => {
+    if (!attempts) return
+    for (const attempt of attempts) {
+      if (seenSolutionAttemptIds.has(attempt.id)) continue
+      seenSolutionAttemptIds.add(attempt.id)
+      if (attempt.matchLevel === 'CORRECT') play('targetReached')
+      else if (attempt.matchLevel === 'PARTIAL') play('menuSelect')
+      else play('wordRejected')
+    }
+  },
+  { deep: true, immediate: true },
+)
+
+watch(
+  () => snapshot.value?.status,
+  (status, previousStatus) => {
+    if (previousStatus === undefined || status === previousStatus) return
+    if (status === 'SOLVED') play('crewWon')
+    else if (status === 'GAVE_UP') play('infiltratorEscaped')
+  },
+)
+
+watch(
+  () => store.errorMessage,
+  (error) => {
+    if (error) play('gameError')
+  },
+)
+
 onMounted(() => {
-  if (hasIdentity.value) {
+  if (store.roomCode) {
     store.connectSocket()
+  } else {
+    router.push('/secret')
   }
 })
 
@@ -81,268 +193,81 @@ onUnmounted(() => {
 })
 </script>
 
-<template>
-  <div class="secret-page">
-    <header class="secret-header">
-      <h1>PALINKO: CODE</h1>
-      <p class="subtitle">Modo de prueba — descubre la cualidad secreta</p>
-    </header>
-
-    <section v-if="!hasIdentity" class="panel">
-      <p>Cada día hay una cualidad secreta oculta. Prueba palabras para averiguar cuáles la cumplen.</p>
-      <button :disabled="loadingDailyRoom" @click="playDaily">
-        {{ loadingDailyRoom ? 'Cargando...' : 'Jugar el reto diario' }}
-      </button>
-    </section>
-
-    <section v-else-if="snapshot" class="game">
-      <div class="top-bar">
-        <span>Sala: {{ snapshot.roomCode }}</span>
-        <span>Concepto: {{ snapshot.conceptId }}</span>
-        <button class="link" @click="leave">Salir</button>
-      </div>
-
-      <div v-if="store.errorMessage" class="error-banner">
-        {{ store.errorMessage.code }}: {{ store.errorMessage.message }}
-      </div>
-
-      <div v-if="!isFinished" class="panels">
-        <div class="panel">
-          <h2>Probar palabra</h2>
-          <form @submit.prevent="submitWord">
-            <input v-model="wordInput" type="text" placeholder="Escribe una palabra..." autocomplete="off" />
-            <button type="submit">Enviar</button>
-          </form>
-
-          <div class="hint-row">
-            <span>Fallos: {{ snapshot.totalFailures }} (cada {{ snapshot.failuresPerHint }} desbloquea 1 pista)</span>
-            <button :disabled="snapshot.hintsAvailable <= snapshot.hintsUsed" @click="useHint">
-              Usar pista ({{ snapshot.hintsAvailable - snapshot.hintsUsed }} disponible(s))
-            </button>
-          </div>
-
-          <div class="word-lists">
-            <div class="word-list accepted">
-              <h3>Aceptadas ({{ acceptedAttempts.length }})</h3>
-              <ul>
-                <li v-for="attempt in acceptedAttempts" :key="attempt.id">
-                  {{ attempt.text }}
-                  <span class="tag">{{ sourceLabel[attempt.source] }}</span>
-                </li>
-              </ul>
-            </div>
-            <div class="word-list rejected">
-              <h3>Rechazadas ({{ rejectedAttempts.length }})</h3>
-              <ul>
-                <li v-for="attempt in rejectedAttempts" :key="attempt.id">
-                  {{ attempt.text }}
-                  <span class="tag">{{ sourceLabel[attempt.source] }}</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h2>Declarar la cualidad secreta</h2>
-          <form @submit.prevent="submitSolution">
-            <input
-              v-model="formulationInput"
-              type="text"
-              placeholder="Ej: países que empiezan por la letra A"
-              autocomplete="off"
-            />
-            <button type="submit">Comprobar</button>
-          </form>
-
-          <ul class="solution-list">
-            <li v-for="attempt in snapshot.solutionAttempts" :key="attempt.id">
-              "{{ attempt.formulationText }}" — <strong>{{ matchLevelLabel[attempt.matchLevel] }}</strong>
-            </li>
-          </ul>
-
-          <button class="danger" @click="giveUp">Rendirse</button>
-        </div>
-      </div>
-
-      <div v-else class="panel result">
-        <h2>{{ snapshot.status === 'SOLVED' ? '¡Resuelto!' : 'Partida terminada' }}</h2>
-        <p class="hidden-quality">Cualidad secreta: <strong>{{ snapshot.reveal?.hiddenQuality }}</strong></p>
-        <p>Puntuación final: <strong>{{ snapshot.reveal?.finalScore }}</strong></p>
-        <ul>
-          <li>Intentos totales: {{ snapshot.reveal?.totalAttempts }}</li>
-          <li>Aceptados: {{ snapshot.reveal?.acceptedAttempts }}</li>
-          <li>Rechazados: {{ snapshot.reveal?.rejectedAttempts }}</li>
-          <li>Pistas usadas: {{ snapshot.reveal?.hintsUsed }}</li>
-        </ul>
-        <button @click="leave">Jugar de nuevo</button>
-      </div>
-    </section>
-  </div>
-</template>
-
 <style scoped>
-.secret-page {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-  font-family: system-ui, sans-serif;
-}
-
-.secret-header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.subtitle {
-  color: #666;
-}
-
-.panel {
-  background: #f7f7f9;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.panels {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-@media (max-width: 720px) {
-  .panels {
-    grid-template-columns: 1fr;
-  }
-}
-
-.top-bar {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  color: #444;
-}
-
-.link {
-  background: none;
-  border: none;
-  color: #3a5;
-  cursor: pointer;
-  text-decoration: underline;
-  margin-left: auto;
-}
-
-.error-banner {
-  background: #fdecea;
-  border: 1px solid #f5c2c0;
-  color: #a12a2a;
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-}
-
-form {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-input {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-button {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  border: 1px solid #333;
-  background: #333;
-  color: white;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-button.danger {
-  background: #a12a2a;
-  border-color: #a12a2a;
-}
-
-.hint-row {
+.secret-room-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.75rem;
   margin-bottom: 1rem;
-  font-size: 0.9rem;
 }
 
-.word-lists {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.word-list h3 {
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-}
-
-.word-list ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  max-height: 240px;
-  overflow-y: auto;
-}
-
-.word-list li {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  margin-bottom: 0.25rem;
-  display: flex;
-  justify-content: space-between;
-}
-
-.word-list.accepted li {
-  background: #e6f4ea;
-}
-
-.word-list.rejected li {
-  background: #fdecea;
-}
-
-.tag {
+.secret-room-topbar__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.85rem;
+  border-radius: 9999px;
+  background: var(--color-warning-100, #fef0c7);
+  border: 2px solid var(--color-warning-500);
+  color: var(--color-warning-700, #b54708);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
   font-size: 0.7rem;
-  color: #666;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
-.solution-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 1rem;
+.secret-room-topbar__giveup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  border: 2px solid var(--color-error-300);
+  background: var(--color-white);
+  color: var(--color-error-600, #d92d20);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
 }
 
-.solution-list li {
-  padding: 0.4rem 0;
-  border-bottom: 1px solid #e0e0e0;
+.secret-room-topbar__giveup:hover:not(:disabled) {
+  background: var(--color-error-50);
+  transform: translateY(-1px);
 }
 
-.result {
-  text-align: center;
+.secret-room-topbar__giveup:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-.hidden-quality {
-  font-size: 1.1rem;
+.secret-panel-swap-enter-active,
+.secret-panel-swap-leave-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.secret-panel-swap-enter-from {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
+.secret-panel-swap-leave-to {
+  opacity: 0;
+  transform: scale(1.01);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .secret-panel-swap-enter-active,
+  .secret-panel-swap-leave-active,
+  .secret-room-topbar__giveup {
+    transition: none;
+  }
 }
 </style>
