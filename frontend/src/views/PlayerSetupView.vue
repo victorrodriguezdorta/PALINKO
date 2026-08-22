@@ -1,24 +1,36 @@
 <template>
   <div class="mx-auto max-w-md p-6">
-    <AppHeader :title="t('common.appTitle')" show-back center-logo :back-label="t('room.backToHome')" @back="onBack" />
+    <AppHeader
+      :title="t('common.appTitle')"
+      show-back
+      center-logo
+      :show-auth="false"
+      :back-label="t('room.backToHome')"
+      @back="onBack"
+    />
 
     <CartoonCard :accent="mode === 'join' ? THEME_COLORS.success500 : THEME_COLORS.secondary500">
       <template #title>
         {{ mode === 'join' ? t('playerSetup.joinHeading', { code: roomCode }) : t('playerSetup.createHeading') }}
       </template>
 
-      <div class="mb-4 flex flex-col items-center gap-2">
-        <PlayerAvatar
-          :seed="avatarSeed"
-          size="lg"
-          editable
-          :shuffle-label="t('home.avatar.shuffle')"
-          @shuffle="onShuffleAvatar"
-        />
-        <p class="text-xs text-gray-500">{{ t('home.avatar.hint') }}</p>
+      <div v-if="isAuthenticated" class="mb-4 flex flex-col items-center gap-2">
+        <PlayerAvatar :seed="avatarSeed" size="lg" />
+        <p class="text-sm font-semibold text-gray-700">{{ name }}</p>
       </div>
 
-      <form class="flex flex-col gap-2" @submit.prevent="onSubmit">
+      <template v-else>
+        <div class="mb-4 flex flex-col items-center gap-2">
+          <PlayerAvatar
+            :seed="avatarSeed"
+            size="lg"
+            editable
+            :shuffle-label="t('home.avatar.shuffle')"
+            @shuffle="onShuffleAvatar"
+          />
+          <p class="text-xs text-gray-500">{{ t('home.avatar.hint') }}</p>
+        </div>
+
         <label class="text-sm">
           {{ t('common.yourName') }}
           <input
@@ -29,6 +41,9 @@
             autofocus
           />
         </label>
+      </template>
+
+      <form class="flex flex-col gap-2" @submit.prevent="onSubmit">
         <CartoonButton
           type="submit"
           block
@@ -60,6 +75,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useGameStore } from '@/stores/game'
 import { useLocaleStore } from '@/stores/locale'
+import { useAuthStore } from '@/stores/auth'
 import { gameLanguageForLocale } from '@/i18n/languages'
 import { translateError } from '@/i18n'
 import CartoonButton from '@/components/CartoonButton.vue'
@@ -76,6 +92,7 @@ const route = useRoute()
 const router = useRouter()
 const gameStore = useGameStore()
 const localeStore = useLocaleStore()
+const authStore = useAuthStore()
 const { play } = useSound()
 
 // 'join' when arriving from the Home "join room" form with a code already
@@ -84,8 +101,12 @@ const { play } = useSound()
 const mode = route.query.mode === 'join' ? 'join' : 'create'
 const roomCode = (route.query.code as string | undefined)?.trim().toUpperCase() ?? ''
 
-const name = ref('')
-const avatarSeed = ref(loadOrCreateAvatarSeed())
+// Signed-in visitors already have a name/avatar on their account, so the
+// form is skipped entirely and those values are used instead of the
+// anonymous per-device identity (see utils/avatar.ts).
+const isAuthenticated = authStore.isAuthenticated
+const name = ref(isAuthenticated ? authStore.user!.username : '')
+const avatarSeed = ref(isAuthenticated ? authStore.user!.avatarSeed : loadOrCreateAvatarSeed())
 const loading = ref(false)
 const error = ref<string | null>(null)
 

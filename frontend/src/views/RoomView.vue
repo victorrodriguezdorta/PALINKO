@@ -4,6 +4,7 @@
       :title="isDaily ? t('room.titleDaily') : t('room.title', { code: roomCode })"
       show-back
       center-logo
+      :show-auth="false"
       :back-label="t('room.backToHome')"
       @back="onLeave"
     />
@@ -13,7 +14,9 @@
       <CartoonButton size="sm" :color="THEME_COLORS.error500" @click="gameStore.dismissError">{{ t('common.close') }}</CartoonButton>
     </p>
 
-    <CartoonCard v-if="needsNameToJoin" :accent="THEME_COLORS.success500">
+    <div v-if="needsNameToJoin && authStore.isAuthenticated" class="text-gray-500">{{ t('room.connecting') }}</div>
+
+    <CartoonCard v-else-if="needsNameToJoin" :accent="THEME_COLORS.success500">
       <template #title>{{ t('room.joinPrompt.heading', { code: roomCode }) }}</template>
       <div class="mb-3 flex flex-col items-center gap-2">
         <PlayerAvatar
@@ -234,7 +237,24 @@
             :chain="chain as RevealedChainView"
             :sorted-by-score="sortedByScore"
             :average-accuracy-percent="averageAccuracyPercent"
+            :is-daily="isDaily"
           />
+
+          <DailyLeaderboardCard
+            v-if="isDaily"
+            class="mb-4"
+            :entries="leaderboardStore.entries"
+            :loading="leaderboardStore.loading"
+            :viewer-username="authStore.user?.username ?? null"
+          />
+
+          <CartoonCard v-if="isDaily && !authStore.isAuthenticated" class="mb-4" :accent="THEME_COLORS.secondary500">
+            <template #title>{{ t('leaderboard.loginNudge.heading') }}</template>
+            <p class="mb-3 text-sm text-gray-600">{{ t('leaderboard.loginNudge.text') }}</p>
+            <router-link to="/login">
+              <CartoonButton :color="THEME_COLORS.secondary500">{{ t('leaderboard.loginNudge.cta') }}</CartoonButton>
+            </router-link>
+          </CartoonCard>
 
           <div class="flex items-center gap-3">
             <CartoonButton v-if="gameStore.isHost && !isDaily" :color="THEME_COLORS.success500" @click="gameStore.playAgain">
@@ -262,6 +282,28 @@
       </section>
       </div>
       </div>
+
+      <div v-if="isDaily && snapshot.status !== 'LOBBY' && snapshot.status !== 'CLOSED'" class="mt-4 flex justify-center">
+        <CartoonButton
+          size="sm"
+          class="how-to-play-toggle"
+          :color="THEME_COLORS.secondary500"
+          :aria-label="t('room.howToPlayToggle')"
+          :title="t('room.howToPlayToggle')"
+          @click="howToPlayVisible = !howToPlayVisible"
+        >
+          <HelpCircle :size="18" />
+        </CartoonButton>
+      </div>
+      <HowToPlayCard v-if="isDaily && howToPlayVisible" />
+
+      <div v-if="isDaily && snapshot.status === 'IN_PROGRESS'" class="mt-4">
+        <DailyLeaderboardCard
+          :entries="leaderboardStore.entries"
+          :loading="leaderboardStore.loading"
+          :viewer-username="authStore.user?.username ?? null"
+        />
+      </div>
     </template>
   </div>
 </template>
@@ -271,9 +313,12 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useGameStore } from '@/stores/game'
+import { useAuthStore } from '@/stores/auth'
+import { useLeaderboardStore } from '@/stores/leaderboard'
 import { translateError } from '@/i18n'
 import DailyCountdown from '@/components/DailyCountdown.vue'
 import DailyChallengeBanner from '@/components/DailyChallengeBanner.vue'
+import DailyLeaderboardCard from '@/components/DailyLeaderboardCard.vue'
 import CartoonButton from '@/components/CartoonButton.vue'
 import CartoonCard from '@/components/CartoonCard.vue'
 import AppHeader from '@/components/AppHeader.vue'
@@ -283,6 +328,8 @@ import PlayerRosterCard from '@/components/PlayerRosterCard.vue'
 import PlayerScoreboardCard from '@/components/PlayerScoreboardCard.vue'
 import ChainBoardCard from '@/components/ChainBoardCard.vue'
 import GameResultsCard from '@/components/GameResultsCard.vue'
+import HowToPlayCard from '@/components/HowToPlayCard.vue'
+import { HelpCircle } from 'lucide-vue-next'
 import { loadOrCreateAvatarSeed, persistAvatarSeed, randomAvatarSeed } from '@/utils/avatar'
 import { THEME_COLORS } from '@/assets/theme'
 import { useSound } from '@/composables/useSound'
@@ -298,6 +345,8 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const gameStore = useGameStore()
+const authStore = useAuthStore()
+const leaderboardStore = useLeaderboardStore()
 const { play } = useSound()
 
 const roomCode = (route.params.code as string).trim().toUpperCase()
@@ -317,6 +366,13 @@ function onShuffleJoinByLinkAvatar() {
 // previously just bounced back to Home instead of letting them in.
 const needsNameToJoin = ref(!gameStore.hasIdentityFor(roomCode))
 
+function startTicking() {
+  gameStore.connectSocket()
+  tickInterval = setInterval(() => {
+    now.value = Date.now()
+  }, 1000)
+}
+
 async function onJoinByLink() {
   joinByLinkLoading.value = true
   joinByLinkError.value = null
@@ -324,16 +380,33 @@ async function onJoinByLink() {
     await gameStore.joinRoom(roomCode, joinByLinkName.value, joinByLinkAvatarSeed.value)
     play('roomEnter')
     needsNameToJoin.value = false
-    gameStore.connectSocket()
-    tickInterval = setInterval(() => {
-      now.value = Date.now()
-    }, 1000)
+    startTicking()
   } catch (err) {
     joinByLinkError.value = translateError(err as ApiError)
   } finally {
     joinByLinkLoading.value = false
   }
 }
+
+// Signed-in visitors who open a shared room link cold already have a
+// name/avatar on their account, so join automatically with those instead of
+// showing the manual name/avatar prompt.
+async function autoJoinWithAccountIdentity() {
+  joinByLinkLoading.value = true
+  joinByLinkError.value = null
+  try {
+    await gameStore.joinRoom(roomCode, authStore.user!.username, authStore.user!.avatarSeed)
+    play('roomEnter')
+    needsNameToJoin.value = false
+    startTicking()
+  } catch (err) {
+    joinByLinkError.value = translateError(err as ApiError)
+  } finally {
+    joinByLinkLoading.value = false
+  }
+}
+
+const howToPlayVisible = ref(false)
 
 const wordDraft = ref('')
 const chainBoardRef = ref<InstanceType<typeof ChainBoardCard> | null>(null)
@@ -540,6 +613,25 @@ watch(
   },
 )
 
+// The backend bumps the account's streak the instant a daily challenge
+// finishes (see GameApplicationService.recordDailyCompletionIfApplicable) —
+// re-fetching the profile here is what makes that show up on the Home
+// screen's StreakFlame without waiting for an unrelated page reload.
+watch(
+  () => snapshot.value?.status,
+  (status, previousStatus) => {
+    if (status !== 'FINISHED' || previousStatus === status) return
+    if (isDaily.value && authStore.isAuthenticated) {
+      authStore.fetchCurrentUser().catch(() => {})
+    }
+    // The viewer's own just-finished result may now qualify for the top
+    // 10, so refresh the leaderboard the same moment the streak refreshes.
+    if (isDaily.value) {
+      leaderboardStore.fetchDaily().catch(() => {})
+    }
+  },
+)
+
 watch(
   () => snapshot.value?.status,
   (status, previousStatus) => {
@@ -711,15 +803,37 @@ onMounted(() => {
   // Arriving with no identity for this room (e.g. a shared room link
   // opened cold) shows the join-by-name prompt above instead of bouncing
   // back to Home — onJoinByLink connects the socket itself once that
-  // succeeds, so there's nothing to do here yet.
-  if (needsNameToJoin.value) return
-  gameStore.connectSocket()
-  tickInterval = setInterval(() => {
-    now.value = Date.now()
-  }, 1000)
+  // succeeds, so there's nothing to do here yet. Signed-in users skip the
+  // prompt entirely and join with their account identity.
+  if (needsNameToJoin.value) {
+    if (authStore.isAuthenticated) autoJoinWithAccountIdentity()
+    return
+  }
+  startTicking()
 })
+
+// The room code alone doesn't tell us this is a daily challenge until the
+// snapshot arrives (isDaily reads off it), so this fires once isDaily
+// actually flips true rather than unconditionally on mount.
+watch(
+  isDaily,
+  (daily) => {
+    if (daily) leaderboardStore.fetchDaily().catch(() => {})
+  },
+  { immediate: true },
+)
 
 onUnmounted(() => {
   if (tickInterval) clearInterval(tickInterval)
 })
+
 </script>
+
+<style scoped>
+.how-to-play-toggle.cartoon-btn--sm {
+  padding: 0.5rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 9999px;
+}
+</style>

@@ -16,11 +16,14 @@ import org.springframework.stereotype.Component;
  * score) because the LLM can actually reason about the pair rather than
  * just compare vector geometry.
  *
- * <p>Uses Groq's {@code llama-3.3-70b-versatile} chat model with a terse
- * prompt and a small output budget. The 70B model reasons about word
- * relatedness noticeably better than the 8B instant model, at some cost
- * to latency; that trade favors correctness here since a live game turn
- * on this call.
+ * <p>Uses Groq's {@code openai/gpt-oss-120b} reasoning model at
+ * {@code reasoning_effort=low} — enough hidden chain-of-thought budget to
+ * judge correctly without burning most of max_tokens on it before ever
+ * emitting the JSON answer (that's what a plain call without
+ * reasoning_effort does, and it 400s with a truncated/empty
+ * {@code failed_generation}). Replaces the previously used
+ * {@code llama-3.3-70b-versatile}, which Groq has since retired (calls
+ * to it now 404 with {@code model_not_found}).
  * The prompt asks for strict JSON so the response can be parsed without
  * a second round-trip; on any failure (missing API key, network error,
  * non-200 response, malformed JSON) this adapter throws
@@ -40,10 +43,10 @@ public class GroqWordRelationChecker extends OpenAiCompatibleWordRelationChecker
 
     private static final Logger log = LoggerFactory.getLogger(GroqWordRelationChecker.class);
     private static final URI GROQ_ENDPOINT = URI.create("https://api.groq.com/openai/v1/chat/completions");
-    private static final String MODEL = "llama-3.3-70b-versatile";
+    private static final String MODEL = "openai/gpt-oss-120b";
 
     public GroqWordRelationChecker(@Value("${groq.api-key:}") String apiKey) {
-        super(GROQ_ENDPOINT, MODEL, apiKey);
+        super(GROQ_ENDPOINT, MODEL, apiKey, "low");
     }
 
     @Override

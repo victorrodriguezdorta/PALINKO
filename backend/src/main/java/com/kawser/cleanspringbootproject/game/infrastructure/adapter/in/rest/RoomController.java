@@ -16,6 +16,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -63,10 +65,24 @@ public class RoomController {
     @ApiResponse(responseCode = "200", description = "Daily challenge room created")
     @PostMapping("/daily")
     public ResponseEntity<RoomJoinedResponse> createDaily(@RequestBody @Valid CreateDailyRoomRequest request) {
-        CreateRoomResult result = createDailyRoomUseCase.createDailyRoom(new CreateDailyRoomCommand(request.language()));
+        CreateRoomResult result = createDailyRoomUseCase.createDailyRoom(
+                new CreateDailyRoomCommand(request.language(), currentUsernameOrNull()));
 
         return ResponseEntity.ok(new RoomJoinedResponse(
                 result.roomCode(), result.playerId(), result.reconnectToken(), result.snapshot()));
+    }
+
+    // /rooms/daily is permitAll (guests can play it too), but JwtAuthenticationFilter
+    // still populates the SecurityContext whenever a valid Bearer token is present -
+    // so a logged-in caller's username can be read straight from there rather than
+    // trusting arbitrary client input in the request body.
+    private String currentUsernameOrNull() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
+        }
+        return authentication.getName();
     }
 
     @Operation(summary = "Join a room", description = "Joins an existing room in LOBBY status with just a display name")

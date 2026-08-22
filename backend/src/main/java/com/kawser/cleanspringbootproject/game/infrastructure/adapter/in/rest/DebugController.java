@@ -4,6 +4,7 @@ import com.kawser.cleanspringbootproject.game.application.port.out.WordRelation;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelationChecker;
 import com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.rest.dto.WordRelationRequest;
 import com.kawser.cleanspringbootproject.game.infrastructure.adapter.in.rest.dto.WordRelationResponse;
+import com.kawser.cleanspringbootproject.leaderboard.infrastructure.config.DailyLeaderboardMockTask;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -23,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class DebugController {
 
     private final WordRelationChecker wordRelationChecker;
+    private final DailyLeaderboardMockTask dailyLeaderboardMockTask;
 
-    public DebugController(WordRelationChecker wordRelationChecker) {
+    public DebugController(WordRelationChecker wordRelationChecker, DailyLeaderboardMockTask dailyLeaderboardMockTask) {
         this.wordRelationChecker = wordRelationChecker;
+        this.dailyLeaderboardMockTask = dailyLeaderboardMockTask;
     }
 
     @Operation(summary = "Calculate the relatedness percentage between two words")
@@ -34,5 +37,14 @@ public class DebugController {
     public ResponseEntity<WordRelationResponse> wordRelation(@RequestBody @Valid WordRelationRequest request) {
         WordRelation relation = wordRelationChecker.relatedness(request.wordA(), request.wordB(), request.language());
         return ResponseEntity.ok(new WordRelationResponse(relation.percentage(), relation.justification()));
+    }
+
+    @Operation(summary = "Wipe stale daily leaderboard entries and reseed today's bot scores on demand, "
+            + "instead of waiting for the UTC-midnight schedule")
+    @ApiResponse(responseCode = "200", description = "Daily leaderboard reseeded")
+    @PostMapping("/daily-leaderboard/reseed")
+    public ResponseEntity<Void> reseedDailyLeaderboard() {
+        dailyLeaderboardMockTask.refreshDailyBoard();
+        return ResponseEntity.ok().build();
     }
 }

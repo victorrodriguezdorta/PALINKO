@@ -7,6 +7,8 @@ export interface LanguageOption {
   gameLanguage: GameLanguage
   /** label shown in the language selector, in that language's own tongue */
   label: string
+  /** flag emoji representing the language's country, shown in the header toggle */
+  flag: string
 }
 
 /**
@@ -16,8 +18,8 @@ export interface LanguageOption {
  * else changes shape.
  */
 export const SUPPORTED_LANGUAGES: LanguageOption[] = [
-  { locale: 'en', gameLanguage: 'ENGLISH', label: 'English' },
-  { locale: 'es', gameLanguage: 'SPANISH', label: 'Español' },
+  { locale: 'en', gameLanguage: 'ENGLISH', label: 'English', flag: '🇬🇧' },
+  { locale: 'es', gameLanguage: 'SPANISH', label: 'Español', flag: '🇪🇸' },
 ]
 
 const LOCALE_BY_GAME_LANGUAGE: Record<GameLanguage, string> = Object.fromEntries(

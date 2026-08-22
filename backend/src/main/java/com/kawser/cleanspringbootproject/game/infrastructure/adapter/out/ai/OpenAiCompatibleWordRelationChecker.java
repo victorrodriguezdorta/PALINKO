@@ -1,5 +1,6 @@
 package com.kawser.cleanspringbootproject.game.infrastructure.adapter.out.ai;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kawser.cleanspringbootproject.game.application.port.out.WordRelation;
@@ -30,11 +31,26 @@ abstract class OpenAiCompatibleWordRelationChecker implements WordRelationChecke
     private final URI endpoint;
     private final String model;
     private final String apiKey;
+    private final String reasoningEffort;
 
     protected OpenAiCompatibleWordRelationChecker(URI endpoint, String model, String apiKey) {
+        this(endpoint, model, apiKey, null);
+    }
+
+    /**
+     * @param reasoningEffort passed through as the {@code reasoning_effort}
+     *     request field for providers/models that support it (e.g. Groq's
+     *     gpt-oss models), so a reasoning model doesn't burn most of its
+     *     max_tokens budget on hidden chain-of-thought before ever emitting
+     *     the JSON answer. Null omits the field entirely, for
+     *     non-reasoning models (e.g. OpenRouter's sao10k/l3-lunaris-8b)
+     *     that don't recognize it.
+     */
+    protected OpenAiCompatibleWordRelationChecker(URI endpoint, String model, String apiKey, String reasoningEffort) {
         this.endpoint = endpoint;
         this.model = model;
         this.apiKey = apiKey;
+        this.reasoningEffort = reasoningEffort;
     }
 
     protected abstract Logger log();
@@ -122,8 +138,9 @@ abstract class OpenAiCompatibleWordRelationChecker implements WordRelationChecke
                     new ChatMessage("user", userPrompt)
                 },
                 0.0,
-                120,
-                new ResponseFormat("json_object"));
+                300,
+                new ResponseFormat("json_object"),
+                reasoningEffort);
     }
 
     private WordRelation parseRelation(String responseBody) throws Exception {
@@ -139,8 +156,9 @@ abstract class OpenAiCompatibleWordRelationChecker implements WordRelationChecke
         return new WordRelation(percentage, reason);
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private record ChatRequest(String model, ChatMessage[] messages, double temperature, int max_tokens,
-            ResponseFormat response_format) {
+            ResponseFormat response_format, String reasoning_effort) {
     }
 
     private record ChatMessage(String role, String content) {

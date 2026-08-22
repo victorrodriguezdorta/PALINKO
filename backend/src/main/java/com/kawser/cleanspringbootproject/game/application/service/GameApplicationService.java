@@ -30,6 +30,8 @@ import com.kawser.cleanspringbootproject.game.application.port.in.SubmitVoteUseC
 import com.kawser.cleanspringbootproject.game.application.port.in.SubmitWordUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.in.UpdateRoomSettingsUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.out.ChainWordBank;
+import com.kawser.cleanspringbootproject.game.application.port.out.DailyLeaderboardRecorder;
+import com.kawser.cleanspringbootproject.game.application.port.out.DailyStreakTracker;
 import com.kawser.cleanspringbootproject.game.application.port.out.PhaseScheduler;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomCodeGenerator;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomNotifier;
@@ -43,6 +45,7 @@ import com.kawser.cleanspringbootproject.game.domain.exception.InvalidWordCharac
 import com.kawser.cleanspringbootproject.game.domain.exception.PlayerNotFoundException;
 import com.kawser.cleanspringbootproject.game.domain.exception.WordComparisonFailedException;
 import com.kawser.cleanspringbootproject.game.domain.exception.WordSubmissionRateLimitedException;
+import com.kawser.cleanspringbootproject.game.domain.model.AttemptOutcome;
 import com.kawser.cleanspringbootproject.game.domain.model.ChainAttempt;
 import com.kawser.cleanspringbootproject.game.domain.model.GameLanguage;
 import com.kawser.cleanspringbootproject.game.domain.model.Player;
@@ -105,6 +108,8 @@ public class GameApplicationService implements
     private final PhaseScheduler phaseScheduler;
     private final ScoringPolicy scoringPolicy;
     private final WordSubmissionRateLimiter wordSubmissionRateLimiter;
+    private final DailyStreakTracker dailyStreakTracker;
+    private final DailyLeaderboardRecorder dailyLeaderboardRecorder;
 
     public GameApplicationService(
             RoomRepository roomRepository,
@@ -116,7 +121,9 @@ public class GameApplicationService implements
             RoomCodeGenerator roomCodeGenerator,
             PhaseScheduler phaseScheduler,
             ScoringPolicy scoringPolicy,
-            WordSubmissionRateLimiter wordSubmissionRateLimiter) {
+            WordSubmissionRateLimiter wordSubmissionRateLimiter,
+            DailyStreakTracker dailyStreakTracker,
+            DailyLeaderboardRecorder dailyLeaderboardRecorder) {
         this.roomRepository = roomRepository;
         this.roomNotifier = roomNotifier;
         this.wordRelationChecker = wordRelationChecker;
@@ -127,6 +134,8 @@ public class GameApplicationService implements
         this.phaseScheduler = phaseScheduler;
         this.scoringPolicy = scoringPolicy;
         this.wordSubmissionRateLimiter = wordSubmissionRateLimiter;
+        this.dailyStreakTracker = dailyStreakTracker;
+        this.dailyLeaderboardRecorder = dailyLeaderboardRecorder;
     }
 
     @Override
@@ -157,11 +166,16 @@ public class GameApplicationService implements
         String code = generateUniqueRoomCode();
         String hostId = UUID.randomUUID().toString();
         String hostToken = UUID.randomUUID().toString();
-        // A solo daily room has nobody else to show a name (or an avatar)
-        // to, so the player never picks either — every daily room's sole
-        // player is named "#" and given a fixed avatar seed rather than
-        // taking arbitrary client input here.
-        Player host = Player.host(hostId, hostToken, DAILY_PLAYER_NAME, DAILY_PLAYER_AVATAR_SEED);
+        // A solo daily room has nobody else to show a name to, so a guest
+        // player never picks one — falls back to "#" exactly as before. A
+        // logged-in player instead gets their own account username, so
+        // their result later shows their real name rather than "#". Either
+        // way there's still nobody else to show an avatar to, so the fixed
+        // avatar seed is unconditional.
+        String playerName = command.authenticatedUsername() != null
+                ? command.authenticatedUsername()
+                : DAILY_PLAYER_NAME;
+        Player host = Player.host(hostId, hostToken, playerName, DAILY_PLAYER_AVATAR_SEED);
 
         long seed = DailySeed.seedFor(DailySeed.today(), command.language());
         List<WordSet> phaseWordSets =
@@ -492,9 +506,48 @@ public class GameApplicationService implements
         } else if (round.infiltratorPlayerIds().isEmpty()) {
             room.finishCooperatively(Instant.now());
             phaseScheduler.cancel(room.code());
+            recordDailyCompletionIfApplicable(room);
         } else {
             advanceFromWordChainToVoting(room, round);
         }
+    }
+
+    /**
+     * A daily challenge always ends via the no-infiltrator branch above
+     * (see RoomSettings.daily), never via revealRound/loseToInfiltrator, so
+     * this is the one place a completed daily run can be observed. Guests
+     * play under the fixed "#" name (see DAILY_PLAYER_NAME) rather than a
+     * real account, so only a logged-in host's completion is ever reported.
+     */
+    private void recordDailyCompletionIfApplicable(Room room) {
+        if (!room.settings().daily()) {
+            return;
+        }
+        String hostName = room.findPlayer(room.hostPlayerId()).map(Player::name).orElse(null);
+        if (hostName != null && !DAILY_PLAYER_NAME.equals(hostName)) {
+            dailyStreakTracker.recordDailyCompletion(hostName);
+            recordDailyLeaderboardResult(hostName, room);
+        }
+    }
+
+    /**
+     * Word count/accuracy are computed the same way the frontend's reveal
+     * screen does (mean relatednessToPrevious across every ACCEPTED attempt
+     * of the whole chain) — this is the first server-side consumer of that
+     * figure, needed so the leaderboard can rank without trusting a
+     * client-submitted number.
+     */
+    private void recordDailyLeaderboardResult(String hostName, Room room) {
+        List<ChainAttempt> acceptedAttempts = room.round().attempts().stream()
+                .filter(attempt -> attempt.outcome() == AttemptOutcome.ACCEPTED)
+                .toList();
+        if (acceptedAttempts.isEmpty()) {
+            return;
+        }
+        int wordCount = acceptedAttempts.size();
+        int totalRelatedness = acceptedAttempts.stream().mapToInt(ChainAttempt::relatednessToPrevious).sum();
+        int accuracyPercent = Math.round((float) totalRelatedness / wordCount);
+        dailyLeaderboardRecorder.recordResult(hostName, wordCount, accuracyPercent);
     }
 
     /**

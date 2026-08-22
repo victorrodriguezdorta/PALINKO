@@ -1,5 +1,5 @@
 <template>
-  <section class="cartoon-card" :style="cssVars">
+  <section class="cartoon-card" :class="{ 'cartoon-card--simple': simple }" :style="cssVars">
     <div class="cartoon-card__blob" aria-hidden="true" />
     <div class="cartoon-card__body">
       <h2 v-if="$slots.title" class="cartoon-card__title">
@@ -19,9 +19,14 @@ import { THEME_COLORS } from '@/assets/theme'
 const props = withDefaults(
   defineProps<{
     accent?: string
+    // Plain white rounded-rectangle card with no blob edge, hover lift, or
+    // accent border/shadow — used where the content itself (e.g. a login
+    // form) should read as a neutral surface rather than a playful one.
+    simple?: boolean
   }>(),
   {
     accent: THEME_COLORS.accent500,
+    simple: false,
   },
 )
 
@@ -38,6 +43,30 @@ const cssVars = computed(() => ({
   isolation: isolate;
   height: 100%;
   padding: 0.35rem;
+}
+
+.cartoon-card--simple {
+  padding: 0;
+}
+
+.cartoon-card--simple .cartoon-card__blob {
+  border-radius: 1.5rem;
+  border: none;
+  box-shadow: 0 2px 12px -4px color-mix(in srgb, var(--color-gray-900) 20%, transparent);
+  transition: none;
+}
+
+.cartoon-card--simple:hover {
+  transform: none;
+}
+
+.cartoon-card--simple:hover .cartoon-card__blob {
+  border-radius: 1.5rem;
+  box-shadow: 0 2px 12px -4px color-mix(in srgb, var(--color-gray-900) 20%, transparent);
+}
+
+.cartoon-card--simple .cartoon-card__title {
+  text-shadow: none;
 }
 
 /* Wavy, "blobby" edge: a static oversized asymmetric border-radius shape

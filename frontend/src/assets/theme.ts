@@ -19,4 +19,7 @@ export const THEME_COLORS = {
   brand500: '#465fff',
   brand700: '#2a31d8',
   bgSky300: '#a9c1ff',
+  streak300: '#fdba8c',
+  streak500: '#ea580c',
+  streak700: '#9a3412',
 } as const

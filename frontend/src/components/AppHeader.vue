@@ -16,40 +16,84 @@
       <img :src="logoUrl" :alt="title" class="app-header__logo" />
     </h1>
 
-    <div class="app-header__right">
+    <div ref="rightRef" class="app-header__right">
+      <div class="app-header__controls" :class="{ 'app-header__controls--open': settingsOpen }">
+        <button
+          type="button"
+          class="app-header__mute"
+          :aria-label="isMuted ? 'Unmute sound' : 'Mute sound'"
+          @click="toggleMuted"
+        >
+          <VolumeX v-if="isMuted" :size="18" aria-hidden="true" />
+          <Volume2 v-else :size="18" aria-hidden="true" />
+        </button>
+
+        <LanguageSelector
+          v-if="showLanguageSelector"
+          class="app-header__lang"
+          :model-value="modelValue"
+          :options="options"
+          :ariaLabel="languageAriaLabel"
+          @update:model-value="$emit('update:modelValue', $event)"
+        />
+        <span v-else class="app-header__spacer" aria-hidden="true" />
+      </div>
+
       <button
         type="button"
-        class="app-header__mute"
-        :aria-label="isMuted ? 'Unmute sound' : 'Mute sound'"
-        @click="toggleMuted"
+        class="app-header__settings"
+        aria-haspopup="true"
+        :aria-expanded="settingsOpen"
+        aria-label="Settings"
+        @click="settingsOpen = !settingsOpen"
       >
-        <VolumeX v-if="isMuted" :size="18" aria-hidden="true" />
-        <Volume2 v-else :size="18" aria-hidden="true" />
+        <Settings :size="18" aria-hidden="true" />
       </button>
 
-      <LanguageSelector
-        v-if="showLanguageSelector"
-        class="app-header__lang"
-        :model-value="modelValue"
-        :options="options"
-        :ariaLabel="languageAriaLabel"
-        @update:model-value="$emit('update:modelValue', $event)"
-      />
-      <span v-else class="app-header__spacer" aria-hidden="true" />
+      <template v-if="showAuth">
+        <button
+          v-if="!user"
+          type="button"
+          class="app-header__login"
+          @click="$emit('login-click')"
+        >
+          {{ loginLabel }}
+        </button>
+        <UserMenu
+          v-else
+          :user="user"
+          :profile-label="profileLabel"
+          :logout-label="logoutLabel"
+          @profile-click="$emit('profile-click')"
+          @logout-click="$emit('logout-click')"
+        />
+      </template>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, Volume2, VolumeX } from 'lucide-vue-next'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { ArrowLeft, Settings, Volume2, VolumeX } from 'lucide-vue-next'
 import CartoonButton from '@/components/CartoonButton.vue'
 import LanguageSelector from '@/components/LanguageSelector.vue'
+import UserMenu from '@/components/UserMenu.vue'
 import type { LanguageOption } from '@/i18n/languages'
+import type { AuthUser } from '@/types/user'
 import logoUrl from '@/assets/images/logo.svg'
 import { THEME_COLORS } from '@/assets/theme'
 import { useSound } from '@/composables/useSound'
 
 const { isMuted, toggleMuted } = useSound()
+const settingsOpen = ref(false)
+const rightRef = ref<HTMLElement | null>(null)
+
+function onClickOutside(event: MouseEvent) {
+  if (rightRef.value && !rightRef.value.contains(event.target as Node)) settingsOpen.value = false
+}
+
+onMounted(() => document.addEventListener('click', onClickOutside))
+onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
 
 withDefaults(
   defineProps<{
@@ -61,6 +105,14 @@ withDefaults(
     options?: LanguageOption[]
     languageAriaLabel?: string
     centerLogo?: boolean
+    user?: AuthUser | null
+    loginLabel?: string
+    profileLabel?: string
+    logoutLabel?: string
+    // Hides the whole login/user-menu slot — used inside an active game
+    // (see RoomView/PlayerSetupView), where signing in/out mid-game makes
+    // no sense and there is no login-click handler wired up anyway.
+    showAuth?: boolean
   }>(),
   {
     showLanguageSelector: false,
@@ -70,12 +122,20 @@ withDefaults(
     options: () => [],
     languageAriaLabel: '',
     centerLogo: false,
+    user: null,
+    loginLabel: 'Log in',
+    profileLabel: 'My profile',
+    logoutLabel: 'Log out',
+    showAuth: true,
   },
 )
 
 defineEmits<{
   'update:modelValue': [value: string]
   back: []
+  'login-click': []
+  'profile-click': []
+  'logout-click': []
 }>()
 
 const headerWaveStyle = {
@@ -177,6 +237,13 @@ const headerWaveStyle = {
   align-items: center;
   gap: 0.6rem;
   flex-shrink: 0;
+  position: relative;
+}
+
+.app-header__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 .app-header__mute {
@@ -204,5 +271,85 @@ const headerWaveStyle = {
 .app-header__lang,
 .app-header__spacer {
   flex-shrink: 0;
+}
+
+.app-header__settings {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  border: 2px solid color-mix(in srgb, var(--color-white) 40%, transparent);
+  background: transparent;
+  color: var(--color-white);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+.app-header__settings:hover {
+  background: color-mix(in srgb, var(--color-white) 15%, transparent);
+  transform: scale(1.08);
+}
+
+.app-header__login {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  margin-top: 0.35rem;
+  border: 3px solid var(--color-black);
+  border-radius: 1.1rem;
+  background: var(--color-white);
+  padding: 0.55rem 1.25rem;
+  box-shadow: 0 4px 0 var(--color-brand-200);
+  color: var(--color-brand-700);
+  font-family: 'Fredoka', 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition:
+    transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.15s ease;
+}
+
+.app-header__login:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 0 var(--color-brand-200);
+}
+
+.app-header__login:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 2px 0 var(--color-brand-200);
+}
+
+/* Mobile: the mute + language controls collapse behind a single settings
+   button so they don't crowd the header next to the (now larger) login
+   button — opening it reveals them in a dropdown instead. */
+@media (max-width: 639px) {
+  .app-header__controls {
+    position: absolute;
+    top: calc(100% + 0.6rem);
+    right: 0;
+    z-index: 20;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.5rem;
+    border: 3px solid var(--color-black);
+    border-radius: 1rem;
+    background: var(--color-secondary-700);
+    box-shadow: 0 6px 0 var(--color-brand-200);
+    display: none;
+  }
+
+  .app-header__controls--open {
+    display: flex;
+  }
+
+  .app-header__settings {
+    display: flex;
+  }
 }
 </style>

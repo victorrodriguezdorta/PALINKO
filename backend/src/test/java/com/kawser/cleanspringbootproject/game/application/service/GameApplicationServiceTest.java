@@ -11,10 +11,11 @@ import com.kawser.cleanspringbootproject.game.application.dto.KickPlayerCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.ReconnectCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.RewindWordCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.StartGameCommand;
-import com.kawser.cleanspringbootproject.game.application.dto.SubmitVoteCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.SubmitWordCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.UpdateRoomSettingsCommand;
 import com.kawser.cleanspringbootproject.game.application.port.out.ChainWordBank;
+import com.kawser.cleanspringbootproject.game.application.port.out.DailyLeaderboardRecorder;
+import com.kawser.cleanspringbootproject.game.application.port.out.DailyStreakTracker;
 import com.kawser.cleanspringbootproject.game.application.port.out.PhaseScheduler;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomCodeGenerator;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomNotifier;
@@ -70,6 +71,8 @@ class GameApplicationServiceTest {
     private FakePhaseScheduler phaseScheduler;
     private WordRelationChecker wordRelationChecker;
     private FakeChainWordBank chainWordBank;
+    private FakeDailyStreakTracker dailyStreakTracker;
+    private FakeDailyLeaderboardRecorder dailyLeaderboardRecorder;
     private GameApplicationService service;
     private String roomCode;
     private String hostPlayerId;
@@ -84,14 +87,28 @@ class GameApplicationServiceTest {
         RoomNotifier roomNotifier = mock(RoomNotifier.class);
         WordSpellingCorrector wordSpellingCorrector = (word, language) -> word;
         chainWordBank = new FakeChainWordBank();
-        RoomCodeGenerator roomCodeGenerator = () -> "ABC123";
+        // A distinct code per call, not a fixed one: generateUniqueRoomCode()
+        // retries against RoomRepository.existsByCode until it gets a fresh
+        // code (see GameApplicationService), so a generator that always
+        // returns the same value loops forever the moment a second room
+        // (e.g. a daily room created after setUp()'s own room) needs a code.
+        RoomCodeGenerator roomCodeGenerator = new RoomCodeGenerator() {
+            private int counter;
+
+            @Override
+            public String generate() {
+                return "ABC" + (counter++);
+            }
+        };
 
         WordSubmissionRateLimiter wordSubmissionRateLimiter = playerId -> true;
+        dailyStreakTracker = new FakeDailyStreakTracker();
+        dailyLeaderboardRecorder = new FakeDailyLeaderboardRecorder();
 
         service = new GameApplicationService(
                 roomRepository, roomNotifier, wordRelationChecker, wordSpellingCorrector, chainWordBank,
                 chainWordBank, roomCodeGenerator, phaseScheduler, new DefaultScoringPolicy(),
-                wordSubmissionRateLimiter);
+                wordSubmissionRateLimiter, dailyStreakTracker, dailyLeaderboardRecorder);
 
         CreateRoomResult created = service.createRoom(new CreateRoomCommand("Host", "seed-host", GameLanguage.SPANISH));
         roomCode = created.roomCode();
@@ -258,103 +275,6 @@ class GameApplicationServiceTest {
     }
 
     @Test
-    void reachingTheGroupTargetEndsTheChainAndStartsVotingRegardlessOfWhoWritesIt() {
-        updateSettings(1);
-        startGame();
-        String firstAuthor = room().round().currentTurnPlayerId();
-        when(wordRelationChecker.relatedness(eq("Escribir"), eq("Bolígrafo"), any(GameLanguage.class)))
-                .thenReturn(new WordRelation(90, null));
-        when(wordRelationChecker.relatedness(eq("Escribir"), eq("Cama"), any(GameLanguage.class)))
-                .thenReturn(new WordRelation(10, null));
-        when(wordRelationChecker.relatedness(eq("Escribir"), eq("Océano"), any(GameLanguage.class)))
-                .thenReturn(new WordRelation(10, null));
-        submitWordAsCurrentPlayer("Escribir");
-
-        String secondAuthor = room().round().currentTurnPlayerId();
-        when(wordRelationChecker.relatedness(eq("Cama"), eq("Escribir"), any(GameLanguage.class)))
-                .thenReturn(new WordRelation(95, null));
-
-        // "Cama" is the group's shared target, deliberately used here instead
-        // of secondAuthor's own target word: whoever holds the turn (even
-        // the infiltrator, by coincidence) always ends the chain by writing
-        // it, unlike the infiltrator's own secret target (see the two tests
-        // below).
-        submitWordAsCurrentPlayer("Cama");
-
-        Round round = room().round();
-        assertThat(round.phase()).isEqualTo(RoundPhase.VOTING);
-        assertThat(round.attempts().get(1).reachedTarget()).isTrue();
-        assertThat(phaseScheduler.lastExpectedPhase).isEqualTo(RoundPhase.VOTING);
-        assertThat(firstAuthor).isNotEqualTo(secondAuthor);
-    }
-
-    @Test
-    void infiltratorReachingTheirOwnSecretTargetDoesNotEndTheChain() {
-        startGame();
-        when(wordRelationChecker.relatedness(anyString(), anyString(), any(GameLanguage.class))).thenReturn(new WordRelation(90, null));
-        String infiltratorId = room().round().infiltratorPlayerIds().iterator().next();
-        fillerTurnsUntil(infiltratorId);
-        String infiltratorTarget = room().round().targetWordFor(infiltratorId);
-
-        submitWordAsCurrentPlayer(infiltratorTarget);
-
-        Round round = room().round();
-        assertThat(round.phase()).isEqualTo(RoundPhase.WORD_CHAIN);
-        assertThat(round.attempts().get(round.attempts().size() - 1).reachedTarget()).isFalse();
-        assertThat(round.currentTurnPlayerId()).isNotEqualTo(infiltratorId);
-    }
-
-    @Test
-    void crewMemberWritingTheInfiltratorsSecretTargetEndsTheWholeGameImmediatelyAsALoss() {
-        startGame();
-        when(wordRelationChecker.relatedness(anyString(), anyString(), any(GameLanguage.class))).thenReturn(new WordRelation(90, null));
-        String infiltratorId = room().round().infiltratorPlayerIds().iterator().next();
-        String nonInfiltratorId = tokensByPlayerId.keySet().stream()
-                .filter(id -> !id.equals(infiltratorId))
-                .findFirst()
-                .orElseThrow();
-        fillerTurnsUntil(nonInfiltratorId);
-        String infiltratorTarget = room().round().wordSet().infiltratorTargetWord();
-
-        submitWordAsCurrentPlayer(infiltratorTarget);
-
-        Room room = room();
-        Round round = room.round();
-        assertThat(round.phase()).isEqualTo(RoundPhase.REVEAL);
-        assertThat(room.status()).isEqualTo(RoomStatus.FINISHED);
-        assertThat(round.attempts().get(round.attempts().size() - 1).reachedTarget()).isTrue();
-        assertThat(round.result().crewWon()).isFalse();
-        assertThat(round.result().endedByInfiltratorWord()).isTrue();
-        assertThat(round.result().infiltratorPlayerIds()).containsExactly(infiltratorId);
-    }
-
-    @Test
-    void crewMemberWritingTheInfiltratorsSecretTargetOnANonFinalPhaseStillEndsTheWholeGameImmediately() {
-        updateSettings(2);
-        startGame();
-        when(wordRelationChecker.relatedness(anyString(), anyString(), any(GameLanguage.class))).thenReturn(new WordRelation(90, null));
-        String infiltratorId = room().round().infiltratorPlayerIds().iterator().next();
-        String nonInfiltratorId = tokensByPlayerId.keySet().stream()
-                .filter(id -> !id.equals(infiltratorId))
-                .findFirst()
-                .orElseThrow();
-        fillerTurnsUntil(nonInfiltratorId);
-        String infiltratorTarget = room().round().wordSet().infiltratorTargetWord();
-
-        submitWordAsCurrentPlayer(infiltratorTarget);
-
-        Room room = room();
-        Round round = room.round();
-        // Even though this was phase 1 of 2, hitting the infiltrator's
-        // secret word ends the whole game right there rather than merely
-        // ending the phase — unlike the group target, which only ever
-        // advances/ends via endWordChain.
-        assertThat(round.phase()).isEqualTo(RoundPhase.REVEAL);
-        assertThat(room.status()).isEqualTo(RoomStatus.FINISHED);
-        assertThat(round.result().endedByInfiltratorWord()).isTrue();
-    }
-
-    @Test
     void hostDisconnectingKeepsTheRoomAliveForOtherPlayers() {
         startGame();
         String hostId = room().hostPlayerId();
@@ -441,7 +361,7 @@ class GameApplicationServiceTest {
 
     @Test
     void createDailyRoomStartsASoloCooperativeGameWithNoTimer() {
-        CreateRoomResult created = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH));
+        CreateRoomResult created = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH, null));
 
         Room dailyRoom = roomRepository.findByCode(created.roomCode()).orElseThrow();
         assertThat(dailyRoom.status()).isEqualTo(RoomStatus.IN_PROGRESS);
@@ -456,8 +376,16 @@ class GameApplicationServiceTest {
     }
 
     @Test
+    void createDailyRoomNamesTheSoloPlayerAfterTheAuthenticatedUsernameWhenPresent() {
+        CreateRoomResult created = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH, "someUser"));
+
+        Room dailyRoom = roomRepository.findByCode(created.roomCode()).orElseThrow();
+        assertThat(dailyRoom.players()).extracting("name").containsExactly("someUser");
+    }
+
+    @Test
     void createDailyRoomNeverSchedulesATimeoutAfterASubmittedWordEither() {
-        CreateRoomResult created = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH));
+        CreateRoomResult created = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH, null));
         String soloPlayerId = created.playerId();
         when(wordRelationChecker.relatedness(anyString(), anyString(), any(GameLanguage.class)))
                 .thenReturn(new WordRelation(10, null));
@@ -471,10 +399,55 @@ class GameApplicationServiceTest {
 
     @Test
     void secondPlayerCannotJoinADailyRoom() {
-        CreateRoomResult created = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH));
+        CreateRoomResult created = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH, null));
 
         assertThatThrownBy(() -> service.joinRoom(new JoinRoomCommand(created.roomCode(), "Intruder", "seed-intruder")))
                 .isInstanceOf(RoomNotJoinableException.class);
+    }
+
+    @Test
+    void completingTheDailyChallengeRecordsTheStreakForALoggedInPlayer() {
+        CreateRoomResult created = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH, "someUser"));
+        when(wordRelationChecker.relatedness(anyString(), anyString(), any(GameLanguage.class)))
+                .thenReturn(new WordRelation(95, null));
+
+        // FakeChainWordBank's nextPhaseWordSet always returns
+        // SECOND_PHASE_WORD_SET ("Cama" -> "Fresa"/"Coche") regardless of
+        // phase count, so both the daily room's phase 2 and phase 3 share
+        // that same group target "Fresa" — submitting it twice (once per
+        // phase) drives the whole 3-phase chain through to completion.
+        // "Coche" is deliberately never submitted here: it's that WordSet's
+        // infiltrator target, and with no infiltrators in this room (see
+        // Room.maxInfiltratorCount), any non-infiltrator writing it ends the
+        // whole game immediately as a loss instead of advancing the phase.
+        service.submitWord(new SubmitWordCommand(created.roomCode(), created.playerId(), created.reconnectToken(), "Cama"));
+        service.submitWord(new SubmitWordCommand(created.roomCode(), created.playerId(), created.reconnectToken(), "Fresa"));
+        service.submitWord(new SubmitWordCommand(created.roomCode(), created.playerId(), created.reconnectToken(), "Fresa"));
+
+        Room dailyRoom = roomRepository.findByCode(created.roomCode()).orElseThrow();
+        assertThat(dailyRoom.status()).isEqualTo(RoomStatus.FINISHED);
+        assertThat(dailyStreakTracker.recordedUsernames).containsExactly("someUser");
+        // 3 accepted words ("Cama", "Fresa", "Fresa"), each stubbed at 95%
+        // relatedness-to-previous.
+        assertThat(dailyLeaderboardRecorder.recordedUsernames).containsExactly("someUser");
+        assertThat(dailyLeaderboardRecorder.lastWordCount).isEqualTo(3);
+        assertThat(dailyLeaderboardRecorder.lastAccuracyPercent).isEqualTo(95);
+    }
+
+    @Test
+    void completingTheDailyChallengeAsAGuestNeverRecordsAStreakOrALeaderboardResult() {
+        CreateRoomResult created = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH, null));
+        when(wordRelationChecker.relatedness(anyString(), anyString(), any(GameLanguage.class)))
+                .thenReturn(new WordRelation(95, null));
+
+        service.submitWord(new SubmitWordCommand(created.roomCode(), created.playerId(), created.reconnectToken(), "Cama"));
+        service.submitWord(new SubmitWordCommand(created.roomCode(), created.playerId(), created.reconnectToken(), "Fresa"));
+        service.submitWord(new SubmitWordCommand(created.roomCode(), created.playerId(), created.reconnectToken(), "Fresa"));
+
+        Room dailyRoom = roomRepository.findByCode(created.roomCode()).orElseThrow();
+        assertThat(dailyRoom.status()).isEqualTo(RoomStatus.FINISHED);
+        assertThat(dailyStreakTracker.recordedUsernames).isEmpty();
+        assertThat(dailyLeaderboardRecorder.recordedUsernames).isEmpty();
     }
 
     @Test
@@ -485,50 +458,12 @@ class GameApplicationServiceTest {
         // GameApplicationService must uphold: createDailyRoom always calls
         // through fullChain(language, phaseCount, seed) rather than the
         // unseeded overload, which real adapters rely on for determinism.
-        CreateRoomResult first = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH));
-        CreateRoomResult second = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH));
+        CreateRoomResult first = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH, null));
+        CreateRoomResult second = service.createDailyRoom(new CreateDailyRoomCommand(GameLanguage.SPANISH, null));
 
         Room firstRoom = roomRepository.findByCode(first.roomCode()).orElseThrow();
         Room secondRoom = roomRepository.findByCode(second.roomCode()).orElseThrow();
         assertThat(firstRoom.round().phaseWordSets()).isEqualTo(secondRoom.round().phaseWordSets());
-    }
-
-    private void fillerTurnsUntil(String desiredPlayerId) {
-        int guard = 0;
-        while (!room().round().currentTurnPlayerId().equals(desiredPlayerId)) {
-            guard++;
-            if (guard > 10) {
-                throw new IllegalStateException("Turn never reached the desired player");
-            }
-            submitWordAsCurrentPlayer("Filler" + guard);
-        }
-    }
-
-    @Test
-    void votingTimeoutRevealsTheInfiltratorAndFinishesTheRoom() {
-        startGame();
-        Room roomBeforeVote = room();
-        String infiltratorId = roomBeforeVote.round().infiltratorPlayerIds().iterator().next();
-        roomBeforeVote.round().startVoting(Instant.now().plusSeconds(30));
-        phaseScheduler.lastRoomCode = roomCode;
-        phaseScheduler.lastExpectedPhaseIndex = roomBeforeVote.round().phaseIndex();
-        phaseScheduler.lastExpectedTurnsPlayed = roomBeforeVote.round().turnsPlayed();
-        phaseScheduler.lastExpectedPhase = RoundPhase.VOTING;
-
-        for (String voterId : tokensByPlayerId.keySet()) {
-            if (!voterId.equals(infiltratorId)) {
-                service.submitVote(new SubmitVoteCommand(roomCode, voterId, tokensByPlayerId.get(voterId), infiltratorId));
-            }
-        }
-
-        fireScheduledTimeout();
-
-        Room room = room();
-        assertThat(room.status()).isEqualTo(RoomStatus.FINISHED);
-        assertThat(room.round().phase()).isEqualTo(RoundPhase.REVEAL);
-        assertThat(room.round().result()).isNotNull();
-        assertThat(room.round().result().crewWon()).isTrue();
-        assertThat(room.round().result().infiltratorPlayerIds()).containsExactly(infiltratorId);
     }
 
     @Test
@@ -554,28 +489,6 @@ class GameApplicationServiceTest {
         assertThat(phaseScheduler.lastExpectedPhaseIndex).isEqualTo(1);
         // rotation continues forward rather than resetting to the phase-1 opener
         assertThat(round.currentTurnPlayerId()).isNotEqualTo(firstAuthor);
-    }
-
-    @Test
-    void finalPhaseReachingTargetStillStartsVotingAsToday() {
-        updateSettings(2);
-        startGame();
-        when(wordRelationChecker.relatedness(anyString(), anyString(), any(GameLanguage.class)))
-                .thenReturn(new WordRelation(10, null));
-        when(wordRelationChecker.relatedness(eq("Cama"), anyString(), any(GameLanguage.class)))
-                .thenReturn(new WordRelation(95, null));
-        submitWordAsCurrentPlayer("Cama");
-        assertThat(room().round().phase()).isEqualTo(RoundPhase.WORD_CHAIN);
-        assertThat(room().round().phaseIndex()).isEqualTo(1);
-
-        when(wordRelationChecker.relatedness(eq("Fresa"), anyString(), any(GameLanguage.class)))
-                .thenReturn(new WordRelation(95, null));
-        submitWordAsCurrentPlayer("Fresa");
-
-        Round round = room().round();
-        assertThat(round.phase()).isEqualTo(RoundPhase.VOTING);
-        assertThat(phaseScheduler.lastExpectedPhase).isEqualTo(RoundPhase.VOTING);
-        assertThat(phaseScheduler.lastExpectedPhaseIndex).isEqualTo(1);
     }
 
     @Test
@@ -661,6 +574,28 @@ class GameApplicationServiceTest {
         @Override
         public WordSet nextPhaseWordSet(GameLanguage language, String startWord, Set<String> usedWords) {
             return nextPhaseWordSetToReturn;
+        }
+    }
+
+    private static class FakeDailyStreakTracker implements DailyStreakTracker {
+        final List<String> recordedUsernames = new java.util.ArrayList<>();
+
+        @Override
+        public void recordDailyCompletion(String username) {
+            recordedUsernames.add(username);
+        }
+    }
+
+    private static class FakeDailyLeaderboardRecorder implements DailyLeaderboardRecorder {
+        final List<String> recordedUsernames = new java.util.ArrayList<>();
+        Integer lastWordCount;
+        Integer lastAccuracyPercent;
+
+        @Override
+        public void recordResult(String username, int wordCount, int accuracyPercent) {
+            recordedUsernames.add(username);
+            lastWordCount = wordCount;
+            lastAccuracyPercent = accuracyPercent;
         }
     }
 

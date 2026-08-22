@@ -2,6 +2,8 @@ package com.kawser.cleanspringbootproject.game.infrastructure.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kawser.cleanspringbootproject.game.application.port.out.ChainWordBank;
+import com.kawser.cleanspringbootproject.game.application.port.out.DailyLeaderboardRecorder;
+import com.kawser.cleanspringbootproject.game.application.port.out.DailyStreakTracker;
 import com.kawser.cleanspringbootproject.game.application.port.out.PhaseScheduler;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomCodeGenerator;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomNotifier;
@@ -61,10 +63,12 @@ public class GameApplicationConfig {
             RoomCodeGenerator roomCodeGenerator,
             PhaseScheduler phaseScheduler,
             ScoringPolicy scoringPolicy,
-            WordSubmissionRateLimiter wordSubmissionRateLimiter) {
+            WordSubmissionRateLimiter wordSubmissionRateLimiter,
+            DailyStreakTracker dailyStreakTracker,
+            DailyLeaderboardRecorder dailyLeaderboardRecorder) {
         return new GameApplicationService(
                 roomRepository, roomNotifier, wordRelationChecker, wordSpellingCorrector, groupedChainWordBank,
                 curatedDailyChainWordBank, roomCodeGenerator, phaseScheduler, scoringPolicy,
-                wordSubmissionRateLimiter);
+                wordSubmissionRateLimiter, dailyStreakTracker, dailyLeaderboardRecorder);
     }
 }

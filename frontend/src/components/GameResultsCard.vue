@@ -33,7 +33,7 @@
       </div>
     </div>
 
-    <div class="results-card__section">
+    <div v-if="!isDaily" class="results-card__section">
       <h3 class="results-card__heading">{{ t('room.reveal.finalScoreHeading') }}</h3>
       <ol class="results-card__scores">
         <li
@@ -68,6 +68,7 @@ const props = defineProps<{
   chain: ChainView & { reveal: NonNullable<ChainView['reveal']> }
   sortedByScore: PlayerView[]
   averageAccuracyPercent: number | null
+  isDaily?: boolean
 }>()
 
 const { t } = useI18n()

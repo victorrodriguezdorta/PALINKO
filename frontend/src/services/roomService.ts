@@ -1,6 +1,6 @@
-import { isAxiosError } from 'axios'
 import apiClient from './apiClient'
-import type { ApiError, GameLanguage, RoomJoinedResponse } from '@/types/game'
+import { toApiError } from './apiError'
+import type { GameLanguage, RoomJoinedResponse } from '@/types/game'
 
 export interface CreateRoomPayload {
   hostName: string
@@ -10,21 +10,6 @@ export interface CreateRoomPayload {
 
 export interface CreateDailyRoomPayload {
   language: GameLanguage
-}
-
-/**
- * Normalizes any create/join failure into an ApiError so callers can
- * translate it the same way regardless of source: the backend's own
- * {code, message, args} body when present (see GameErrorMessage), or a
- * generic client-side fallback for anything else (network failure,
- * unexpected 5xx, a body that isn't shaped like an ApiError).
- */
-function toApiError(error: unknown): ApiError {
-  if (isAxiosError(error) && error.response?.data?.code) {
-    const data = error.response.data as ApiError
-    return { code: data.code, message: data.message, args: data.args ?? {} }
-  }
-  return { code: 'GENERIC', message: 'Request failed', args: {} }
 }
 
 export async function createRoom(payload: CreateRoomPayload): Promise<RoomJoinedResponse> {

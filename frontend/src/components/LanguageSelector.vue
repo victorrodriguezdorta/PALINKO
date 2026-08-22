@@ -4,14 +4,15 @@
       type="button"
       class="lang-select__trigger"
       :aria-label="ariaLabel"
+      :title="selectedLabel"
       aria-haspopup="listbox"
       :aria-expanded="isOpen"
       @click="toggle"
       @keydown="onTriggerKeydown"
     >
-      <Globe class="lang-select__icon" :size="16" aria-hidden="true" />
-      <span class="lang-select__label">{{ selectedLabel }}</span>
-      <ChevronDown class="lang-select__chevron" :size="14" aria-hidden="true" />
+      <span class="lang-select__flag" aria-hidden="true">
+        <img v-if="selectedFlagSrc" :src="selectedFlagSrc" alt="" class="lang-select__flag-img" />
+      </span>
     </button>
 
     <Transition name="lang-panel">
@@ -25,8 +26,11 @@
           :aria-selected="option.locale === modelValue"
           @click="select(option.locale)"
         >
-          <Check v-if="option.locale === modelValue" class="lang-select__check" :size="14" aria-hidden="true" />
+          <span class="lang-select__flag lang-select__flag--option" aria-hidden="true">
+            <img :src="flagSrc(option.locale)" alt="" class="lang-select__flag-img" />
+          </span>
           <span>{{ option.label }}</span>
+          <Check v-if="option.locale === modelValue" class="lang-select__check" :size="14" aria-hidden="true" />
         </li>
       </ul>
     </Transition>
@@ -35,8 +39,15 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { Globe, ChevronDown, Check } from 'lucide-vue-next'
+import { Check } from 'lucide-vue-next'
 import type { LanguageOption } from '@/i18n/languages'
+import esFlag from '@/assets/images/es.svg'
+import gbFlag from '@/assets/images/gb.svg'
+
+const FLAG_SRC_BY_LOCALE: Record<string, string> = {
+  es: esFlag,
+  en: gbFlag,
+}
 
 const props = defineProps<{
   modelValue: string
@@ -51,9 +62,13 @@ const emit = defineEmits<{
 const root = ref<HTMLElement | null>(null)
 const isOpen = ref(false)
 
-const selectedLabel = computed(
-  () => props.options.find((option) => option.locale === props.modelValue)?.label ?? '',
-)
+const selectedOption = computed(() => props.options.find((option) => option.locale === props.modelValue))
+const selectedLabel = computed(() => selectedOption.value?.label ?? '')
+const selectedFlagSrc = computed(() => flagSrc(selectedOption.value?.locale))
+
+function flagSrc(locale: string | undefined): string | undefined {
+  return locale ? FLAG_SRC_BY_LOCALE[locale] : undefined
+}
 
 function toggle() {
   isOpen.value = !isOpen.value
@@ -89,55 +104,53 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
 .lang-select__trigger {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  border: 3px solid var(--color-black);
-  border-radius: 1rem;
-  background: var(--color-white);
-  padding: 0.4rem 0.7rem;
-  box-shadow: 0 4px 0 var(--color-brand-200);
-  color: var(--color-brand-700);
-  font-family: 'Fredoka', 'Outfit', sans-serif;
-  font-weight: 600;
-  font-size: 0.95rem;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  border: 2px solid color-mix(in srgb, var(--color-white) 40%, transparent);
+  background: transparent;
   cursor: pointer;
   transition:
-    transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.15s ease;
+    transform 0.15s ease,
+    background 0.15s ease;
 }
 
 .lang-select__trigger:hover {
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 6px 0 var(--color-brand-200);
-}
-
-.lang-select__trigger:active {
-  transform: translateY(1px) scale(0.98);
-  box-shadow: 0 2px 0 var(--color-brand-200);
+  background: color-mix(in srgb, var(--color-white) 15%, transparent);
+  transform: scale(1.08);
 }
 
 .lang-select__trigger:focus-visible {
-  outline: 2px solid var(--color-brand-500);
+  outline: 2px solid var(--color-white);
   outline-offset: 2px;
 }
 
 .lang-select--open .lang-select__trigger {
-  box-shadow: 0 2px 0 var(--color-brand-200);
-  transform: translateY(2px);
+  background: color-mix(in srgb, var(--color-white) 15%, transparent);
 }
 
-.lang-select__icon {
-  color: var(--color-brand-500);
+.lang-select__flag {
+  display: inline-flex;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  overflow: hidden;
+  line-height: 1;
+}
+
+.lang-select__flag--option {
+  width: 1.35rem;
+  height: 1.35rem;
   flex-shrink: 0;
 }
 
-.lang-select__chevron {
-  color: var(--color-brand-500);
-  flex-shrink: 0;
-  transition: transform 0.2s ease;
-}
-
-.lang-select--open .lang-select__chevron {
-  transform: rotate(180deg);
+.lang-select__flag-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .lang-select__panel {
@@ -145,7 +158,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
   top: calc(100% + 0.5rem);
   right: 0;
   z-index: 20;
-  min-width: 100%;
+  min-width: max-content;
   margin: 0;
   padding: 0.4rem;
   list-style: none;
@@ -202,7 +215,6 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
 
 @media (prefers-reduced-motion: reduce) {
   .lang-select__trigger,
-  .lang-select__chevron,
   .lang-panel-enter-active,
   .lang-panel-leave-active {
     transition: none;

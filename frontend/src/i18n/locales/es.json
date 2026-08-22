@@ -22,7 +22,11 @@
       "hint": "Una cadena al día, igual para todos. Sin límite de tiempo por turno.",
       "countdown": "Próximo reto en {value}",
       "submit": "Jugar el reto de hoy",
-      "loading": "Cargando..."
+      "loading": "Cargando...",
+      "streak": {
+        "label": "Racha de {count} días",
+        "prefix": "Días de Racha:"
+      }
     },
     "createRoom": {
       "heading": "Crear sala",
@@ -111,6 +115,7 @@
     "title": "Sala {code}",
     "titleDaily": "Reto diario",
     "dailyBanner": "Reto diario",
+    "howToPlayToggle": "¿Cómo jugar?",
     "backToHome": "Volver al inicio",
     "connecting": "Conectando...",
     "joinPrompt": {
@@ -226,6 +231,52 @@
       "justificationLabel": "Justificación"
     }
   },
+  "profile": {
+    "pageTitle": "Tu perfil",
+    "backToHome": "Volver al inicio",
+    "account": {
+      "heading": "Cuenta",
+      "save": "Guardar cambios",
+      "savingLoading": "Guardando...",
+      "saved": "¡Perfil actualizado!"
+    },
+    "password": {
+      "heading": "Cambiar contraseña",
+      "current": "Contraseña actual",
+      "new": "Nueva contraseña",
+      "confirm": "Confirmar nueva contraseña",
+      "save": "Actualizar contraseña",
+      "savingLoading": "Actualizando...",
+      "saved": "¡Contraseña actualizada!"
+    }
+  },
+  "auth": {
+    "pageTitle": "Iniciar sesión",
+    "backToHome": "Volver al inicio",
+    "header": {
+      "login": "Iniciar sesión",
+      "profile": "Mi perfil",
+      "logout": "Cerrar sesión"
+    },
+    "fields": {
+      "username": "Usuario",
+      "email": "Correo electrónico",
+      "password": "Contraseña"
+    },
+    "login": {
+      "tab": "Iniciar sesión",
+      "submit": "Iniciar sesión",
+      "submitLoading": "Iniciando sesión..."
+    },
+    "signup": {
+      "tab": "Registrarse",
+      "submit": "Registrarse",
+      "submitLoading": "Registrando...",
+      "passwordHint": "Al menos 8 caracteres, con letras y números.",
+      "passwordErrorsHeading": "Tu contraseña no cumple estos requisitos:",
+      "success": "¡Cuenta creada! Ya puedes iniciar sesión."
+    }
+  },
   "errors": {
     "GENERIC": "Ha ocurrido un error. Inténtalo de nuevo.",
     "VALIDATION_ERROR": "Los datos introducidos no son válidos.",
@@ -252,10 +303,36 @@
     "NO_REWIND_AVAILABLE": "Ya no puedes usar el rebobinado.",
     "WORD_COMPARISON_FAILED": "Error al comparar las palabras. Inténtalo de nuevo.",
     "WORD_SUBMISSION_RATE_LIMITED": "Estás enviando palabras demasiado rápido. Espera unos segundos.",
-    "WORD_INVALID_CHARACTERS": "Las palabras solo pueden contener letras."
+    "WORD_INVALID_CHARACTERS": "Las palabras solo pueden contener letras.",
+    "EMAIL_ALREADY_EXISTS": "Este correo ya está registrado.",
+    "USERNAME_ALREADY_EXISTS": "Ese nombre de usuario ya está en uso.",
+    "INVALID_CREDENTIALS": "Usuario o contraseña incorrectos.",
+    "INVALID_OTP": "Ese código de verificación no es válido o ha caducado.",
+    "USER_NOT_ENABLED": "Esta cuenta todavía no ha sido verificada.",
+    "USER_ALREADY_VERIFIED": "Esta cuenta ya está verificada.",
+    "USER_NOT_FOUND": "No se encontró ninguna cuenta con ese correo.",
+    "PASSWORDS_DO_NOT_MATCH": "Las contraseñas no coinciden.",
+    "MISSING_RESET_ARGUMENTS": "Rellena todos los campos obligatorios.",
+    "WEAK_PASSWORD": "Tu contraseña no cumple los requisitos de seguridad.",
+    "INVALID_CURRENT_PASSWORD": "Tu contraseña actual es incorrecta.",
+    "passwordRules": {
+      "TOO_SHORT": "Al menos 8 caracteres",
+      "MISSING_LETTER": "Al menos una letra",
+      "MISSING_DIGIT": "Al menos un dígito"
+    }
   },
   "languages": {
     "ENGLISH": "Inglés",
     "SPANISH": "Español"
+  },
+  "leaderboard": {
+    "heading": "Clasificación diaria",
+    "wordsAndAccuracy": "{words} p · {accuracy}%",
+    "empty": "Todavía no hay puntuaciones hoy — ¡sé el primero!",
+    "loginNudge": {
+      "heading": "¿Quieres aparecer aquí?",
+      "text": "Inicia sesión para guardar tu resultado y aparecer en la clasificación.",
+      "cta": "Iniciar sesión"
+    }
   }
 }

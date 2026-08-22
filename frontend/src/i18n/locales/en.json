@@ -22,7 +22,11 @@
       "hint": "One chain a day, the same for everyone. No time limit per turn.",
       "countdown": "Next challenge in {value}",
       "submit": "Play today's challenge",
-      "loading": "Loading..."
+      "loading": "Loading...",
+      "streak": {
+        "label": "{count} day streak",
+        "prefix": "Streak days:"
+      }
     },
     "createRoom": {
       "heading": "Create room",
@@ -111,6 +115,7 @@
     "title": "Room {code}",
     "titleDaily": "Daily challenge",
     "dailyBanner": "Daily challenge",
+    "howToPlayToggle": "How to play?",
     "backToHome": "Back to home",
     "connecting": "Connecting...",
     "joinPrompt": {
@@ -226,6 +231,52 @@
       "justificationLabel": "Justification"
     }
   },
+  "profile": {
+    "pageTitle": "Your profile",
+    "backToHome": "Back to home",
+    "account": {
+      "heading": "Account",
+      "save": "Save changes",
+      "savingLoading": "Saving...",
+      "saved": "Profile updated!"
+    },
+    "password": {
+      "heading": "Change password",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "save": "Update password",
+      "savingLoading": "Updating...",
+      "saved": "Password updated!"
+    }
+  },
+  "auth": {
+    "pageTitle": "Log in",
+    "backToHome": "Back to home",
+    "header": {
+      "login": "Log in",
+      "profile": "My profile",
+      "logout": "Log out"
+    },
+    "fields": {
+      "username": "Username",
+      "email": "Email",
+      "password": "Password"
+    },
+    "login": {
+      "tab": "Log in",
+      "submit": "Log in",
+      "submitLoading": "Logging in..."
+    },
+    "signup": {
+      "tab": "Sign up",
+      "submit": "Sign up",
+      "submitLoading": "Signing up...",
+      "passwordHint": "At least 8 characters, with letters and numbers.",
+      "passwordErrorsHeading": "Your password doesn't meet these requirements:",
+      "success": "Account created! You can log in now."
+    }
+  },
   "errors": {
     "GENERIC": "Something went wrong. Please try again.",
     "VALIDATION_ERROR": "The data you entered isn't valid.",
@@ -252,10 +303,36 @@
     "NO_REWIND_AVAILABLE": "You can't use rewind anymore.",
     "WORD_COMPARISON_FAILED": "Error comparing words. Please try again.",
     "WORD_SUBMISSION_RATE_LIMITED": "You're submitting words too fast. Wait a few seconds.",
-    "WORD_INVALID_CHARACTERS": "Words can only contain letters."
+    "WORD_INVALID_CHARACTERS": "Words can only contain letters.",
+    "EMAIL_ALREADY_EXISTS": "This email is already registered.",
+    "USERNAME_ALREADY_EXISTS": "That username is already taken.",
+    "INVALID_CREDENTIALS": "Incorrect username or password.",
+    "INVALID_OTP": "That verification code is invalid or has expired.",
+    "USER_NOT_ENABLED": "This account hasn't been verified yet.",
+    "USER_ALREADY_VERIFIED": "This account is already verified.",
+    "USER_NOT_FOUND": "No account was found with that email.",
+    "PASSWORDS_DO_NOT_MATCH": "The passwords don't match.",
+    "MISSING_RESET_ARGUMENTS": "Please fill in all the required fields.",
+    "WEAK_PASSWORD": "Your password doesn't meet the strength requirements.",
+    "INVALID_CURRENT_PASSWORD": "Your current password is incorrect.",
+    "passwordRules": {
+      "TOO_SHORT": "At least 8 characters",
+      "MISSING_LETTER": "At least one letter",
+      "MISSING_DIGIT": "At least one digit"
+    }
   },
   "languages": {
     "ENGLISH": "English",
     "SPANISH": "Spanish"
+  },
+  "leaderboard": {
+    "heading": "Daily leaderboard",
+    "wordsAndAccuracy": "{words} w · {accuracy}%",
+    "empty": "No scores yet today — be the first!",
+    "loginNudge": {
+      "heading": "Want to appear here?",
+      "text": "Log in to save your result and show up on the leaderboard.",
+      "cta": "Log in"
+    }
   }
 }
