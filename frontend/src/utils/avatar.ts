@@ -1,4 +1,4 @@
-const DICEBEAR_STYLE_URL = 'https://api.dicebear.com/10.x/micah/svg'
+const DICEBEAR_STYLE_URL = 'https://api.dicebear.com/10.x/critters/svg'
 const STORAGE_KEY = 'human-or-ai:avatar-seed'
 
 export function avatarUrlForSeed(seed: string): string {

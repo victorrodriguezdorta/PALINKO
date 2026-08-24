@@ -4,6 +4,11 @@
     "yourName": "Your name",
     "close": "close",
     "pts": "pts",
+    "notFound": {
+      "title": "Page not found",
+      "message": "The page you're looking for doesn't exist.",
+      "backHome": "Back to home"
+    },
     "footer": {
       "text": "© {year} PALINKO. All rights reserved.",
       "author": "Víctor Rodríguez Dorta",

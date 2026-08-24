@@ -45,6 +45,12 @@ const router = createRouter({
       component: () => import('../views/DebugWordRelationView.vue'),
       meta: { titleKey: 'debug.wordRelation.heading' },
     },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: () => import('../views/NotFoundView.vue'),
+      meta: { titleKey: 'common.notFound.title' },
+    },
   ],
 })
 

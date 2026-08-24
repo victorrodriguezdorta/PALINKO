@@ -4,6 +4,11 @@
     "yourName": "Tu nombre",
     "close": "cerrar",
     "pts": "pts",
+    "notFound": {
+      "title": "Página no encontrada",
+      "message": "La página que buscas no existe.",
+      "backHome": "Volver al inicio"
+    },
     "footer": {
       "text": "© {year} PALINKO. Todos los derechos reservados.",
       "author": "Víctor Rodríguez Dorta",
