@@ -14,6 +14,7 @@
   <img src="https://img.shields.io/badge/Java_21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21" />
   <img src="https://img.shields.io/badge/Spring_Boot_3-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring Boot 3" />
   <img src="https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=socketdotio&logoColor=white" alt="WebSocket / STOMP" />
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white" alt="Maven" />
   <br/>
   <img src="https://img.shields.io/badge/Vue_3-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white" alt="Vue 3" />
@@ -115,6 +116,25 @@ El juego incluye un reto diario en el que todos los jugadores reciben exactament
 iniciales. Esto permite comparar resultados en igualdad de condiciones y descubrir diferentes formas de resolver
 un mismo desafío.
 
+### 👤 Cuentas, rachas y clasificación diaria
+
+PALINKO se puede jugar sin registrarse, pero crear una cuenta desbloquea dos cosas: una **racha diaria** y un
+puesto en la **clasificación** del reto del día.
+
+- **Cuenta y login.** El registro pide usuario, email y contraseña; la contraseña nunca se guarda en texto
+  plano — se almacena como un hash **BCrypt** (con su salt aleatorio incluido). Al iniciar sesión, el servidor
+  compara la contraseña introducida contra ese hash y, si coincide, emite un **JWT** firmado (HMAC-SHA256) que el
+  navegador guarda y reenvía en cada petición para demostrar quién eres, sin que el servidor tenga que recordar
+  sesiones abiertas. Los detalles completos de cómo se cifra y valida cada pieza están en el
+  [README del backend](backend/README.md#-autenticación-y-cifrado).
+- **Racha diaria.** Cada vez que tu cuenta completa el reto diario, tu racha se calcula por días naturales
+  (UTC): completar el reto un día después del último cuenta como +1, completar el mismo día dos veces no suma
+  nada, y dejar pasar más de un día sin jugar reinicia la racha. Se muestra como una llama 🔥 junto a tu perfil y
+  en la clasificación diaria.
+- **Clasificación diaria.** El top 10 de cada día se ordena por **menos palabras usadas** para completar el reto
+  y, en caso de empate, por **mayor precisión semántica** media. Es visible para cualquiera (con o sin cuenta) en
+  la sala del reto diario.
+
 ### ¿Qué hace especial a PALINKO?
 
 PALINKO combina elementos de juegos de palabras, creatividad, asociación de conceptos, Inteligencia Artificial y
@@ -193,6 +213,25 @@ unlimited connection possibilities and near-endless replayability.
 The game includes a daily challenge where every player gets exactly the same starting pair of words for the day,
 so results can be compared on equal footing.
 
+### 👤 Accounts, streaks and the daily leaderboard
+
+You can play PALINKO without an account, but creating one unlocks a **daily streak** and a spot on the daily
+challenge's **leaderboard**.
+
+- **Accounts and login.** Signup asks for a username, email and password; the password is never stored in
+  plain text — it's kept as a **BCrypt** hash (with its random salt embedded). On login, the server compares the
+  submitted password against that hash and, if it matches, issues a signed **JWT** (HMAC-SHA256) that the
+  browser stores and resends with every request to prove who you are, without the server having to keep any
+  session state. Full details on how each piece is hashed/signed/verified live in the
+  [backend README](backend/README.md#-autenticación-y-cifrado).
+- **Daily streak.** Every time your account completes the daily challenge, your streak is tracked by UTC
+  calendar day: completing it the day after your last completion is +1, finishing it twice on the same day is a
+  no-op, and skipping more than one day resets the streak. It's shown as a flame 🔥 next to your profile and on
+  the daily leaderboard.
+- **Daily leaderboard.** Each day's top 10 is ranked by **fewest words used** to complete the challenge, with
+  ties broken by **higher average semantic accuracy**. It's visible to anyone (logged in or not) inside the
+  daily challenge room.
+
 ---
 
 ## 🧠 Cómo razona la IA / How the AI reasons
@@ -261,18 +300,29 @@ pipeline before it's accepted into the chain:
 
 ```
 guessTheAI/
-├── backend/    # Spring Boot API + servidor de juego por WebSocket
-└── frontend/   # SPA Vue 3 + Vite
+├── backend/    # Spring Boot API + servidor de juego por WebSocket — ver backend/README.md
+└── frontend/   # SPA Vue 3 + Vite — ver frontend/README.md
 ```
 
 Cada proyecto tiene su propio tooling — no hay build a nivel raíz. Entra en el directorio correspondiente antes
 de ejecutar los comandos de abajo.
 
+📘 **Documentación detallada por capa:**
+- [`backend/README.md`](backend/README.md) — arquitectura hexagonal por módulos, endpoints, cómo funciona el
+  login/JWT/BCrypt, la lógica exacta de rachas y leaderboard, y el esquema de PostgreSQL.
+- [`frontend/README.md`](frontend/README.md) — estructura de la SPA, cómo se comunica con el backend, y cómo
+  están implementadas las vistas de login, racha y clasificación diaria.
+
 ## 🛠️ Stack técnico
 
 **Backend** — `backend/`
-- Java 21, Spring Boot 3 (Web, WebSocket/STOMP, Validation, Actuator)
+- Java 21, Spring Boot 3 (Web, WebSocket/STOMP, Security, Data JPA, Validation, Mail, Actuator)
 - Arquitectura hexagonal / limpia (`domain` → `application` → `infrastructure`) por slice de funcionalidad
+  (`game`, `user`, `leaderboard`)
+- **PostgreSQL** (vía Spring Data JPA + Flyway) para cuentas, rachas y clasificación diaria — el módulo `game`
+  (salas, turnos) sigue completamente en memoria
+- Autenticación **JWT** (HMAC-SHA256, `com.auth0:java-jwt`) sobre Spring Security stateless, contraseñas
+  cifradas con **BCrypt** — ver [detalle completo](backend/README.md#-autenticación-y-cifrado)
 - LLM para juicio semántico: **Groq** (`llama-3.1-8b-instant`) como proveedor primario, con fallback automático
   a **OpenRouter**
 - Hunspell (vía bindings JNA) para corrección ortográfica local por idioma
@@ -284,12 +334,12 @@ de ejecutar los comandos de abajo.
 **Frontend** — `frontend/`
 - Vue 3 (Composition API) + TypeScript
 - Vite
-- Pinia para gestión de estado
-- Vue Router
+- Pinia para gestión de estado (incluye los stores de sesión y clasificación diaria)
+- Vue Router (con guardas para rutas que requieren sesión iniciada)
 - Tailwind CSS
 - `@stomp/stompjs` + `sockjs-client` para WebSocket/STOMP con el backend
 - vue-i18n (inglés/español)
-- Axios
+- Axios (con el JWT adjunto automáticamente en cada petición)
 
 ## ✅ Requisitos previos
 
@@ -297,8 +347,11 @@ de ejecutar los comandos de abajo.
 - Maven (o usa el wrapper incluido `mvnw` / `mvnw.cmd` — no hace falta Maven instalado)
 - Node.js 18+ (recomendado 20+)
 - npm
+- Una base de datos **PostgreSQL** accesible (local, Docker, o un proveedor gestionado como
+  [Neon](https://neon.tech)) — necesaria para cuentas, rachas y clasificación diaria
 
-No se necesita base de datos — el estado de la partida (salas, rondas, jugadores) vive en memoria en el backend.
+El estado de la partida en sí (salas, turnos, jugadores conectados) vive en memoria en el backend y no toca la
+base de datos; solo las cuentas de usuario y los resultados del reto diario se persisten en PostgreSQL.
 
 ## 🚀 Puesta en marcha
 
@@ -315,13 +368,20 @@ cd guessTheAI
 cd backend
 ```
 
-La configuración vive en `src/main/resources/application.properties`. Las claves de IA se leen de variables de
-entorno (puedes copiar `.env.example` a `.env`):
+La configuración vive en `src/main/resources/application.properties`. Copia `.env.example` a `.env` y rellena, al
+menos, la conexión a PostgreSQL y el secreto JWT:
 
+- `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` — conexión a PostgreSQL (Flyway crea las tablas automáticamente en el
+  primer arranque). Necesaria para poder registrarse/iniciar sesión, ver rachas y la clasificación diaria.
+- `JWT_SECRET` — secreto usado para firmar los JWT de sesión. Usa un valor largo y aleatorio; el valor por
+  defecto solo es seguro en local.
 - `GROQ_API_KEY` — habilita el checker primario (Groq). Sin ella, se usa directamente OpenRouter.
 - `OPENROUTER_API_KEY` — habilita el fallback si Groq falla o no está configurado.
 - `PORT` — puerto del servidor (por defecto `8080`).
 - `APP_CORS_ALLOWED_ORIGINS` — orígenes permitidos para CORS.
+
+Ver el [README del backend](backend/README.md#-configuración-y-arranque) para el resto de variables (SMTP,
+verificación de email) y el detalle de cómo se usan.
 
 Ejecutar el backend:
 
