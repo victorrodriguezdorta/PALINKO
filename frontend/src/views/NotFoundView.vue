@@ -14,11 +14,11 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { THEME_COLORS } from '@/assets/theme'
 import CartoonButton from '@/components/CartoonButton.vue'
 import PlainCard from '@/components/PlainCard.vue'
-import { THEME_COLORS } from '@/assets/theme'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
 const router = useRouter()
