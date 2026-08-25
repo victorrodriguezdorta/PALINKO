@@ -414,7 +414,7 @@ const rejectedFlashes = ref<
 >([])
 const seenRejectedIds = new Set<string>()
 const REJECTED_FLASH_MS = 1000
-const REJECTED_FLASH_WITH_JUSTIFICATION_MS = 4000
+const REJECTED_FLASH_WITH_JUSTIFICATION_MS = 8000
 
 watch(
   () => props.attempts,
