@@ -582,7 +582,7 @@ watch(
 
 @media (min-width: 768px) {
   .chain-board__main {
-    grid-template-columns: minmax(0, 1fr) 14rem minmax(0, 10rem);
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 1.2fr) minmax(0, 10rem);
   }
 
   .chain-board__column,
@@ -762,7 +762,7 @@ watch(
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 0.5rem;
   padding: 0.85rem;
   border-radius: 1.25rem;
@@ -794,6 +794,7 @@ watch(
 .chain-board__turn-actions {
   display: flex;
   align-items: center;
+  align-self: center;
   justify-content: center;
   gap: 0.6rem;
 }
