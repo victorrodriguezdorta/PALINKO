@@ -2,6 +2,7 @@ import { reactive, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { translateError } from '@/i18n'
 import type { ApiError } from '@/types/game'
+import { loadOrCreateAvatarSeed, persistAvatarSeed, randomAvatarSeed } from '@/utils/avatar'
 
 /**
  * Shared login/signup form state and submit handlers, used by LoginView
@@ -18,7 +19,12 @@ export function useAuthForm(onLoginSuccess: () => void) {
   const signupSuccess = ref(false)
 
   const loginForm = reactive({ username: '', password: '' })
-  const signupForm = reactive({ username: '', email: '', password: '' })
+  const signupForm = reactive({ username: '', email: '', password: '', avatarSeed: loadOrCreateAvatarSeed() })
+
+  function shuffleSignupAvatar() {
+    signupForm.avatarSeed = randomAvatarSeed()
+    persistAvatarSeed(signupForm.avatarSeed)
+  }
 
   function resetState() {
     errorMessage.value = ''
@@ -66,6 +72,7 @@ export function useAuthForm(onLoginSuccess: () => void) {
         username: signupForm.username,
         email: signupForm.email,
         password: signupForm.password,
+        avatarSeed: signupForm.avatarSeed,
       })
       signupSuccess.value = true
       // Signup does not auto-login: when email verification is enabled the
@@ -88,6 +95,7 @@ export function useAuthForm(onLoginSuccess: () => void) {
     signupSuccess,
     loginForm,
     signupForm,
+    shuffleSignupAvatar,
     switchTab,
     onLogin,
     onSignup,

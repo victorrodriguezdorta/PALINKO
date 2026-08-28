@@ -1,4 +1,4 @@
 package com.kawser.cleanspringbootproject.user.application.dto;
 
-public record SignupCommand(String username, String email, String password) {
+public record SignupCommand(String username, String email, String password, String avatarSeed) {
 }

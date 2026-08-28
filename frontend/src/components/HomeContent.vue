@@ -62,6 +62,8 @@
 
   <HowToPlayCard />
 
+  <AccountCta />
+
   <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 md:items-start">
     <ShareCard />
     <FeedbackCard />
@@ -82,6 +84,7 @@ import StreakFlame from '@/components/StreakFlame.vue'
 import CartoonButton from '@/components/CartoonButton.vue'
 import CartoonCard from '@/components/CartoonCard.vue'
 import HowToPlayCard from '@/components/HowToPlayCard.vue'
+import AccountCta from '@/components/AccountCta.vue'
 import ShareCard from '@/components/ShareCard.vue'
 import FeedbackCard from '@/components/FeedbackCard.vue'
 import { THEME_COLORS } from '@/assets/theme'

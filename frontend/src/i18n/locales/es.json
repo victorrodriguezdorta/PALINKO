@@ -46,13 +46,36 @@
     "howToPlay": {
       "heading": "¿Cómo jugar?",
       "hint": "Cada jugador dice una palabra relacionada con la anterior, acercándose a la palabra objetivo.",
-      "steps": [
-        { "emoji": "📚", "word": "Libro" },
-        { "emoji": "📖", "word": "Escuela" },
-        { "emoji": "🧑‍🔬", "word": "Biología" },
-        { "emoji": "🌊", "word": "Océano" },
-        { "emoji": "🐠", "word": "Pez" }
+      "goal": "La idea es conseguirlo en el menor número de palabras posible.",
+      "sequences": [
+        [
+          { "emoji": "📚", "word": "Libro" },
+          { "emoji": "📖", "word": "Escuela" },
+          { "emoji": "🧑‍🔬", "word": "Biología" },
+          { "emoji": "🌊", "word": "Océano" },
+          { "emoji": "🐠", "word": "Pez" }
+        ],
+        [
+          { "emoji": "🚗", "word": "Coche" },
+          { "emoji": "⛽", "word": "Gasolina" },
+          { "emoji": "🔥", "word": "Fuego" },
+          { "emoji": "🌋", "word": "Volcán" },
+          { "emoji": "🌍", "word": "Tierra" }
+        ],
+        [
+          { "emoji": "🌱", "word": "Planta" },
+          { "emoji": "🌳", "word": "Árbol" },
+          { "emoji": "🍎", "word": "Fruta" },
+          { "emoji": "🥧", "word": "Tarta" },
+          { "emoji": "🎂", "word": "Cumpleaños" }
+        ]
       ]
+    },
+    "accountCta": {
+      "eyebrow": "Tu progreso cuenta",
+      "heading": "Crea tu cuenta y juega a tu manera",
+      "text": "Guarda tus rachas y aparece en la clasificación diaria para comparar tus mejores partidas.",
+      "cta": "Crear una cuenta"
     },
     "aiValidation": {
       "heading": "Una IA valida cada relación",
@@ -332,7 +355,7 @@
   },
   "leaderboard": {
     "heading": "Clasificación diaria",
-    "wordsAndAccuracy": "{words} p · {accuracy}%",
+    "wordsLabel": "pal.",
     "empty": "Todavía no hay puntuaciones hoy — ¡sé el primero!",
     "loginNudge": {
       "heading": "¿Quieres aparecer aquí?",

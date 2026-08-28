@@ -62,7 +62,8 @@ public class AuthController {
 
     @PostMapping("/auth/signup")
     public ResponseEntity<Void> signup(@RequestBody @Valid SignupRequest request) {
-        signupUseCase.signup(new SignupCommand(request.username(), request.email(), request.password()));
+        signupUseCase.signup(new SignupCommand(
+                request.username(), request.email(), request.password(), request.avatarSeed()));
         return ResponseEntity.ok().build();
     }
 

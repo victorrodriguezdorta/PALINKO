@@ -97,7 +97,10 @@ public class UserApplicationService implements
         }
 
         String passwordHash = passwordHasher.hash(command.password());
-        String avatarSeed = avatarSeedGenerator.generate();
+        String avatarSeed = command.avatarSeed();
+        if (avatarSeed == null || avatarSeed.isBlank()) {
+            avatarSeed = avatarSeedGenerator.generate();
+        }
         boolean emailVerificationEnabled = authProperties.emailVerificationEnabled();
 
         if (emailVerificationEnabled) {

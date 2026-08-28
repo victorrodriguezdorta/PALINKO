@@ -20,7 +20,10 @@
         <StreakFlame v-if="entry.currentStreak > 0" compact :days="entry.currentStreak" />
         <span class="leaderboard-card__name">{{ entry.username }}</span>
         <span class="leaderboard-card__stats">
-          {{ t('leaderboard.wordsAndAccuracy', { words: entry.wordCount, accuracy: entry.accuracyPercent }) }}
+          {{ entry.wordCount + 1 }}
+          <span class="leaderboard-card__words-label">{{ t('leaderboard.wordsLabel') }}</span>
+          <span class="leaderboard-card__separator">·</span>
+          <span class="leaderboard-card__accuracy">{{ entry.accuracyPercent }}%</span>
         </span>
       </li>
     </ol>
@@ -167,5 +170,20 @@ function medalIcon(rank: number) {
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--color-gray-900);
+}
+
+.leaderboard-card__words-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: lowercase;
+}
+
+.leaderboard-card__separator {
+  margin: 0 0.2rem;
+}
+
+.leaderboard-card__accuracy {
+  font-size: 0.9rem;
 }
 </style>

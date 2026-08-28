@@ -84,6 +84,16 @@
           />
         </label>
         <p class="text-xs text-gray-500">{{ t('auth.signup.passwordHint') }}</p>
+        <div class="login-view__avatar-picker">
+          <PlayerAvatar
+            :seed="signupForm.avatarSeed"
+            size="lg"
+            editable
+            :shuffle-label="t('home.avatar.shuffle')"
+            @shuffle="shuffleSignupAvatar"
+          />
+          <p class="text-xs text-gray-500">{{ t('home.avatar.hint') }}</p>
+        </div>
         <CartoonButton
           type="submit"
           block
@@ -111,15 +121,17 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '@/components/AppHeader.vue'
 import CartoonButton from '@/components/CartoonButton.vue'
 import PlainCard from '@/components/PlainCard.vue'
+import PlayerAvatar from '@/components/PlayerAvatar.vue'
 import { THEME_COLORS } from '@/assets/theme'
 import { useAuthForm } from '@/composables/useAuthForm'
 
 const { t } = useI18n()
+const route = useRoute()
 const router = useRouter()
 
 const {
@@ -133,7 +145,10 @@ const {
   switchTab,
   onLogin,
   onSignup,
+  shuffleSignupAvatar,
 } = useAuthForm(() => router.push('/'))
+
+if (route.query.mode === 'signup') switchTab('signup')
 </script>
 
 <style scoped>
@@ -160,5 +175,13 @@ const {
 .login-view__tab--active {
   color: var(--color-gray-900);
   border-bottom-color: var(--color-secondary-500);
+}
+
+.login-view__avatar-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0.25rem;
 }
 </style>

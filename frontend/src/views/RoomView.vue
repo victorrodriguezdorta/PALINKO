@@ -240,14 +240,6 @@
             :is-daily="isDaily"
           />
 
-          <DailyLeaderboardCard
-            v-if="isDaily"
-            class="mb-4"
-            :entries="leaderboardStore.entries"
-            :loading="leaderboardStore.loading"
-            :viewer-username="authStore.user?.username ?? null"
-          />
-
           <CartoonCard v-if="isDaily && !authStore.isAuthenticated" class="mb-4" :accent="THEME_COLORS.secondary500">
             <template #title>{{ t('leaderboard.loginNudge.heading') }}</template>
             <p class="mb-3 text-sm text-gray-600">{{ t('leaderboard.loginNudge.text') }}</p>
@@ -255,6 +247,14 @@
               <CartoonButton :color="THEME_COLORS.secondary500">{{ t('leaderboard.loginNudge.cta') }}</CartoonButton>
             </router-link>
           </CartoonCard>
+
+          <DailyLeaderboardCard
+            v-if="isDaily"
+            class="mb-4"
+            :entries="leaderboardStore.entries"
+            :loading="leaderboardStore.loading"
+            :viewer-username="authStore.user?.username ?? null"
+          />
 
           <div class="flex items-center gap-3">
             <CartoonButton v-if="gameStore.isHost && !isDaily" :color="THEME_COLORS.success500" @click="gameStore.playAgain">

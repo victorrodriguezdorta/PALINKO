@@ -46,13 +46,36 @@
     "howToPlay": {
       "heading": "How to play?",
       "hint": "Each player says a word related to the previous one, getting closer to the target word.",
-      "steps": [
-        { "emoji": "📚", "word": "Book" },
-        { "emoji": "📖", "word": "School" },
-        { "emoji": "🧑‍🔬", "word": "Biology" },
-        { "emoji": "🌊", "word": "Ocean" },
-        { "emoji": "🐠", "word": "Fish" }
+      "goal": "The idea is to reach it using as few words as possible.",
+      "sequences": [
+        [
+          { "emoji": "📚", "word": "Book" },
+          { "emoji": "📖", "word": "School" },
+          { "emoji": "🧑‍🔬", "word": "Biology" },
+          { "emoji": "🌊", "word": "Ocean" },
+          { "emoji": "🐠", "word": "Fish" }
+        ],
+        [
+          { "emoji": "🚗", "word": "Car" },
+          { "emoji": "⛽", "word": "Gasoline" },
+          { "emoji": "🔥", "word": "Fire" },
+          { "emoji": "🌋", "word": "Volcano" },
+          { "emoji": "🌍", "word": "Earth" }
+        ],
+        [
+          { "emoji": "🌱", "word": "Plant" },
+          { "emoji": "🌳", "word": "Tree" },
+          { "emoji": "🍎", "word": "Fruit" },
+          { "emoji": "🥧", "word": "Pie" },
+          { "emoji": "🎂", "word": "Birthday" }
+        ]
       ]
+    },
+    "accountCta": {
+      "eyebrow": "Your progress counts",
+      "heading": "Create an account and play your way",
+      "text": "Keep your streaks and appear on the daily leaderboard to compare your best games.",
+      "cta": "Create an account"
     },
     "aiValidation": {
       "heading": "An AI checks every link",
@@ -332,7 +355,7 @@
   },
   "leaderboard": {
     "heading": "Daily leaderboard",
-    "wordsAndAccuracy": "{words} w · {accuracy}%",
+    "wordsLabel": "word",
     "empty": "No scores yet today — be the first!",
     "loginNudge": {
       "heading": "Want to appear here?",

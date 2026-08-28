@@ -22,6 +22,8 @@
         </template>
       </div>
 
+      <p class="how-to-play__goal">{{ t('home.howToPlay.goal') }}</p>
+
       <div class="how-to-play__ai">
         <h3 class="how-to-play__ai-title">{{ t('home.aiValidation.heading') }}</h3>
         <p class="how-to-play__ai-hint">{{ t('home.aiValidation.hint') }}</p>
@@ -77,7 +79,14 @@ interface WordPair {
 
 const { t, tm } = useI18n()
 
-const steps = tm('home.howToPlay.steps') as { emoji: string; word: string }[]
+interface WordStep {
+  emoji: string
+  word: string
+}
+
+const stepSequences = computed(() => tm('home.howToPlay.sequences') as WordStep[][])
+const sequenceIndex = ref(0)
+const steps = computed(() => stepSequences.value[sequenceIndex.value % stepSequences.value.length])
 
 const rawPairs = computed(() => tm('home.aiValidation.pairs') as WordPair[])
 
@@ -99,15 +108,20 @@ const pairIndex = ref(0)
 const pair = computed(() => pairs.value[pairIndex.value % pairs.value.length])
 
 let pairTimer: ReturnType<typeof setInterval> | undefined
+let sequenceTimer: ReturnType<typeof setInterval> | undefined
 
 onMounted(() => {
   pairTimer = setInterval(() => {
     pairIndex.value += 1
   }, 2600)
+  sequenceTimer = setInterval(() => {
+    sequenceIndex.value += 1
+  }, 5000)
 })
 
 onUnmounted(() => {
   if (pairTimer) clearInterval(pairTimer)
+  if (sequenceTimer) clearInterval(sequenceTimer)
 })
 
 const waveStyle = {
@@ -243,6 +257,19 @@ const waveStyle = {
 
 .how-to-play__arrow-icon--right {
   display: none;
+}
+
+.how-to-play__goal {
+  margin-top: 1.5rem;
+  max-width: 30rem;
+  padding: 0.8rem 1.25rem;
+  border-radius: 0.75rem;
+  background: var(--color-white);
+  color: var(--color-black);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--color-black) 18%, transparent);
 }
 
 /* Runs once per 5s cycle, starting after this element's own animation-delay:
