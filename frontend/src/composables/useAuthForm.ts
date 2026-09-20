@@ -1,8 +1,8 @@
-import { reactive, ref } from 'vue'
-import { useAuthStore } from '@/stores/auth'
 import { translateError } from '@/i18n'
+import { useAuthStore } from '@/stores/auth'
 import type { ApiError } from '@/types/game'
 import { loadOrCreateAvatarSeed, persistAvatarSeed, randomAvatarSeed } from '@/utils/avatar'
+import { reactive, ref } from 'vue'
 
 /**
  * Shared login/signup form state and submit handlers, used by LoginView

@@ -121,14 +121,14 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
+import { THEME_COLORS } from '@/assets/theme'
 import AppHeader from '@/components/AppHeader.vue'
 import CartoonButton from '@/components/CartoonButton.vue'
 import PlainCard from '@/components/PlainCard.vue'
 import PlayerAvatar from '@/components/PlayerAvatar.vue'
-import { THEME_COLORS } from '@/assets/theme'
 import { useAuthForm } from '@/composables/useAuthForm'
+import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 
 const { t } = useI18n()
 const route = useRoute()

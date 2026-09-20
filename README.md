@@ -234,6 +234,106 @@ challenge's **leaderboard**.
 
 ---
 
+## 🔐 Sistema de acceso, autenticación y persistencia
+
+PALINKO mantiene separadas la identidad de una partida y la cuenta de usuario. Se puede crear o unirse a una
+sala como invitado, pero una cuenta permite conservar el perfil, registrar la racha y aparecer en la
+clasificación del reto diario. Las salas, turnos y votos siguen siendo temporales; las cuentas y los resultados
+diarios sí se guardan de forma permanente.
+
+### Flujo de registro e inicio de sesión
+
+1. En `/login`, el usuario puede registrarse con **nombre de usuario, email, contraseña y avatar**, o iniciar
+   sesión con su nombre de usuario y contraseña.
+2. El frontend envía el formulario a `POST /auth/signup` o `POST /auth/login`. Nunca calcula ni almacena hashes
+   de contraseña: esa responsabilidad pertenece exclusivamente al backend.
+3. Durante el registro, el backend valida los datos, comprueba que el nombre de usuario y el email no estén en
+   uso y guarda la contraseña únicamente como un hash **BCrypt**. La contraseña en texto plano no se persiste.
+4. Si la verificación por email está activada, la cuenta queda pendiente hasta que se confirme el código OTP de
+   un solo uso enviado al email (`POST /auth/verify-account`). En desarrollo está desactivada por defecto, por lo
+   que las cuentas nuevas quedan habilitadas inmediatamente.
+5. En el inicio de sesión, Spring Security compara la contraseña recibida con el hash BCrypt almacenado. Si es
+   válida y la cuenta está habilitada, el backend devuelve el perfil público y un JWT.
+
+### Sesión basada en JWT
+
+La aplicación no crea sesiones en el servidor ni usa cookies de sesión. Tras un login correcto, el backend emite
+un **JSON Web Token (JWT)** firmado con **HMAC-SHA256**. El token contiene como `issuer` `palinko-auth`, el nombre
+de usuario como `subject` y una caducidad configurable de **2 horas** por defecto.
+
+- El cliente guarda el token bajo la clave `palinko:auth-token` en `localStorage`, por lo que la sesión sobrevive
+  a una recarga y puede compartirse entre pestañas del mismo navegador.
+- Un interceptor de Axios adjunta `Authorization: Bearer <token>` a las peticiones protegidas.
+- En cada solicitud, `JwtAuthenticationFilter` valida la firma, el emisor y la caducidad antes de cargar al
+  usuario en el contexto de seguridad de Spring. Un token manipulado, inválido o caducado no autentica la
+  petición.
+- Al abrir la aplicación, el store de Pinia recupera el token y consulta `GET /users/me`. Si esa comprobación
+  falla, elimina el token local y la aplicación vuelve al estado de invitado.
+- Las rutas `/profile` y las operaciones de perfil requieren una sesión válida. Si se cambia el nombre de
+  usuario, el backend emite un JWT nuevo porque el nombre forma parte del `subject` del token.
+
+El secreto de firma se configura con `JWT_SECRET`; en producción debe ser largo, aleatorio y mantenerse fuera del
+repositorio. El valor por defecto de desarrollo no debe utilizarse en un despliegue público.
+
+### Datos que se guardan en PostgreSQL
+
+El backend usa **PostgreSQL**, Spring Data JPA y **Flyway**. Flyway ejecuta las migraciones al arrancar y Hibernate
+solo valida el esquema, de modo que la estructura de la base de datos queda versionada en
+`backend/src/main/resources/db/migration/`.
+
+| Tabla | Información persistida | Uso |
+|---|---|---|
+| `users` | Identificador, nombre de usuario, hash BCrypt, rol, email, avatar, estado de verificación, OTP, racha y último día completado | Cuentas, acceso y rachas |
+| `daily_leaderboard_entries` | Usuario, fecha UTC del reto, número de palabras, precisión y fecha de finalización | Clasificación diaria |
+
+Los índices únicos de `users.username` y `users.email` impiden cuentas duplicadas. En la clasificación hay una
+única entrada por usuario y día; un nuevo intento solo reemplaza al anterior si usa menos palabras o, a igualdad
+de palabras, consigue una precisión media mayor. El email y el hash de contraseña no se incluyen nunca en las
+respuestas de perfil al frontend.
+
+Las salas de juego, jugadores conectados, turnos, cadena de palabras y votos no se persisten: viven en memoria y
+se descartan cuando termina o caduca una sala.
+
+### Endpoints de cuenta
+
+| Método | Ruta | Acceso | Finalidad |
+|---|---|---|---|
+| `POST` | `/auth/signup` | Público | Crea una cuenta |
+| `POST` | `/auth/login` | Público | Valida credenciales y devuelve JWT + perfil |
+| `POST` | `/auth/verify-account` | Público | Confirma el OTP de verificación por email |
+| `POST` | `/auth/resend-verification` | Público | Reenvía el código de verificación |
+| `POST` | `/password/request-reset` | Público | Solicita el restablecimiento de contraseña |
+| `POST` | `/password/reset` | Público | Restablece la contraseña con OTP |
+| `GET` | `/users/me` | JWT | Obtiene el perfil de la cuenta autenticada |
+| `PATCH` | `/users/me` | JWT | Actualiza nombre de usuario o avatar y devuelve un JWT renovado |
+| `PUT` | `/users/me/password` | JWT | Cambia la contraseña de la cuenta autenticada |
+
+### Configuración necesaria
+
+Para ejecutar el sistema de cuentas localmente, configura estas variables en `backend/.env` (puedes partir de
+`.env.example`):
+
+```env
+DB_URL=jdbc:postgresql://localhost:5432/palinko
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+JWT_SECRET=replace-with-a-long-random-secret
+JWT_EXPIRATION_SECONDS=7200
+
+# Activa la confirmación de cuentas por email solo si SMTP está configurado.
+EMAIL_VERIFICATION_ENABLED=false
+```
+
+Si se habilita la verificación por email, también deben configurarse `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`,
+`SMTP_PASSWORD` y `APP_FRONTEND_BASE_URL`. El frontend apunta al backend mediante `VITE_API_BASE_URL`; en local su
+valor habitual es `http://localhost:8080`.
+
+Para más detalle de implementación, migraciones y políticas de seguridad, consulta el
+[README del backend](backend/README.md#-autenticación-y-cifrado) y el
+[README del frontend](frontend/README.md#-autenticación).
+
+---
+
 ## 🧠 Cómo razona la IA / How the AI reasons
 
 Cada palabra enviada pasa por un pipeline antes de aceptarse en la cadena / every submitted word goes through a

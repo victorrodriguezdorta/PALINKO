@@ -1,5 +1,9 @@
 package com.kawser.cleanspringbootproject.user.application.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
 import com.kawser.cleanspringbootproject.user.application.dto.ChangePasswordCommand;
 import com.kawser.cleanspringbootproject.user.application.dto.LoginCommand;
 import com.kawser.cleanspringbootproject.user.application.dto.LoginResult;
@@ -40,10 +44,6 @@ import com.kawser.cleanspringbootproject.user.domain.exception.UsernameAlreadyEx
 import com.kawser.cleanspringbootproject.user.domain.model.OneTimePassword;
 import com.kawser.cleanspringbootproject.user.domain.model.User;
 import com.kawser.cleanspringbootproject.user.infrastructure.config.AuthProperties;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 
 /**
  * Orchestrates every use case for the user module, the same way

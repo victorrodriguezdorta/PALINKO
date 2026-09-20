@@ -31,11 +31,11 @@
 </template>
 
 <script setup lang="ts">
-import { Medal } from 'lucide-vue-next'
-import { useI18n } from 'vue-i18n'
 import PlayerAvatar from '@/components/PlayerAvatar.vue'
 import StreakFlame from '@/components/StreakFlame.vue'
 import type { DailyLeaderboardEntry } from '@/types/leaderboard'
+import { Medal } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   entries: DailyLeaderboardEntry[]

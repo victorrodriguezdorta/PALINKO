@@ -65,11 +65,11 @@
 </template>
 
 <script setup lang="ts">
+import aiIcon from '@/assets/images/ai.svg'
+import { THEME_COLORS } from '@/assets/theme'
+import { ArrowDown, ArrowRight, Check, X } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowDown, ArrowRight, Check, X } from 'lucide-vue-next'
-import { THEME_COLORS } from '@/assets/theme'
-import aiIcon from '@/assets/images/ai.svg'
 
 interface WordPair {
   left: string

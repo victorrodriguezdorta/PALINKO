@@ -71,24 +71,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useGameStore } from '@/stores/game'
-import { useLocaleStore } from '@/stores/locale'
-import { useAuthStore } from '@/stores/auth'
-import { gameLanguageForLocale } from '@/i18n/languages'
-import { translateError } from '@/i18n'
-import DailyCountdown from '@/components/DailyCountdown.vue'
-import StreakFlame from '@/components/StreakFlame.vue'
+import { THEME_COLORS } from '@/assets/theme'
+import AccountCta from '@/components/AccountCta.vue'
 import CartoonButton from '@/components/CartoonButton.vue'
 import CartoonCard from '@/components/CartoonCard.vue'
-import HowToPlayCard from '@/components/HowToPlayCard.vue'
-import AccountCta from '@/components/AccountCta.vue'
-import ShareCard from '@/components/ShareCard.vue'
+import DailyCountdown from '@/components/DailyCountdown.vue'
 import FeedbackCard from '@/components/FeedbackCard.vue'
-import { THEME_COLORS } from '@/assets/theme'
+import HowToPlayCard from '@/components/HowToPlayCard.vue'
+import ShareCard from '@/components/ShareCard.vue'
+import StreakFlame from '@/components/StreakFlame.vue'
+import { translateError } from '@/i18n'
+import { gameLanguageForLocale } from '@/i18n/languages'
+import { useAuthStore } from '@/stores/auth'
+import { useGameStore } from '@/stores/game'
+import { useLocaleStore } from '@/stores/locale'
 import type { ApiError } from '@/types/game'
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
 const router = useRouter()

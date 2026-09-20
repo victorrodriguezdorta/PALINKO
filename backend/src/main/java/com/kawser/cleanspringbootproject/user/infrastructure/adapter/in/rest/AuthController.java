@@ -1,5 +1,12 @@
 package com.kawser.cleanspringbootproject.user.infrastructure.adapter.in.rest;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.kawser.cleanspringbootproject.user.application.dto.LoginCommand;
 import com.kawser.cleanspringbootproject.user.application.dto.LoginResult;
 import com.kawser.cleanspringbootproject.user.application.dto.RequestPasswordResetCommand;
@@ -22,13 +29,8 @@ import com.kawser.cleanspringbootproject.user.infrastructure.adapter.in.rest.dto
 import com.kawser.cleanspringbootproject.user.infrastructure.adapter.in.rest.dto.UserErrorMessage;
 import com.kawser.cleanspringbootproject.user.infrastructure.adapter.in.rest.dto.UserProfileResponse;
 import com.kawser.cleanspringbootproject.user.infrastructure.adapter.in.rest.dto.VerifyAccountRequest;
+
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Signup/login/verification/reset-password entry points. All routes here
