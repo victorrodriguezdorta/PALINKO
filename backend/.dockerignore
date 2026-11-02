@@ -1,5 +1,10 @@
-target/
-logs/
-*.log
-.env
 .git
+.github
+.idea
+.vscode
+logs/
+target/
+.env
+.env.*
+*.log
+.DS_Store
