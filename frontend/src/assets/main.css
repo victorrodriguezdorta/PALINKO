@@ -79,6 +79,11 @@ layer(base);
 }
 
 @layer base {
+  html {
+    /* Full-bleed decorative sections must never create a horizontal page scroll. */
+    overflow-x: clip;
+  }
+
   *,
   ::after,
   ::before,
@@ -93,18 +98,23 @@ layer(base);
   body {
     @apply relative min-h-screen font-normal font-outfit text-gray-900;
     background: transparent;
+    overflow-x: clip;
   }
   #app {
     display: flex;
     min-height: 100vh;
     flex-direction: column;
+    min-width: 0;
+    overflow-x: clip;
   }
 }
 
-/* Desktop viewports render visually small at 100% browser zoom, so bump the
-   effective zoom to 135% by default; mobile already looks right untouched. */
+/* Make desktop layouts feel comfortably sized at 100% browser zoom without
+   changing the browser's viewport calculations. Components use rem-based
+   spacing and typography, so this scales them together while preserving
+   responsive breakpoints and browser zoom behavior. */
 @media (min-width: 768px) {
   html {
-    zoom: 1.35;
+    font-size: clamp(16px, 1.4vw, 20px);
   }
 }

@@ -188,8 +188,10 @@ const headerWaveStyle = {
 
 @media (min-width: 640px) {
   .app-header {
-    padding-left: max(1.25rem, calc((100vw - 1024px) / 2 + 1.25rem));
-    padding-right: max(1.25rem, calc((100vw - 1024px) / 2 + 1.25rem));
+    /* Match the max-w-5xl page wrapper. Using rem keeps this aligned when
+       the desktop base font size scales for comfortable 100% browser zoom. */
+    padding-left: max(1.25rem, calc((100vw - 64rem) / 2 + 1.25rem));
+    padding-right: max(1.25rem, calc((100vw - 64rem) / 2 + 1.25rem));
   }
 }
 
@@ -213,7 +215,9 @@ const headerWaveStyle = {
 }
 
 .app-header__title--centered {
-  position: static;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .app-header__title--centered .app-header__logo {
@@ -227,6 +231,10 @@ const headerWaveStyle = {
 }
 
 @media (max-width: 639px) {
+  .app-header__title--centered .app-header__logo {
+    height: 5.75rem;
+  }
+
   .app-header__back-label {
     display: none;
   }
