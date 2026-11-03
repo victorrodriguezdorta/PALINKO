@@ -1,3 +1,4 @@
+
 FROM --platform=$BUILDPLATFORM eclipse-temurin:21-jdk AS build
 
 WORKDIR /app
@@ -12,9 +13,16 @@ COPY src src
 
 RUN ./mvnw -B clean package -DskipTests
 
-FROM eclipse-temurin:21-jre
+
+# Runtime
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
+
+# Hunspell: biblioteca nativa necesaria para ARM64
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libhunspell-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/target/*.jar app.jar
 
