@@ -11,7 +11,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-
+ 
 /**
  * Loads {@code backend/.env} (working-directory relative, git-ignored) into
  * the Spring {@link ConfigurableEnvironment} as the lowest-priority property
