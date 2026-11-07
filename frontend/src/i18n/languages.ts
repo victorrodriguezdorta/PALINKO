@@ -47,7 +47,15 @@ export function gameLanguageForLocale(locale: string): GameLanguage {
  * Spanish before this feature, so anything unrecognized falls back to that.
  */
 export function detectDefaultLocale(): string {
-  const browserLocale = navigator.language?.slice(0, 2).toLowerCase()
-  const match = SUPPORTED_LANGUAGES.find((option) => option.locale === browserLocale)
-  return match?.locale ?? DEFAULT_LOCALE
+  if (typeof navigator === 'undefined') return DEFAULT_LOCALE
+
+  const browserLocales = navigator.languages?.length ? navigator.languages : [navigator.language]
+
+  for (const browserLocale of browserLocales) {
+    const language = browserLocale.split(/[-_]/, 1)[0].toLowerCase()
+    const match = SUPPORTED_LANGUAGES.find((option) => option.locale === language)
+    if (match) return match.locale
+  }
+
+  return DEFAULT_LOCALE
 }

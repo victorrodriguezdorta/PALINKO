@@ -1,14 +1,16 @@
 import { createI18n } from 'vue-i18n'
 import en from './locales/en.json'
 import es from './locales/es.json'
-import { detectDefaultLocale } from './languages'
+import { detectDefaultLocale, SUPPORTED_LANGUAGES } from './languages'
 import type { ApiError } from '@/types/game'
 
 const PREFERRED_LOCALE_KEY = 'human-or-ai:preferred-language'
 
 export function getPreferredLocale(): string {
-  return localStorage.getItem(PREFERRED_LOCALE_KEY) ?? detectDefaultLocale()
-}
+  const savedLocale = localStorage.getItem(PREFERRED_LOCALE_KEY)
+  const savedLanguage = SUPPORTED_LANGUAGES.find((option) => option.locale === savedLocale)
+  return savedLanguage?.locale ?? detectDefaultLocale()
+} 
 
 type MessageSchema = typeof en
 
