@@ -31,6 +31,7 @@ import com.kawser.cleanspringbootproject.game.application.port.in.SubmitWordUseC
 import com.kawser.cleanspringbootproject.game.application.port.in.UpdateRoomSettingsUseCase;
 import com.kawser.cleanspringbootproject.game.application.port.out.ChainWordBank;
 import com.kawser.cleanspringbootproject.game.application.port.out.DailyLeaderboardRecorder;
+import com.kawser.cleanspringbootproject.game.application.port.out.DailyHistoryRecorder;
 import com.kawser.cleanspringbootproject.game.application.port.out.DailyStreakTracker;
 import com.kawser.cleanspringbootproject.game.application.port.out.PhaseScheduler;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomCodeGenerator;
@@ -110,6 +111,7 @@ public class GameApplicationService implements
     private final WordSubmissionRateLimiter wordSubmissionRateLimiter;
     private final DailyStreakTracker dailyStreakTracker;
     private final DailyLeaderboardRecorder dailyLeaderboardRecorder;
+    private final DailyHistoryRecorder dailyHistoryRecorder;
 
     public GameApplicationService(
             RoomRepository roomRepository,
@@ -123,7 +125,8 @@ public class GameApplicationService implements
             ScoringPolicy scoringPolicy,
             WordSubmissionRateLimiter wordSubmissionRateLimiter,
             DailyStreakTracker dailyStreakTracker,
-            DailyLeaderboardRecorder dailyLeaderboardRecorder) {
+            DailyLeaderboardRecorder dailyLeaderboardRecorder,
+            DailyHistoryRecorder dailyHistoryRecorder) {
         this.roomRepository = roomRepository;
         this.roomNotifier = roomNotifier;
         this.wordRelationChecker = wordRelationChecker;
@@ -136,6 +139,7 @@ public class GameApplicationService implements
         this.wordSubmissionRateLimiter = wordSubmissionRateLimiter;
         this.dailyStreakTracker = dailyStreakTracker;
         this.dailyLeaderboardRecorder = dailyLeaderboardRecorder;
+        this.dailyHistoryRecorder = dailyHistoryRecorder;
     }
 
     @Override
@@ -527,6 +531,7 @@ public class GameApplicationService implements
         if (hostName != null && !DAILY_PLAYER_NAME.equals(hostName)) {
             dailyStreakTracker.recordDailyCompletion(hostName);
             recordDailyLeaderboardResult(hostName, room);
+            recordDailyHistory(hostName, room);
         }
     }
 
@@ -548,6 +553,17 @@ public class GameApplicationService implements
         int totalRelatedness = acceptedAttempts.stream().mapToInt(ChainAttempt::relatednessToPrevious).sum();
         int accuracyPercent = Math.round((float) totalRelatedness / wordCount);
         dailyLeaderboardRecorder.recordResult(hostName, wordCount, accuracyPercent);
+    }
+
+    private void recordDailyHistory(String hostName, Room room) {
+        String wordChain = room.round().attempts().stream()
+                .filter(attempt -> attempt.outcome() == AttemptOutcome.ACCEPTED)
+                .map(ChainAttempt::text)
+                .map(String::trim)
+                .collect(java.util.stream.Collectors.joining("-"));
+        if (!wordChain.isBlank()) {
+            dailyHistoryRecorder.recordSolution(hostName, wordChain);
+        }
     }
 
     /**

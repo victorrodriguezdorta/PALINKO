@@ -15,6 +15,7 @@ import com.kawser.cleanspringbootproject.game.application.dto.SubmitWordCommand;
 import com.kawser.cleanspringbootproject.game.application.dto.UpdateRoomSettingsCommand;
 import com.kawser.cleanspringbootproject.game.application.port.out.ChainWordBank;
 import com.kawser.cleanspringbootproject.game.application.port.out.DailyLeaderboardRecorder;
+import com.kawser.cleanspringbootproject.game.application.port.out.DailyHistoryRecorder;
 import com.kawser.cleanspringbootproject.game.application.port.out.DailyStreakTracker;
 import com.kawser.cleanspringbootproject.game.application.port.out.PhaseScheduler;
 import com.kawser.cleanspringbootproject.game.application.port.out.RoomCodeGenerator;
@@ -73,6 +74,7 @@ class GameApplicationServiceTest {
     private FakeChainWordBank chainWordBank;
     private FakeDailyStreakTracker dailyStreakTracker;
     private FakeDailyLeaderboardRecorder dailyLeaderboardRecorder;
+    private FakeDailyHistoryRecorder dailyHistoryRecorder;
     private GameApplicationService service;
     private String roomCode;
     private String hostPlayerId;
@@ -104,11 +106,12 @@ class GameApplicationServiceTest {
         WordSubmissionRateLimiter wordSubmissionRateLimiter = playerId -> true;
         dailyStreakTracker = new FakeDailyStreakTracker();
         dailyLeaderboardRecorder = new FakeDailyLeaderboardRecorder();
+        dailyHistoryRecorder = new FakeDailyHistoryRecorder();
 
         service = new GameApplicationService(
                 roomRepository, roomNotifier, wordRelationChecker, wordSpellingCorrector, chainWordBank,
                 chainWordBank, roomCodeGenerator, phaseScheduler, new DefaultScoringPolicy(),
-                wordSubmissionRateLimiter, dailyStreakTracker, dailyLeaderboardRecorder);
+                wordSubmissionRateLimiter, dailyStreakTracker, dailyLeaderboardRecorder, dailyHistoryRecorder);
 
         CreateRoomResult created = service.createRoom(new CreateRoomCommand("Host", "seed-host", GameLanguage.SPANISH));
         roomCode = created.roomCode();
@@ -432,6 +435,8 @@ class GameApplicationServiceTest {
         assertThat(dailyLeaderboardRecorder.recordedUsernames).containsExactly("someUser");
         assertThat(dailyLeaderboardRecorder.lastWordCount).isEqualTo(3);
         assertThat(dailyLeaderboardRecorder.lastAccuracyPercent).isEqualTo(95);
+        assertThat(dailyHistoryRecorder.recordedUsernames).containsExactly("someUser");
+        assertThat(dailyHistoryRecorder.lastWordChain).isEqualTo("Cama-Fresa-Fresa");
     }
 
     @Test
@@ -448,6 +453,7 @@ class GameApplicationServiceTest {
         assertThat(dailyRoom.status()).isEqualTo(RoomStatus.FINISHED);
         assertThat(dailyStreakTracker.recordedUsernames).isEmpty();
         assertThat(dailyLeaderboardRecorder.recordedUsernames).isEmpty();
+        assertThat(dailyHistoryRecorder.recordedUsernames).isEmpty();
     }
 
     @Test
@@ -596,6 +602,17 @@ class GameApplicationServiceTest {
             recordedUsernames.add(username);
             lastWordCount = wordCount;
             lastAccuracyPercent = accuracyPercent;
+        }
+    }
+
+    private static class FakeDailyHistoryRecorder implements DailyHistoryRecorder {
+        final List<String> recordedUsernames = new java.util.ArrayList<>();
+        String lastWordChain;
+
+        @Override
+        public void recordSolution(String username, String wordChain) {
+            recordedUsernames.add(username);
+            lastWordChain = wordChain;
         }
     }
 
