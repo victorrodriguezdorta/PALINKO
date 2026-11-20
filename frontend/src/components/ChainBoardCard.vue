@@ -788,9 +788,13 @@ watch(
   border: 3px solid var(--color-secondary-400);
   padding: 0.5rem 0.75rem;
   font-family: 'Outfit', sans-serif;
+  text-align: center;
+}
+
+.chain-board__input::placeholder {
   font-size: 13px;
   line-height: 1.25;
-  text-align: center;
+  opacity: 1;
 }
 
 .chain-board__turn-actions {
