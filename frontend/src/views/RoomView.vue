@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto p-6" :class="snapshot && snapshot.status !== 'CLOSED' ? 'max-w-6xl' : 'max-w-2xl'">
     <AppHeader
-      :title="isDaily ? t('room.titleDaily') : t('room.title', { code: roomCode })"
+      :title="isDaily ? dailyRoomTitle : t('room.title', { code: roomCode })"
       show-back
       center-logo
       :show-auth="false"
@@ -94,7 +94,7 @@
 
       <div class="relative rounded-2xl border-2 border-white/20 bg-white p-4 shadow-lg">
       <div v-if="isDaily && (snapshot.status === 'IN_PROGRESS' || snapshot.status === 'FINISHED') && chain" class="absolute left-4 top-0 translate-y-[-90%]">
-        <DailyChallengeBanner />
+        <DailyChallengeBanner :date="dailyChallengeDateLabel" />
       </div>
       <section v-if="(snapshot.status === 'IN_PROGRESS' || snapshot.status === 'FINISHED') && chain">
         <p v-if="chain.totalPhases > 1 && chain.phase === 'VOTING'" class="mb-3 text-center text-sm font-semibold text-gray-600">
@@ -240,7 +240,7 @@
             :is-daily="isDaily"
           />
 
-          <CartoonCard v-if="isDaily && !authStore.isAuthenticated" class="mb-4" :accent="THEME_COLORS.secondary500">
+          <CartoonCard v-if="isCurrentDaily && !authStore.isAuthenticated" class="mb-4" :accent="THEME_COLORS.secondary500">
             <template #title>{{ t('leaderboard.loginNudge.heading') }}</template>
             <p class="mb-3 text-sm text-gray-600">{{ t('leaderboard.loginNudge.text') }}</p>
             <router-link to="/login">
@@ -249,7 +249,7 @@
           </CartoonCard>
 
           <DailyLeaderboardCard
-            v-if="isDaily"
+            v-if="isCurrentDaily"
             class="mb-4"
             :entries="leaderboardStore.entries"
             :loading="leaderboardStore.loading"
@@ -297,7 +297,7 @@
       </div>
       <HowToPlayCard v-if="isDaily && howToPlayVisible" />
 
-      <div v-if="isDaily && snapshot.status === 'IN_PROGRESS'" class="mt-4">
+      <div v-if="isCurrentDaily && snapshot.status === 'IN_PROGRESS'" class="mt-4">
         <DailyLeaderboardCard
           :entries="leaderboardStore.entries"
           :loading="leaderboardStore.loading"
@@ -414,6 +414,15 @@ const chainBoardRef = ref<InstanceType<typeof ChainBoardCard> | null>(null)
 const snapshot = computed(() => gameStore.snapshot)
 const chain = computed(() => snapshot.value?.chain ?? null)
 const isDaily = computed(() => snapshot.value?.settings.daily ?? false)
+const isCurrentDaily = computed(() => snapshot.value?.dailyChallengeIsCurrent ?? false)
+const dailyChallengeDateLabel = computed(() => {
+  const date = snapshot.value?.dailyChallengeDate
+  return date ? `${date.slice(8, 10)}/${date.slice(5, 7)}/${date.slice(0, 4)}` : null
+})
+const dailyRoomTitle = computed(() => {
+  const title = t('room.titleDaily')
+  return dailyChallengeDateLabel.value ? `${title} · ${dailyChallengeDateLabel.value}` : title
+})
 
 // Mirrors the backend's own Room.maxInfiltratorCount (floor(playerCount/3)),
 // so the host sees the real current cap live as players join/leave.
@@ -621,12 +630,12 @@ watch(
   () => snapshot.value?.status,
   (status, previousStatus) => {
     if (status !== 'FINISHED' || previousStatus === status) return
-    if (isDaily.value && authStore.isAuthenticated) {
+    if (isCurrentDaily.value && authStore.isAuthenticated) {
       authStore.fetchCurrentUser().catch(() => {})
     }
     // The viewer's own just-finished result may now qualify for the top
     // 10, so refresh the leaderboard the same moment the streak refreshes.
-    if (isDaily.value) {
+    if (isCurrentDaily.value) {
       leaderboardStore.fetchDaily().catch(() => {})
     }
   },
@@ -812,13 +821,12 @@ onMounted(() => {
   startTicking()
 })
 
-// The room code alone doesn't tell us this is a daily challenge until the
-// snapshot arrives (isDaily reads off it), so this fires once isDaily
-// actually flips true rather than unconditionally on mount.
+// The room code alone doesn't tell us this is today's daily challenge until
+// the snapshot arrives, so only fetch the leaderboard for current challenges.
 watch(
-  isDaily,
-  (daily) => {
-    if (daily) leaderboardStore.fetchDaily().catch(() => {})
+  isCurrentDaily,
+  (current) => {
+    if (current) leaderboardStore.fetchDaily().catch(() => {})
   },
   { immediate: true },
 )

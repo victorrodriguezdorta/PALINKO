@@ -34,6 +34,12 @@ const router = createRouter({
       meta: { titleKey: 'playerSetup.pageTitle' },
     },
     {
+      path: '/calendar',
+      name: 'Calendar',
+      component: () => import('../views/CalendarView.vue'),
+      meta: { titleKey: 'calendar.pageTitle' },
+    },
+    {
       path: '/room/:code',
       name: 'Room',
       component: () => import('../views/RoomView.vue'),

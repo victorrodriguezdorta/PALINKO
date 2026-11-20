@@ -10,12 +10,8 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 
 /**
- * Derives the "server day" (the UTC calendar date) and a chain-generation
- * seed from it, so every player worldwide who opens the daily challenge on
- * the same UTC date gets byte-identical phases: the seed is a stable hash
- * of the date plus the room's language, fed into a {@link java.util.Random}
- * that {@link com.kawser.cleanspringbootproject.game.application.port.out.ChainWordBank#fullChain(GameLanguage, int, long)}
- * uses in place of true randomness.
+ * Provides the UTC date and stable date/language seed used by daily
+ * challenges.
  */
 final class DailySeed {
 

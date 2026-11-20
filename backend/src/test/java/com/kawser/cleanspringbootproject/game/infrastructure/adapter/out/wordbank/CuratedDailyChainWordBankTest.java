@@ -88,6 +88,21 @@ class CuratedDailyChainWordBankTest {
     }
 
     @Test
+    void fullChainForDateReplaysTheEntryForThatCalendarDay() {
+        List<DailyEntry> entries = List.of(
+                new DailyEntry(1, List.of("first-day", "first-target")),
+                new DailyEntry(2, List.of("second-day", "second-target")));
+        CuratedDailyChainWordBank bank = new CuratedDailyChainWordBank(
+                Map.of(GameLanguage.SPANISH, entries, GameLanguage.ENGLISH, entries));
+
+        List<WordSet> secondDay = bank.fullChainForDate(
+                GameLanguage.SPANISH, 1, LocalDate.of(2026, 1, 2));
+
+        assertThat(secondDay.get(0).startWord()).isEqualTo("second-day");
+        assertThat(secondDay.get(0).groupTargetWord()).isEqualTo("second-target");
+    }
+
+    @Test
     void dayIndexWrapsWithModuloSoAnyCalendarSizeAlwaysResolvesAnEntry() {
         // A single-entry calendar must still resolve today's phases no
         // matter what day of the year it actually is (e.g. day 366 of a

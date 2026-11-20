@@ -788,6 +788,8 @@ watch(
   border: 3px solid var(--color-secondary-400);
   padding: 0.5rem 0.75rem;
   font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  line-height: 1.25;
   text-align: center;
 }
 

@@ -1,6 +1,8 @@
 <template>
   <div class="daily-banner" :style="cssVars" role="status">
-    <span class="daily-banner__text">{{ t('room.dailyBanner') }}</span>
+    <span class="daily-banner__text">
+      {{ t('room.dailyBanner') }}<template v-if="date"> · {{ date }}</template>
+    </span>
   </div>
 </template>
 
@@ -14,6 +16,7 @@ const { t } = useI18n()
 const props = withDefaults(
   defineProps<{
     color?: string
+    date?: string | null
   }>(),
   {
     color: THEME_COLORS.accent500,

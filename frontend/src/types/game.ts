@@ -81,6 +81,8 @@ export interface RoomSnapshot {
   hostPlayerId: string
   players: PlayerView[]
   settings: RoomSettingsView
+  dailyChallengeIsCurrent: boolean
+  dailyChallengeDate: string | null
   viewerPlayerId: string
   chain: ChainView | null
 }

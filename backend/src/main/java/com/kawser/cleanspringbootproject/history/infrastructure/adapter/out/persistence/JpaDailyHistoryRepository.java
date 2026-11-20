@@ -4,6 +4,7 @@ import com.kawser.cleanspringbootproject.history.application.port.out.DailyHisto
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Repository
 public class JpaDailyHistoryRepository implements DailyHistoryRepository {
@@ -21,5 +22,10 @@ public class JpaDailyHistoryRepository implements DailyHistoryRepository {
         entity.setUsername(username);
         entity.setWordChain(wordChain);
         jpaRepository.save(entity);
+    }
+
+    @Override
+    public List<LocalDate> findCompletedDates(Long userId) {
+        return jpaRepository.findCompletedDatesByUserId(userId);
     }
 }

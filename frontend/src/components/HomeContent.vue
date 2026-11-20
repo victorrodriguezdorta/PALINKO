@@ -1,5 +1,5 @@
 <template>
-  <div class="grid grid-cols-1 gap-6 md:grid-cols-3 md:items-start">
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-2 md:items-start lg:grid-cols-3">
     <CartoonCard :accent="THEME_COLORS.accent500">
       <StreakFlame
         v-if="authStore.isAuthenticated"
@@ -13,15 +13,26 @@
         </span>
       </template>
       <p class="mb-3 text-xs text-gray-500">{{ t('home.daily.hint') }}</p>
-      <CartoonButton
-        block
-        :color="THEME_COLORS.accent500"
-        :disabled="loading"
-        :loading="loading"
-        @click="onPlayDaily"
-      >
-        {{ loading ? t('home.daily.loading') : t('home.daily.submit') }}
-      </CartoonButton>
+      <div class="daily-challenge-actions">
+        <CartoonButton
+          block
+          class="daily-challenge-actions__play"
+          :color="THEME_COLORS.accent500"
+          :disabled="loading"
+          :loading="loading"
+          @click="onPlayDaily"
+        >
+          {{ loading ? t('home.daily.loading') : t('home.daily.submit') }}
+        </CartoonButton>
+        <button
+          type="button"
+          class="calendar-shortcut"
+          :aria-label="t('calendar.open')"
+          @click="router.push('/calendar')"
+        >
+          <CalendarDays :size="24" :stroke-width="2.5" aria-hidden="true" />
+        </button>
+      </div>
     </CartoonCard>
 
     <CartoonCard :accent="THEME_COLORS.secondary500">
@@ -72,6 +83,7 @@
 
 <script setup lang="ts">
 import { THEME_COLORS } from '@/assets/theme'
+import { CalendarDays } from 'lucide-vue-next'
 import AccountCta from '@/components/AccountCta.vue'
 import CartoonButton from '@/components/CartoonButton.vue'
 import CartoonCard from '@/components/CartoonCard.vue'
@@ -168,5 +180,70 @@ async function onGoToJoinRoom() {
   right: 1.25rem;
   transform: translateY(-50%);
   z-index: 2;
+}
+
+.daily-challenge-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.daily-challenge-actions__play {
+  flex: 1;
+  min-width: 0;
+}
+
+.daily-challenge-actions :deep(.daily-challenge-actions__play) {
+  padding-right: 0.75rem;
+  padding-left: 0.75rem;
+  white-space: nowrap;
+}
+
+.daily-challenge-actions :deep(.cartoon-btn__label) {
+  white-space: nowrap;
+}
+
+.calendar-shortcut {
+  display: inline-flex;
+  width: 3.25rem;
+  height: 3.25rem;
+  flex: 0 0 3.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--color-white);
+  border-radius: 50%;
+  background: var(--color-streak-500);
+  box-shadow: 0 4px 0 var(--color-streak-700);
+  color: var(--color-white);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.calendar-shortcut:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--color-streak-700);
+}
+
+.calendar-shortcut:active {
+  transform: translateY(2px);
+}
+
+.calendar-shortcut:focus-visible {
+  outline: 3px solid var(--color-gray-800);
+  outline-offset: 3px;
+}
+
+@media (min-width: 1024px) {
+  .daily-challenge-actions :deep(.daily-challenge-actions__play) {
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-shortcut {
+    transition: none;
+  }
 }
 </style>

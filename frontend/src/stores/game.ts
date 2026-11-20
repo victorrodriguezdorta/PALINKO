@@ -129,13 +129,11 @@ export const useGameStore = defineStore('game', () => {
     trackGroupRoomPlayerJoined(result.snapshot.players.length)
   }
 
-  // Today's daily challenge: a solo room that's already IN_PROGRESS and
-  // fixed for everyone (see backend RoomSettings.daily) — there is no rules
-  // form and no name to type. The backend names the sole player from the
-  // Bearer token already attached by apiClient's interceptor when signed
-  // in, falling back to "#" for anonymous visitors.
-  async function createDailyRoom(language: GameLanguage) {
-    const result = await createDailyRoomRequest({ language })
+  // Daily challenges are solo rooms already IN_PROGRESS, with no rules
+  // form or player name to enter. Omitting date keeps the existing behavior
+  // of starting today's challenge; the calendar supplies a past date.
+  async function createDailyRoom(language: GameLanguage, date?: string) {
+    const result = await createDailyRoomRequest({ language, date })
     roomCode.value = result.roomCode
     playerId.value = result.playerId
     reconnectToken.value = result.reconnectToken

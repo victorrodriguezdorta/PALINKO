@@ -7,7 +7,6 @@ import com.kawser.cleanspringbootproject.user.domain.model.User;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 
 @Component
 public class GameDailyHistoryRecorder implements DailyHistoryRecorder {
@@ -21,8 +20,8 @@ public class GameDailyHistoryRecorder implements DailyHistoryRecorder {
     }
 
     @Override
-    public void recordSolution(String username, String wordChain) {
+    public void recordSolution(String username, LocalDate challengeDate, String wordChain) {
         userRepository.findByUsername(username).ifPresent(user -> dailyHistoryRepository.upsertLatest(
-                user.id(), user.username(), LocalDate.now(ZoneOffset.UTC), wordChain));
+                user.id(), user.username(), challengeDate, wordChain));
     }
 }

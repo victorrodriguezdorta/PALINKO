@@ -129,6 +129,28 @@
       "github": "Dale una estrella en GitHub"
     }
   },
+  "calendar": {
+    "pageTitle": "Calendario",
+    "open": "Abrir el calendario de retos diarios",
+    "backToHome": "Volver al inicio",
+    "heading": "Retos diarios anteriores",
+    "playDay": "Jugar el reto del {date}",
+    "completedDay": "Reto diario completado el {date}",
+    "guestCta": {
+      "heading": "Guarda tus días completados",
+      "text": "Regístrate para guardar los retos diarios que has completado y verlos marcados en tu calendario cuando vuelvas.",
+      "action": "Registrarme"
+    },
+    "weekdays": {
+      "monday": "Lun",
+      "tuesday": "Mar",
+      "wednesday": "Mié",
+      "thursday": "Jue",
+      "friday": "Vie",
+      "saturday": "Sáb",
+      "sunday": "Dom"
+    }
+  },
   "playerSetup": {
     "pageTitle": "Elige tu nombre",
     "createHeading": "Elige tu nombre e icono",

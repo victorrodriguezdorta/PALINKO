@@ -3,6 +3,7 @@ package com.kawser.cleanspringbootproject.game.application.port.out;
 import com.kawser.cleanspringbootproject.game.domain.model.GameLanguage;
 import com.kawser.cleanspringbootproject.game.domain.model.WordSet;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -74,6 +75,14 @@ public interface ChainWordBank {
      * rooms keep drawing from concurrently).
      */
     default List<WordSet> fullChain(GameLanguage language, int phaseCount, long seed) {
+        return fullChain(language, phaseCount);
+    }
+
+    /**
+     * Deals the chain for a specific calendar date. Most word banks do not
+     * vary by date; curated daily banks override this to replay past entries.
+     */
+    default List<WordSet> fullChainForDate(GameLanguage language, int phaseCount, LocalDate date) {
         return fullChain(language, phaseCount);
     }
 }

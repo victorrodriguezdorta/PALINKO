@@ -17,6 +17,7 @@ import com.kawser.cleanspringbootproject.game.domain.service.ScoringPolicy;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,6 +41,7 @@ public class Room {
     public static final int MAXIMUM_PLAYERS = 10;
 
     private final String code;
+    private final LocalDate dailyChallengeDate;
     private final Map<String, Player> players = new LinkedHashMap<>();
     private Round round;
     private RoomSettings settings;
@@ -54,8 +56,9 @@ public class Room {
     // touch anything.
     private boolean infiltratorCountCustomized = false;
 
-    private Room(String code, RoomSettings settings, Player host, Instant now) {
+    private Room(String code, RoomSettings settings, Player host, Instant now, LocalDate dailyChallengeDate) {
         this.code = code;
+        this.dailyChallengeDate = dailyChallengeDate;
         this.settings = settings;
         this.status = RoomStatus.LOBBY;
         this.createdAt = now;
@@ -65,7 +68,15 @@ public class Room {
     }
 
     public static Room create(String code, RoomSettings settings, Player host, Instant now) {
-        return new Room(code, settings, host, now);
+        return new Room(code, settings, host, now, null);
+    }
+
+    public static Room createDaily(
+            String code, RoomSettings settings, Player host, Instant now, LocalDate challengeDate) {
+        if (!settings.daily()) {
+            throw new IllegalArgumentException("daily rooms require daily settings");
+        }
+        return new Room(code, settings, host, now, challengeDate);
     }
 
     public void addPlayer(Player player, Instant now) {
@@ -400,6 +411,14 @@ public class Room {
 
     public String code() {
         return code;
+    }
+
+    public boolean isDailyChallengeFor(LocalDate date) {
+        return dailyChallengeDate != null && dailyChallengeDate.equals(date);
+    }
+
+    public LocalDate dailyChallengeDate() {
+        return dailyChallengeDate;
     }
 
     public String hostPlayerId() {

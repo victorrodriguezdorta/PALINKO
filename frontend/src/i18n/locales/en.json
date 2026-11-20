@@ -129,6 +129,28 @@
       "github": "Give it a star on GitHub"
     }
   },
+  "calendar": {
+    "pageTitle": "Calendar",
+    "open": "Open the daily challenge calendar",
+    "backToHome": "Back to home",
+    "heading": "Previous daily challenges",
+    "playDay": "Play the challenge from {date}",
+    "completedDay": "Daily challenge completed on {date}",
+    "guestCta": {
+      "heading": "Save your completed days",
+      "text": "Sign up to save the daily challenges you complete and see them marked on your calendar when you return.",
+      "action": "Sign up"
+    },
+    "weekdays": {
+      "monday": "Mon",
+      "tuesday": "Tue",
+      "wednesday": "Wed",
+      "thursday": "Thu",
+      "friday": "Fri",
+      "saturday": "Sat",
+      "sunday": "Sun"
+    }
+  },
   "playerSetup": {
     "pageTitle": "Choose your name",
     "createHeading": "Choose your name and avatar",

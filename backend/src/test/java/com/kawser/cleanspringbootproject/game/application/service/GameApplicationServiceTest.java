@@ -43,6 +43,8 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -436,6 +438,7 @@ class GameApplicationServiceTest {
         assertThat(dailyLeaderboardRecorder.lastWordCount).isEqualTo(3);
         assertThat(dailyLeaderboardRecorder.lastAccuracyPercent).isEqualTo(95);
         assertThat(dailyHistoryRecorder.recordedUsernames).containsExactly("someUser");
+        assertThat(dailyHistoryRecorder.lastChallengeDate).isEqualTo(LocalDate.now(ZoneOffset.UTC));
         assertThat(dailyHistoryRecorder.lastWordChain).isEqualTo("Cama-Fresa-Fresa");
     }
 
@@ -454,6 +457,27 @@ class GameApplicationServiceTest {
         assertThat(dailyStreakTracker.recordedUsernames).isEmpty();
         assertThat(dailyLeaderboardRecorder.recordedUsernames).isEmpty();
         assertThat(dailyHistoryRecorder.recordedUsernames).isEmpty();
+    }
+
+    @Test
+    void completingAPastDailyChallengeRecordsItsDateAndSolutionWithoutRecordingTodaysProgress() {
+        LocalDate yesterday = LocalDate.now(ZoneOffset.UTC).minusDays(1);
+        CreateRoomResult created = service.createDailyRoom(
+                new CreateDailyRoomCommand(GameLanguage.SPANISH, "someUser", yesterday));
+        when(wordRelationChecker.relatedness(anyString(), anyString(), any(GameLanguage.class)))
+                .thenReturn(new WordRelation(95, null));
+
+        service.submitWord(new SubmitWordCommand(created.roomCode(), created.playerId(), created.reconnectToken(), "Cama"));
+        service.submitWord(new SubmitWordCommand(created.roomCode(), created.playerId(), created.reconnectToken(), "Fresa"));
+        service.submitWord(new SubmitWordCommand(created.roomCode(), created.playerId(), created.reconnectToken(), "Fresa"));
+
+        Room dailyRoom = roomRepository.findByCode(created.roomCode()).orElseThrow();
+        assertThat(dailyRoom.isDailyChallengeFor(yesterday)).isTrue();
+        assertThat(dailyStreakTracker.recordedUsernames).isEmpty();
+        assertThat(dailyLeaderboardRecorder.recordedUsernames).isEmpty();
+        assertThat(dailyHistoryRecorder.recordedUsernames).containsExactly("someUser");
+        assertThat(dailyHistoryRecorder.lastChallengeDate).isEqualTo(yesterday);
+        assertThat(dailyHistoryRecorder.lastWordChain).isEqualTo("Cama-Fresa-Fresa");
     }
 
     @Test
@@ -607,11 +631,13 @@ class GameApplicationServiceTest {
 
     private static class FakeDailyHistoryRecorder implements DailyHistoryRecorder {
         final List<String> recordedUsernames = new java.util.ArrayList<>();
+        LocalDate lastChallengeDate;
         String lastWordChain;
 
         @Override
-        public void recordSolution(String username, String wordChain) {
+        public void recordSolution(String username, LocalDate challengeDate, String wordChain) {
             recordedUsernames.add(username);
+            lastChallengeDate = challengeDate;
             lastWordChain = wordChain;
         }
     }

@@ -96,9 +96,17 @@ public class CuratedDailyChainWordBank implements ChainWordBank {
     }
 
     List<WordSet> todaysChain(GameLanguage language) {
+        return chainForDate(language, LocalDate.now(ZoneOffset.UTC));
+    }
+
+    @Override
+    public List<WordSet> fullChainForDate(GameLanguage language, int phaseCount, LocalDate date) {
+        return chainForDate(language, date);
+    }
+
+    private List<WordSet> chainForDate(GameLanguage language, LocalDate date) {
         List<DailyEntry> calendar = calendarByLanguage.get(language);
-        LocalDate today = LocalDate.now(ZoneOffset.UTC);
-        int dayOfYear = today.getDayOfYear();
+        int dayOfYear = date.getDayOfYear();
         DailyEntry entry = calendar.get((dayOfYear - 1) % calendar.size());
         List<String> words = entry.words();
         if (words.size() < 2) {

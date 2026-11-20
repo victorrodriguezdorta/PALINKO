@@ -10,6 +10,7 @@ export interface CreateRoomPayload {
 
 export interface CreateDailyRoomPayload {
   language: GameLanguage
+  date?: string
 }
 
 export async function createRoom(payload: CreateRoomPayload): Promise<RoomJoinedResponse> {

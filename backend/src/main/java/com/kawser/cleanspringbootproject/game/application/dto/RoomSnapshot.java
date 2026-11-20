@@ -14,6 +14,8 @@ import com.kawser.cleanspringbootproject.game.domain.model.Vote;
 import com.kawser.cleanspringbootproject.game.domain.model.WordSet;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -39,6 +41,8 @@ public record RoomSnapshot(
         String hostPlayerId,
         List<PlayerView> players,
         SettingsView settings,
+        boolean dailyChallengeIsCurrent,
+        String dailyChallengeDate,
         String viewerPlayerId,
         ChainView chain) {
 
@@ -50,6 +54,8 @@ public record RoomSnapshot(
                 room.hostPlayerId(),
                 room.players().stream().map(PlayerView::from).toList(),
                 SettingsView.from(room.settings()),
+                room.isDailyChallengeFor(LocalDate.now(ZoneOffset.UTC)),
+                room.dailyChallengeDate() == null ? null : room.dailyChallengeDate().toString(),
                 viewerPlayerId,
                 chainView);
     }

@@ -61,6 +61,7 @@ import com.kawser.cleanspringbootproject.game.domain.model.WordSet;
 import com.kawser.cleanspringbootproject.game.domain.service.ScoringPolicy;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -159,8 +160,9 @@ public class GameApplicationService implements
 
     /**
      * A daily challenge is a solo Room that starts already IN_PROGRESS: its
-     * whole chain is dealt deterministically from today's UTC date (see
-     * DailySeed), so every player who opens the challenge on the same date
+     * whole chain is dealt deterministically from the requested date (today
+     * in UTC when none is supplied), so every player who opens the challenge
+     * for the same date
      * plays the identical phases, in the same order, with the same words —
      * there is no LOBBY to sit in, no settings to tune, and (per
      * scheduleWordTurnTimeout below) no per-turn timer to race against.
@@ -181,12 +183,13 @@ public class GameApplicationService implements
                 : DAILY_PLAYER_NAME;
         Player host = Player.host(hostId, hostToken, playerName, DAILY_PLAYER_AVATAR_SEED);
 
-        long seed = DailySeed.seedFor(DailySeed.today(), command.language());
+        LocalDate challengeDate = command.challengeDate() == null ? DailySeed.today() : command.challengeDate();
         List<WordSet> phaseWordSets =
-                dailyChainWordBank.fullChain(command.language(), DAILY_PHASE_COUNT, seed);
+                dailyChainWordBank.fullChainForDate(command.language(), DAILY_PHASE_COUNT, challengeDate);
 
         Instant now = Instant.now();
-        Room room = Room.create(code, RoomSettings.daily(command.language(), DAILY_PHASE_COUNT), host, now);
+        Room room = Room.createDaily(
+                code, RoomSettings.daily(command.language(), DAILY_PHASE_COUNT), host, now, challengeDate);
         room.start(phaseWordSets, now);
         endWordChainOrScheduleNextTurn(room);
         roomRepository.save(room);
@@ -524,13 +527,15 @@ public class GameApplicationService implements
      * real account, so only a logged-in host's completion is ever reported.
      */
     private void recordDailyCompletionIfApplicable(Room room) {
-        if (!room.settings().daily()) {
+        if (!room.settings().daily() || room.dailyChallengeDate() == null) {
             return;
         }
         String hostName = room.findPlayer(room.hostPlayerId()).map(Player::name).orElse(null);
         if (hostName != null && !DAILY_PLAYER_NAME.equals(hostName)) {
-            dailyStreakTracker.recordDailyCompletion(hostName);
-            recordDailyLeaderboardResult(hostName, room);
+            if (room.isDailyChallengeFor(DailySeed.today())) {
+                dailyStreakTracker.recordDailyCompletion(hostName);
+                recordDailyLeaderboardResult(hostName, room);
+            }
             recordDailyHistory(hostName, room);
         }
     }
@@ -562,7 +567,7 @@ public class GameApplicationService implements
                 .map(String::trim)
                 .collect(java.util.stream.Collectors.joining("-"));
         if (!wordChain.isBlank()) {
-            dailyHistoryRecorder.recordSolution(hostName, wordChain);
+            dailyHistoryRecorder.recordSolution(hostName, room.dailyChallengeDate(), wordChain);
         }
     }
 

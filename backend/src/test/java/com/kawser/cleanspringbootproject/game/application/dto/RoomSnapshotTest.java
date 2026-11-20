@@ -12,6 +12,8 @@ import com.kawser.cleanspringbootproject.game.domain.service.DefaultScoringPolic
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -153,5 +155,30 @@ class RoomSnapshotTest {
             assertThat(snapshot.chain().reveal()).isNotNull();
             assertThat(snapshot.chain().reveal().infiltratorPlayerIds()).containsExactly(infiltratorId);
         }
+    }
+
+    @Test
+    void snapshotMarksPastDailyChallengesAsNotCurrent() {
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
+        Room currentDailyRoom = Room.createDaily(
+                "TODAY",
+                RoomSettings.daily(GameLanguage.SPANISH, 3),
+                Player.host("today-host", "today-token", "Today", "seed-today"),
+                Instant.now(),
+                today);
+        Room pastDailyRoom = Room.createDaily(
+                "PAST",
+                RoomSettings.daily(GameLanguage.SPANISH, 3),
+                Player.host("past-host", "past-token", "Past", "seed-past"),
+                Instant.now(),
+                today.minusDays(1));
+
+        RoomSnapshot currentSnapshot = RoomSnapshot.from(currentDailyRoom, "today-host");
+        RoomSnapshot pastSnapshot = RoomSnapshot.from(pastDailyRoom, "past-host");
+
+        assertThat(currentSnapshot.dailyChallengeIsCurrent()).isTrue();
+        assertThat(currentSnapshot.dailyChallengeDate()).isEqualTo(today.toString());
+        assertThat(pastSnapshot.dailyChallengeIsCurrent()).isFalse();
+        assertThat(pastSnapshot.dailyChallengeDate()).isEqualTo(today.minusDays(1).toString());
     }
 }

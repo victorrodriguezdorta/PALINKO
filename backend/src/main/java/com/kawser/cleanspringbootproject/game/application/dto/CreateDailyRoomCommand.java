@@ -2,6 +2,8 @@ package com.kawser.cleanspringbootproject.game.application.dto;
 
 import com.kawser.cleanspringbootproject.game.domain.model.GameLanguage;
 
+import java.time.LocalDate;
+
 /**
  * A daily challenge is solo — there is nobody else in the room to show a
  * name to, so the player never picks one. authenticatedUsername is null for
@@ -10,5 +12,9 @@ import com.kawser.cleanspringbootproject.game.domain.model.GameLanguage;
  * SecurityContext rather than client input, so a logged-in player's own
  * username is trustworthy here.
  */
-public record CreateDailyRoomCommand(GameLanguage language, String authenticatedUsername) {
+public record CreateDailyRoomCommand(GameLanguage language, String authenticatedUsername, LocalDate challengeDate) {
+
+    public CreateDailyRoomCommand(GameLanguage language, String authenticatedUsername) {
+        this(language, authenticatedUsername, null);
+    }
 }

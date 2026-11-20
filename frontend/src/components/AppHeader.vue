@@ -232,7 +232,14 @@ const headerWaveStyle = {
 
 @media (max-width: 639px) {
   .app-header__title--centered .app-header__logo {
-    height: 5.75rem;
+    /* Keep centered-logo headers clear of the back button and the mobile
+       settings/login controls. The logo is centered in the usable space,
+       rather than across the entire viewport. */
+    left: 4.75rem;
+    right: auto;
+    height: 4.25rem;
+    max-width: calc(100vw - 14rem);
+    transform: none;
   }
 
   .app-header__back-label {
