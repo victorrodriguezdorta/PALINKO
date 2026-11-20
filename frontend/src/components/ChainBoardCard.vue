@@ -126,6 +126,7 @@
             class="chain-board__input"
             :placeholder="t('room.chain.inputPlaceholder')"
             :disabled="streakHintVisible"
+            :autocorrect="autocorrectDisabledForRepeatedWord ? 'off' : 'on'"
             @input="onInput"
             @keyup.enter="$emit('submit')"
           />
@@ -283,6 +284,12 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const MAX_WORDS = 2
+
+const autocorrectDisabledForRepeatedWord = computed(() => {
+  const draft = props.wordDraft.trim().toLocaleLowerCase()
+  const previousWord = props.currentWord.trim().toLocaleLowerCase()
+  return draft.length > 0 && previousWord.length > 0 && (previousWord.startsWith(draft) || draft.startsWith(previousWord))
+})
 
 // Caps the field at two space-separated words (e.g. "buenos dias") by
 // dropping anything typed past the second word, rather than rejecting the
