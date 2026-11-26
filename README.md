@@ -9,6 +9,13 @@
 <p align="center">
   <b>Conecta dos palabras. Encuentra el camino más corto. Que la IA sea juez.</b>
 </p>
+<p align="center">
+  <a href="frontend/src/assets/palinko_tiktok.mp4">
+    <img src="frontend/src/assets/palinko_tiktok_readme.jpg" alt="Vídeo: cómo se juega a PALINKO" width="280" />
+  </a>
+  <br/>
+  <sub>▶️ <b>Mira en 1 minuto cómo se juega</b></sub>
+</p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Java_21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21" />

@@ -47,6 +47,7 @@
       "heading": "¿Cómo jugar?",
       "hint": "Cada jugador dice una palabra relacionada con la anterior, acercándose a la palabra objetivo.",
       "goal": "La idea es conseguirlo en el menor número de palabras posible.",
+      "videoLabel": "Vídeo: cómo se juega a PALINKO",
       "sequences": [
         [
           { "emoji": "📚", "word": "Libro" },

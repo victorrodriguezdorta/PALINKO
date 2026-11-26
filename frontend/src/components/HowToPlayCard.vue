@@ -1,71 +1,90 @@
 <template>
   <section class="how-to-play" :style="waveStyle">
     <div class="how-to-play__inner">
-      <h2 class="how-to-play__title">{{ t('home.howToPlay.heading') }}</h2>
-      <p class="how-to-play__hint">{{ t('home.howToPlay.hint') }}</p>
+      <div class="how-to-play__content">
+        <h2 class="how-to-play__title">{{ t('home.howToPlay.heading') }}</h2>
+        <p class="how-to-play__hint">{{ t('home.howToPlay.hint') }}</p>
 
-      <div class="how-to-play__chain">
-        <template v-for="(step, index) in steps" :key="index">
-          <div class="how-to-play__step" :style="{ '--how-to-play-delay': `${index * 0.4}s` }">
-            <span class="how-to-play__emoji" aria-hidden="true">{{ step.emoji }}</span>
-            <span class="how-to-play__word">{{ step.word }}</span>
-          </div>
-          <div
-            v-if="index < steps.length - 1"
-            class="how-to-play__arrow"
-            :style="{ '--how-to-play-delay': `${index * 0.4 + 0.2}s` }"
-            aria-hidden="true"
-          >
-            <ArrowDown class="how-to-play__arrow-icon how-to-play__arrow-icon--down" :size="22" />
-            <ArrowRight class="how-to-play__arrow-icon how-to-play__arrow-icon--right" :size="22" />
-          </div>
-        </template>
-      </div>
-
-      <p class="how-to-play__goal">{{ t('home.howToPlay.goal') }}</p>
-
-      <div class="how-to-play__ai">
-        <h3 class="how-to-play__ai-title">{{ t('home.aiValidation.heading') }}</h3>
-        <p class="how-to-play__ai-hint">{{ t('home.aiValidation.hint') }}</p>
-
-        <div class="how-to-play__ai-stage">
-          <TransitionGroup name="how-to-play-ai-fade">
-            <div class="how-to-play__ai-row" :key="pair.left + pair.right">
-              <span class="how-to-play__ai-col how-to-play__ai-col--left">
-                <span class="how-to-play__ai-word">{{ pair.left }}</span>
-              </span>
-
-              <span class="how-to-play__ai-col how-to-play__ai-col--center">
-                <span class="how-to-play__ai-brain" aria-hidden="true">
-                  <img class="how-to-play__ai-brain-icon" :src="aiIcon" alt="" />
-                </span>
-                <span
-                  class="how-to-play__ai-badge"
-                  :class="pair.related ? 'how-to-play__ai-badge--yes' : 'how-to-play__ai-badge--no'"
-                >
-                  <Check v-if="pair.related" :size="16" />
-                  <X v-else :size="16" />
-                  {{
-                    pair.related
-                      ? t('home.aiValidation.correctLabel')
-                      : t('home.aiValidation.incorrectLabel')
-                  }}
-                </span>
-              </span>
-
-              <span class="how-to-play__ai-col how-to-play__ai-col--right">
-                <span class="how-to-play__ai-word">{{ pair.right }}</span>
-              </span>
+        <div class="how-to-play__chain">
+          <template v-for="(step, index) in steps" :key="index">
+            <div class="how-to-play__step" :style="{ '--how-to-play-delay': `${index * 0.4}s` }">
+              <span class="how-to-play__emoji" aria-hidden="true">{{ step.emoji }}</span>
+              <span class="how-to-play__word">{{ step.word }}</span>
             </div>
-          </TransitionGroup>
+            <div
+              v-if="index < steps.length - 1"
+              class="how-to-play__arrow"
+              :style="{ '--how-to-play-delay': `${index * 0.4 + 0.2}s` }"
+              aria-hidden="true"
+            >
+              <ArrowDown class="how-to-play__arrow-icon how-to-play__arrow-icon--down" :size="22" />
+              <ArrowRight class="how-to-play__arrow-icon how-to-play__arrow-icon--right" :size="22" />
+            </div>
+          </template>
+        </div>
+
+        <p class="how-to-play__goal">{{ t('home.howToPlay.goal') }}</p>
+
+        <div class="how-to-play__ai">
+          <h3 class="how-to-play__ai-title">{{ t('home.aiValidation.heading') }}</h3>
+          <p class="how-to-play__ai-hint">{{ t('home.aiValidation.hint') }}</p>
+
+          <div class="how-to-play__ai-stage">
+            <TransitionGroup name="how-to-play-ai-fade">
+              <div class="how-to-play__ai-row" :key="pair.left + pair.right">
+                <span class="how-to-play__ai-col how-to-play__ai-col--left">
+                  <span class="how-to-play__ai-word">{{ pair.left }}</span>
+                </span>
+
+                <span class="how-to-play__ai-col how-to-play__ai-col--center">
+                  <span class="how-to-play__ai-brain" aria-hidden="true">
+                    <img class="how-to-play__ai-brain-icon" :src="aiIcon" alt="" />
+                  </span>
+                  <span
+                    class="how-to-play__ai-badge"
+                    :class="pair.related ? 'how-to-play__ai-badge--yes' : 'how-to-play__ai-badge--no'"
+                  >
+                    <Check v-if="pair.related" :size="16" />
+                    <X v-else :size="16" />
+                    {{
+                      pair.related
+                        ? t('home.aiValidation.correctLabel')
+                        : t('home.aiValidation.incorrectLabel')
+                    }}
+                  </span>
+                </span>
+
+                <span class="how-to-play__ai-col how-to-play__ai-col--right">
+                  <span class="how-to-play__ai-word">{{ pair.right }}</span>
+                </span>
+              </div>
+            </TransitionGroup>
+          </div>
         </div>
       </div>
+
+      <!-- Placed after the content in the DOM so it naturally lands at the
+           bottom on narrow screens; on wide screens the grid moves it into
+           the left column. -->
+      <figure class="how-to-play__video">
+        <video
+          class="how-to-play__video-player"
+          :src="howToPlayVideo"
+          :poster="howToPlayPoster"
+          :aria-label="t('home.howToPlay.videoLabel')"
+          controls
+          playsinline
+          preload="none"
+        />
+      </figure>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import aiIcon from '@/assets/images/ai.svg'
+import howToPlayVideo from '@/assets/palinko_tiktok.mp4'
+import howToPlayPoster from '@/assets/palinko_tiktok_poster.jpg'
 import { THEME_COLORS } from '@/assets/theme'
 import { ArrowDown, ArrowRight, Check, X } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
@@ -190,6 +209,58 @@ const waveStyle = {
   flex-direction: column;
   align-items: center;
   text-align: center;
+}
+
+.how-to-play__content {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.how-to-play__video {
+  width: 100%;
+  max-width: 18rem;
+  margin: 2.5rem 0 0;
+}
+
+.how-to-play__video-player {
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  border-radius: 1.25rem;
+  border: 4px solid var(--color-white);
+  background: var(--color-bg-navy-800);
+  box-shadow:
+    0 6px 0 color-mix(in srgb, var(--color-accent-500) 55%, var(--color-black) 20%),
+    0 14px 28px -10px color-mix(in srgb, var(--color-gray-900) 45%, transparent);
+}
+
+/* Wide screens: video in a left column beside the explanation, kept in view
+   while the (taller) right column scrolls past. */
+@media (min-width: 1024px) {
+  .how-to-play__inner {
+    max-width: 72rem;
+    display: grid;
+    grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+    column-gap: 3rem;
+    align-items: start;
+  }
+
+  .how-to-play__video {
+    grid-column: 1;
+    grid-row: 1;
+    margin: 0;
+    position: sticky;
+    top: 1.5rem;
+  }
+
+  .how-to-play__content {
+    grid-column: 2;
+    grid-row: 1;
+  }
 }
 
 .how-to-play__title {

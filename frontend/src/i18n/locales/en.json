@@ -47,6 +47,7 @@
       "heading": "How to play?",
       "hint": "Each player says a word related to the previous one, getting closer to the target word.",
       "goal": "The idea is to reach it using as few words as possible.",
+      "videoLabel": "Video: how to play PALINKO (in Spanish)",
       "sequences": [
         [
           { "emoji": "📚", "word": "Book" },
