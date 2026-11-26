@@ -10,6 +10,7 @@ export interface AuthUser {
   avatarSeed: string
   role: UserRole
   currentStreak: number
+  dailyGamesPlayed: number
 }
 
 export interface LoginPayload {

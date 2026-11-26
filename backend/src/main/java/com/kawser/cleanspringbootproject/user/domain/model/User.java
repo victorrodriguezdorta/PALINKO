@@ -22,9 +22,16 @@ public final class User {
     private final OneTimePassword otp;
     private final int currentStreak;
     private final LocalDate lastStreakDate;
+    private final int dailyGamesPlayed;
 
     public User(Long id, String username, String passwordHash, String email, boolean enabled, UserRole role,
             String avatarSeed, OneTimePassword otp, int currentStreak, LocalDate lastStreakDate) {
+        this(id, username, passwordHash, email, enabled, role, avatarSeed, otp, currentStreak, lastStreakDate, 0);
+    }
+
+    public User(Long id, String username, String passwordHash, String email, boolean enabled, UserRole role,
+            String avatarSeed, OneTimePassword otp, int currentStreak, LocalDate lastStreakDate,
+            int dailyGamesPlayed) {
         this.id = id;
         this.username = username;
         this.passwordHash = passwordHash;
@@ -35,41 +42,42 @@ public final class User {
         this.otp = otp;
         this.currentStreak = currentStreak;
         this.lastStreakDate = lastStreakDate;
+        this.dailyGamesPlayed = dailyGamesPlayed;
     }
 
     public static User newAccount(String username, String passwordHash, String email, String avatarSeed,
             boolean enabled, OneTimePassword otp) {
-        return new User(null, username, passwordHash, email, enabled, UserRole.USER, avatarSeed, otp, 0, null);
+        return new User(null, username, passwordHash, email, enabled, UserRole.USER, avatarSeed, otp, 0, null, 0);
     }
 
     public User withId(Long id) {
         return new User(id, username, passwordHash, email, enabled, role, avatarSeed, otp, currentStreak,
-                lastStreakDate);
+                lastStreakDate, dailyGamesPlayed);
     }
 
     public User verified() {
         return new User(id, username, passwordHash, email, true, role, avatarSeed, null, currentStreak,
-                lastStreakDate);
+                lastStreakDate, dailyGamesPlayed);
     }
 
     public User withOtp(OneTimePassword newOtp) {
         return new User(id, username, passwordHash, email, enabled, role, avatarSeed, newOtp, currentStreak,
-                lastStreakDate);
+                lastStreakDate, dailyGamesPlayed);
     }
 
     public User withPasswordHash(String newPasswordHash) {
         return new User(id, username, newPasswordHash, email, enabled, role, avatarSeed, null, currentStreak,
-                lastStreakDate);
+                lastStreakDate, dailyGamesPlayed);
     }
 
     public User withUsername(String newUsername) {
         return new User(id, newUsername, passwordHash, email, enabled, role, avatarSeed, otp, currentStreak,
-                lastStreakDate);
+                lastStreakDate, dailyGamesPlayed);
     }
 
     public User withAvatarSeed(String newAvatarSeed) {
         return new User(id, username, passwordHash, email, enabled, role, newAvatarSeed, otp, currentStreak,
-                lastStreakDate);
+                lastStreakDate, dailyGamesPlayed);
     }
 
     /**
@@ -87,7 +95,8 @@ public final class User {
         }
         boolean consecutive = lastStreakDate != null && lastStreakDate.plusDays(1).equals(today);
         int newStreak = consecutive ? currentStreak + 1 : 1;
-        return new User(id, username, passwordHash, email, enabled, role, avatarSeed, otp, newStreak, today);
+        return new User(
+                id, username, passwordHash, email, enabled, role, avatarSeed, otp, newStreak, today, dailyGamesPlayed);
     }
 
     /**
@@ -143,5 +152,9 @@ public final class User {
 
     public LocalDate lastStreakDate() {
         return lastStreakDate;
+    }
+
+    public int dailyGamesPlayed() {
+        return dailyGamesPlayed;
     }
 }

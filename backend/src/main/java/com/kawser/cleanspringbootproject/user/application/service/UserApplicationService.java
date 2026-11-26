@@ -239,6 +239,7 @@ public class UserApplicationService implements
     private UserProfileResult toProfile(User user) {
         LocalDate today = LocalDate.now(ZoneOffset.UTC);
         return new UserProfileResult(
-                user.id(), user.username(), user.avatarSeed(), user.role(), user.currentStreakAsOf(today));
+                user.id(), user.username(), user.avatarSeed(), user.role(), user.currentStreakAsOf(today),
+                user.dailyGamesPlayed());
     }
 }

@@ -1,13 +1,26 @@
 <template>
   <div class="mx-auto p-6" :class="snapshot && snapshot.status !== 'CLOSED' ? 'max-w-6xl' : 'max-w-2xl'">
     <AppHeader
-      :title="isDaily ? dailyRoomTitle : t('room.title', { code: roomCode })"
+      :title="isDaily ? dailyRoomTitle : roomTitle"
       show-back
       center-logo
       :show-auth="false"
       :back-label="t('room.backToHome')"
       @back="onLeave"
     />
+
+    <div v-if="snapshot && !isDaily" class="mb-3 flex justify-end">
+      <button
+        type="button"
+        class="inline-flex items-center gap-2 rounded-lg border-2 border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-700"
+        :aria-pressed="roomCodeHidden"
+        @click="roomCodeHidden = !roomCodeHidden"
+      >
+        <EyeOff v-if="roomCodeHidden" :size="18" aria-hidden="true" />
+        <Eye v-else :size="18" aria-hidden="true" />
+        {{ roomCodeHidden ? t('room.codeVisibility.show') : t('room.codeVisibility.hide') }}
+      </button>
+    </div>
 
     <p v-if="gameStore.errorMessage" class="mb-4 flex items-center gap-2 rounded bg-error-100 p-2 text-sm text-error-700">
       <span>{{ translateError(gameStore.errorMessage) }}</span>
@@ -45,7 +58,11 @@
     <template v-else>
       <section v-if="snapshot.status === 'LOBBY'">
         <div class="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl border-2 border-white/20 bg-white p-4 shadow-lg">
-          <p>{{ t('room.lobby.shareCodeLabel') }} <strong>{{ roomCode }}</strong></p>
+          <p>
+            {{ roomCodeHidden ? t('room.lobby.codeHidden') : t('room.lobby.shareCodeLabel') }}
+            <strong v-if="roomCodeHidden">{{ t('room.codeVisibility.hiddenValue') }}</strong>
+            <strong v-else>{{ roomCode }}</strong>
+          </p>
 
           <CartoonButton
             v-if="gameStore.isHost"
@@ -330,7 +347,7 @@ import { useGameStore } from '@/stores/game'
 import { useLeaderboardStore } from '@/stores/leaderboard'
 import type { ApiError, AttemptView, GameLanguage, RevealedChainView } from '@/types/game'
 import { loadOrCreateAvatarSeed, persistAvatarSeed, randomAvatarSeed } from '@/utils/avatar'
-import { HelpCircle } from 'lucide-vue-next'
+import { Eye, EyeOff, HelpCircle } from 'lucide-vue-next'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -350,6 +367,10 @@ const leaderboardStore = useLeaderboardStore()
 const { play } = useSound()
 
 const roomCode = (route.params.code as string).trim().toUpperCase()
+const roomCodeHidden = ref(false)
+const roomTitle = computed(() =>
+  roomCodeHidden.value ? t('room.codeVisibility.hiddenTitle') : t('room.title', { code: roomCode }),
+)
 
 const joinByLinkName = ref('')
 const joinByLinkAvatarSeed = ref(loadOrCreateAvatarSeed())

@@ -164,6 +164,12 @@
     "pageTitle": "Sala",
     "title": "Sala {code}",
     "titleDaily": "Reto diario",
+    "codeVisibility": {
+      "hide": "Ocultar código de sala",
+      "show": "Mostrar código de sala",
+      "hiddenValue": "••••••",
+      "hiddenTitle": "Sala (código oculto)"
+    },
     "dailyBanner": "Reto diario",
     "howToPlayToggle": "¿Cómo jugar?",
     "backToHome": "Volver al inicio",
@@ -187,6 +193,7 @@
     },
     "lobby": {
       "shareCodeLabel": "Comparte este código con el resto de jugadores:",
+      "codeHidden": "Código de sala oculto:",
       "rulesHeading": "Reglas de la partida",
       "wordTimeLabel": "Segundos por turno",
       "voteTimeLabel": "Segundos para votar al infiltrado",
@@ -384,5 +391,24 @@
       "text": "Inicia sesión para guardar tu resultado y aparecer en la clasificación.",
       "cta": "Iniciar sesión"
     }
+  },
+  "creatorLetter": {
+    "greeting": "¡Hola, {username}!",
+    "intro": "Soy Víctor, el creador de PALINKO. 👋",
+    "body": "He visto que ya llevas unas cuantas partidas y me alegra muchísimo que te esté gustando. Quiero seguir mejorando el juego poco a poco, y nadie mejor que tú para decirme por dónde tirar.",
+    "ask": "¿Me echas una mano? Contéstame lo que quieras (todo es opcional):",
+    "suggestionLabel": "✨ ¿Qué añadirías nuevo?",
+    "suggestionPlaceholder": "Un modo de juego, una función, una idea loca...",
+    "issuesLabel": "🐞 ¿Algo que no te haya gustado o algún error?",
+    "issuesPlaceholder": "Cuéntame qué falló o qué cambiarías...",
+    "signOff": "¡Gracias por jugar!",
+    "signature": "Víctor",
+    "submit": "Enviar",
+    "close": "Cerrar carta",
+    "thanksTitle": "¡Gracias de corazón!",
+    "thanksBody": "He recibido tu mensaje y lo leeré con calma. 💜",
+    "thanksClose": "Seguir jugando",
+    "error": "No se pudo enviar. Inténtalo de nuevo en un momento.",
+    "alreadySent": "Ya me habías enviado tu opinión. ¡Gracias!"
   }
 }

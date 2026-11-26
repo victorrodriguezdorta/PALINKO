@@ -56,6 +56,9 @@ public class UserJpaEntity {
     @Column(name = "last_streak_date")
     private LocalDate lastStreakDate;
 
+    @Column(name = "daily_games_played", nullable = false)
+    private int dailyGamesPlayed;
+
     @Column(name = "is_bot", nullable = false)
     private boolean bot;
 
@@ -64,12 +67,18 @@ public class UserJpaEntity {
 
     public UserJpaEntity(Long id, String username, String password, UserRole role, String email, String avatarSeed,
             boolean enabled, OneTimePasswordEmbeddable otp, int currentStreak, LocalDate lastStreakDate) {
-        this(id, username, password, role, email, avatarSeed, enabled, otp, currentStreak, lastStreakDate, false);
+        this(id, username, password, role, email, avatarSeed, enabled, otp, currentStreak, lastStreakDate, false, 0);
     }
 
     public UserJpaEntity(Long id, String username, String password, UserRole role, String email, String avatarSeed,
             boolean enabled, OneTimePasswordEmbeddable otp, int currentStreak, LocalDate lastStreakDate,
             boolean bot) {
+        this(id, username, password, role, email, avatarSeed, enabled, otp, currentStreak, lastStreakDate, bot, 0);
+    }
+
+    public UserJpaEntity(Long id, String username, String password, UserRole role, String email, String avatarSeed,
+            boolean enabled, OneTimePasswordEmbeddable otp, int currentStreak, LocalDate lastStreakDate,
+            boolean bot, int dailyGamesPlayed) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -81,6 +90,7 @@ public class UserJpaEntity {
         this.currentStreak = currentStreak;
         this.lastStreakDate = lastStreakDate;
         this.bot = bot;
+        this.dailyGamesPlayed = dailyGamesPlayed;
     }
 
     public Long getId() {
@@ -121,6 +131,10 @@ public class UserJpaEntity {
 
     public LocalDate getLastStreakDate() {
         return lastStreakDate;
+    }
+
+    public int getDailyGamesPlayed() {
+        return dailyGamesPlayed;
     }
 
     public boolean isBot() {

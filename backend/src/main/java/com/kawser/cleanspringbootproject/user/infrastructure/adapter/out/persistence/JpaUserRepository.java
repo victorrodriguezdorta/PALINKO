@@ -40,4 +40,9 @@ public class JpaUserRepository implements UserRepository {
         UserJpaEntity saved = jpaRepository.save(UserMapper.toEntity(user));
         return UserMapper.toDomain(saved);
     }
+
+    @Override
+    public void incrementDailyGamesPlayed(Long userId) {
+        jpaRepository.incrementDailyGamesPlayed(userId);
+    }
 }

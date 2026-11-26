@@ -127,6 +127,7 @@
             :placeholder="t('room.chain.inputPlaceholder')"
             :disabled="streakHintVisible"
             :autocorrect="autocorrectDisabledForRepeatedWord ? 'off' : 'on'"
+            :spellcheck="!autocorrectDisabledForRepeatedWord"
             @input="onInput"
             @keyup.enter="$emit('submit')"
           />
@@ -285,10 +286,21 @@ const { t } = useI18n()
 
 const MAX_WORDS = 2
 
+const lastOwnAttempt = computed(() =>
+  [...props.attempts].reverse().find((attempt) => attempt.authorPlayerId === props.viewerPlayerId),
+)
+
 const autocorrectDisabledForRepeatedWord = computed(() => {
   const draft = props.wordDraft.trim().toLocaleLowerCase()
-  const previousWord = props.currentWord.trim().toLocaleLowerCase()
-  return draft.length > 0 && previousWord.length > 0 && (previousWord.startsWith(draft) || draft.startsWith(previousWord))
+  const rejectedWord =
+    lastOwnAttempt.value?.outcome === 'REJECTED' ? lastOwnAttempt.value.text.trim().toLocaleLowerCase() : ''
+  // Apply the setting before focus; mobile keyboards may not react to mid-entry changes.
+  if (!draft) return rejectedWord.length > 0
+
+  const wordsToMatch = [props.currentWord.trim().toLocaleLowerCase(), rejectedWord]
+  return wordsToMatch.some(
+    (word) => word.length > 0 && (word.startsWith(draft) || draft.startsWith(word)),
+  )
 })
 
 // Caps the field at two space-separated words (e.g. "buenos dias") by

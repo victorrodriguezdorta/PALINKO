@@ -15,7 +15,7 @@ final class UserMapper {
 
         return new User(entity.getId(), entity.getUsername(), entity.getPassword(), entity.getEmail(),
                 entity.isEnabled(), entity.getRole(), entity.getAvatarSeed(), otp, entity.getCurrentStreak(),
-                entity.getLastStreakDate());
+                entity.getLastStreakDate(), entity.getDailyGamesPlayed());
     }
 
     static UserJpaEntity toEntity(User user) {
@@ -24,6 +24,7 @@ final class UserMapper {
                 : null;
 
         return new UserJpaEntity(user.id(), user.username(), user.passwordHash(), user.role(), user.email(),
-                user.avatarSeed(), user.enabled(), otp, user.currentStreak(), user.lastStreakDate());
+                user.avatarSeed(), user.enabled(), otp, user.currentStreak(), user.lastStreakDate(), false,
+                user.dailyGamesPlayed());
     }
 }

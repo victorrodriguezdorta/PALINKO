@@ -4,6 +4,7 @@
     <RouterView />
   </div>
   <AppFooter />
+  <CreatorLetterModal />
 </template>
 
 <script setup lang="ts">
@@ -11,6 +12,7 @@ import { onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AnimatedBackground from '@/components/AnimatedBackground.vue'
 import AppFooter from '@/components/AppFooter.vue'
+import CreatorLetterModal from '@/components/CreatorLetterModal.vue'
 
 const { locale } = useI18n()
 

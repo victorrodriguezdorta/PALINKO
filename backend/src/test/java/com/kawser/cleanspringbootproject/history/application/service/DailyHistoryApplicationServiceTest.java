@@ -44,6 +44,11 @@ class DailyHistoryApplicationServiceTest {
             public User save(User savedUser) {
                 throw new UnsupportedOperationException();
             }
+
+            @Override
+            public void incrementDailyGamesPlayed(Long userId) {
+                throw new UnsupportedOperationException();
+            }
         };
         DailyHistoryRepository history = new DailyHistoryRepository() {
             @Override

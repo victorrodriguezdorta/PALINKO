@@ -164,6 +164,12 @@
     "pageTitle": "Room",
     "title": "Room {code}",
     "titleDaily": "Daily challenge",
+    "codeVisibility": {
+      "hide": "Hide room code",
+      "show": "Show room code",
+      "hiddenValue": "••••••",
+      "hiddenTitle": "Room (code hidden)"
+    },
     "dailyBanner": "Daily challenge",
     "howToPlayToggle": "How to play?",
     "backToHome": "Back to home",
@@ -187,6 +193,7 @@
     },
     "lobby": {
       "shareCodeLabel": "Share this code with the rest of the players:",
+      "codeHidden": "Room code hidden:",
       "rulesHeading": "Game rules",
       "wordTimeLabel": "Seconds per turn",
       "voteTimeLabel": "Seconds to vote for the infiltrator",
@@ -384,5 +391,24 @@
       "text": "Log in to save your result and show up on the leaderboard.",
       "cta": "Log in"
     }
+  },
+  "creatorLetter": {
+    "greeting": "Hi, {username}!",
+    "intro": "I'm Víctor, the creator of PALINKO. 👋",
+    "body": "I noticed you've played quite a few games, and I'm really happy you're enjoying it. I want to keep improving the game little by little, and nobody knows better than you where to go next.",
+    "ask": "Could you give me a hand? Answer whatever you like (everything is optional):",
+    "suggestionLabel": "✨ What would you add?",
+    "suggestionPlaceholder": "A game mode, a feature, a wild idea...",
+    "issuesLabel": "🐞 Anything you didn't like, or a bug you found?",
+    "issuesPlaceholder": "Tell me what went wrong or what you'd change...",
+    "signOff": "Thanks for playing!",
+    "signature": "Víctor",
+    "submit": "Send",
+    "close": "Close letter",
+    "thanksTitle": "Thank you so much!",
+    "thanksBody": "I got your message and I'll read it carefully. 💜",
+    "thanksClose": "Keep playing",
+    "error": "Couldn't send it. Please try again in a moment.",
+    "alreadySent": "You've already sent me your feedback. Thanks!"
   }
 }

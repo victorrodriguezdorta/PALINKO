@@ -5,6 +5,7 @@ import com.kawser.cleanspringbootproject.history.application.port.out.DailyHisto
 import com.kawser.cleanspringbootproject.user.application.port.out.UserRepository;
 import com.kawser.cleanspringbootproject.user.domain.model.User;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
@@ -20,8 +21,11 @@ public class GameDailyHistoryRecorder implements DailyHistoryRecorder {
     }
 
     @Override
+    @Transactional
     public void recordSolution(String username, LocalDate challengeDate, String wordChain) {
-        userRepository.findByUsername(username).ifPresent(user -> dailyHistoryRepository.upsertLatest(
-                user.id(), user.username(), challengeDate, wordChain));
+        userRepository.findByUsername(username).ifPresent(user -> {
+            userRepository.incrementDailyGamesPlayed(user.id());
+            dailyHistoryRepository.upsertLatest(user.id(), user.username(), challengeDate, wordChain);
+        });
     }
 }
